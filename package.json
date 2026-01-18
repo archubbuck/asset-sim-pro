@@ -1,0 +1,24 @@
+{
+  "name": "asset-sim-pro",
+  "version": "1.0.0",
+  "description": "Professional Asset Management Simulator - Enterprise-grade simulation platform for Asset Management Firms, Hedge Funds, and Proprietary Trading Desks",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky",
+    "commitlint": "commitlint --edit"
+  },
+  "keywords": [
+    "trading",
+    "simulation",
+    "asset-management",
+    "portfolio-management"
+  ],
+  "author": "AssetSim Pro Team",
+  "license": "ISC",
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "husky": "^9.1.7"
+  }
+}
