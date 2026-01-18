@@ -1,7 +1,7 @@
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_eventhub_namespace" "eh_ns" {
-  name                          = "ehns-assetsim-prod"
+  name                          = "ehns-assetsim-${var.environment}"
   location                      = var.location
   resource_group_name           = var.resource_group_name
   sku                           = "Standard"
@@ -10,7 +10,7 @@ resource "azurerm_eventhub_namespace" "eh_ns" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -42,12 +42,12 @@ resource "azurerm_private_endpoint" "eventhub_pe" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
 resource "azurerm_key_vault" "kv" {
-  name                          = "kv-assetsim-prod"
+  name                          = "kv-assetsim-${var.environment}"
   location                      = var.location
   resource_group_name           = var.resource_group_name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
@@ -58,7 +58,7 @@ resource "azurerm_key_vault" "kv" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -82,6 +82,6 @@ resource "azurerm_private_endpoint" "keyvault_pe" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }

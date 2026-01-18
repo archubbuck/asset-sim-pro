@@ -22,3 +22,9 @@ variable "private_dns_zone_redis_id" {
   description = "ID of the Redis private DNS zone"
   type        = string
 }
+
+variable "environment" {
+  description = "Environment name (e.g., prod, staging, dev)"
+  type        = string
+  default     = "prod"
+}

@@ -24,3 +24,9 @@ variable "subnet_endpoints_cidr" {
   type        = string
   default     = "10.0.2.0/24"
 }
+
+variable "environment" {
+  description = "Environment name (e.g., prod, staging, dev)"
+  type        = string
+  default     = "prod"
+}

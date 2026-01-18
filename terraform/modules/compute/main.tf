@@ -1,6 +1,6 @@
 # 1. Premium Plan for Function App
 resource "azurerm_service_plan" "plan" {
-  name                = "asp-assetsim-prod"
+  name                = "asp-assetsim-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   os_type             = "Linux"
@@ -8,7 +8,7 @@ resource "azurerm_service_plan" "plan" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -24,7 +24,7 @@ resource "azurerm_storage_account" "func_storage" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -38,7 +38,7 @@ resource "azurerm_private_endpoint" "storage_pe" {
   private_service_connection {
     name                           = "psc-func-storage"
     private_connection_resource_id = azurerm_storage_account.func_storage.id
-    subresource_names              = ["blob", "file"]
+    subresource_names              = ["blob"]
     is_manual_connection           = false
   }
 
@@ -49,13 +49,13 @@ resource "azurerm_private_endpoint" "storage_pe" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
 # 3. Dedicated Function App (Backend API & Engine)
 resource "azurerm_linux_function_app" "backend" {
-  name                = "func-assetsim-backend-prod"
+  name                = "func-assetsim-backend-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   service_plan_id     = azurerm_service_plan.plan.id
@@ -93,7 +93,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "vnet_integratio
 
 # 5. Static Web App (Frontend)
 resource "azurerm_static_web_app" "frontend" {
-  name                = "stapp-assetsim-prod"
+  name                = "stapp-assetsim-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.static_web_app_location
   sku_tier            = "Standard"
@@ -101,7 +101,7 @@ resource "azurerm_static_web_app" "frontend" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 

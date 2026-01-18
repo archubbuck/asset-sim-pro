@@ -1,5 +1,5 @@
 resource "azurerm_redis_cache" "redis" {
-  name                          = "redis-assetsim-prod"
+  name                          = "redis-assetsim-${var.environment}"
   location                      = var.location
   resource_group_name           = var.resource_group_name
   capacity                      = 1
@@ -11,7 +11,7 @@ resource "azurerm_redis_cache" "redis" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -35,6 +35,6 @@ resource "azurerm_private_endpoint" "redis_pe" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }

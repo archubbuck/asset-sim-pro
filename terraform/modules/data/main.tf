@@ -13,7 +13,7 @@ resource "azurerm_mssql_server" "sql" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -38,7 +38,7 @@ resource "azurerm_mssql_elasticpool" "pool" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -49,7 +49,7 @@ resource "azurerm_mssql_database" "db" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
@@ -73,6 +73,6 @@ resource "azurerm_private_endpoint" "sql_pe" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }

@@ -28,6 +28,7 @@ module "network" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   vnet_cidr           = var.vnet_cidr
+  environment         = var.environment
 }
 
 module "data" {
@@ -48,6 +49,7 @@ module "cache" {
   subnet_id                   = module.network.subnet_endpoints_id
   vnet_id                     = module.network.vnet_id
   private_dns_zone_redis_id   = module.network.private_dns_zone_redis_id
+  environment                 = var.environment
 }
 
 module "messaging" {
@@ -58,6 +60,7 @@ module "messaging" {
   vnet_id                       = module.network.vnet_id
   private_dns_zone_eventhub_id  = module.network.private_dns_zone_eventhub_id
   private_dns_zone_keyvault_id  = module.network.private_dns_zone_keyvault_id
+  environment                   = var.environment
 }
 
 module "compute" {

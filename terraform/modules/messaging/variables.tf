@@ -27,3 +27,9 @@ variable "private_dns_zone_keyvault_id" {
   description = "ID of the Key Vault private DNS zone"
   type        = string
 }
+
+variable "environment" {
+  description = "Environment name (e.g., prod, staging, dev)"
+  type        = string
+  default     = "prod"
+}

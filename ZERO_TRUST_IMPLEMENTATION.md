@@ -219,34 +219,34 @@ terraform/
 ## Security Validation
 
 ### Network Isolation ✅
-- [ ] SQL Server public access disabled
-- [ ] Redis public access disabled
-- [ ] Event Hubs public access disabled
-- [ ] Key Vault public access disabled
-- [ ] Private endpoints configured for all services
-- [ ] Function App integrated with VNet
-- [ ] All outbound traffic routed through VNet
+- [x] SQL Server public access disabled
+- [x] Redis public access disabled
+- [x] Event Hubs public access disabled
+- [x] Key Vault public access disabled
+- [x] Private endpoints configured for all services
+- [x] Function App integrated with VNet
+- [x] All outbound traffic routed through VNet
 
 ### Identity & Authentication ✅
-- [ ] Microsoft Entra ID configured as identity provider
-- [ ] Single-tenant authentication enforced
-- [ ] User principal extracted from Entra ID tokens
-- [ ] Unauthorized requests rejected (401)
+- [x] Microsoft Entra ID configured as identity provider
+- [x] Single-tenant authentication enforced
+- [x] User principal extracted from Entra ID tokens
+- [x] Unauthorized requests rejected (401)
 
 ### Authorization & RBAC ✅
-- [ ] Exchange-scoped roles defined (RiskManager, PortfolioManager, Analyst)
-- [ ] Row-Level Security policies applied
-- [ ] Session context set for RLS enforcement
-- [ ] Creator automatically assigned RiskManager role
-- [ ] Users can only access their authorized exchanges
+- [x] Exchange-scoped roles defined (RiskManager, PortfolioManager, Analyst)
+- [x] Row-Level Security policies applied
+- [x] Session context set for RLS enforcement
+- [x] Creator automatically assigned RiskManager role
+- [x] Users can only access their authorized exchanges
 
 ### Provisioning Workflow ✅
-- [ ] POST /api/v1/exchanges endpoint implemented
-- [ ] Exchange creation in transaction
-- [ ] Default configuration created
-- [ ] RiskManager role assigned to creator
-- [ ] Validation with Zod schemas
-- [ ] RFC 7807 error responses
+- [x] POST /api/v1/exchanges endpoint implemented
+- [x] Exchange creation in transaction
+- [x] Default configuration created
+- [x] RiskManager role assigned to creator
+- [x] Validation with Zod schemas
+- [x] RFC 7807 error responses
 
 ## Deployment
 
