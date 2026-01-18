@@ -19,7 +19,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-assetsim-prod-useast2"
+  name     = "rg-assetsim-${var.environment}-useast2"
   location = var.location
 }
 
