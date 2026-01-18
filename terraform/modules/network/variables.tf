@@ -14,13 +14,13 @@ variable "vnet_cidr" {
 }
 
 variable "subnet_integration_cidr" {
-  description = "CIDR block for integration subnet"
+  description = "CIDR block for integration subnet (must be within vnet_cidr range)"
   type        = string
   default     = "10.0.1.0/24"
 }
 
 variable "subnet_endpoints_cidr" {
-  description = "CIDR block for endpoints subnet"
+  description = "CIDR block for endpoints subnet (must be within vnet_cidr range)"
   type        = string
   default     = "10.0.2.0/24"
 }

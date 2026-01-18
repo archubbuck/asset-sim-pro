@@ -24,6 +24,12 @@ variable "sql_admin_password" {
   sensitive   = true
 }
 
+variable "sql_admin_username" {
+  description = "SQL Server administrator username"
+  type        = string
+  default     = "sqladmin"
+}
+
 variable "private_dns_zone_sql_id" {
   description = "ID of the SQL private DNS zone"
   type        = string

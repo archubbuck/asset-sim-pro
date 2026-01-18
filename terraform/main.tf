@@ -18,8 +18,12 @@ provider "azurerm" {
   }
 }
 
+locals {
+  region_suffix = lower(replace(var.location, " ", ""))
+}
+
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-assetsim-${var.environment}-useast2"
+  name     = "rg-assetsim-${var.environment}-${local.region_suffix}"
   location = var.location
 }
 

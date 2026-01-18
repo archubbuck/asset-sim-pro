@@ -14,8 +14,18 @@ export async function getConnectionPool(): Promise<sql.ConnectionPool> {
     throw new Error('SQL_CONNECTION_STRING environment variable is required');
   }
 
-  pool = await sql.connect(connectionString);
-  return pool;
+  try {
+    pool = await sql.connect(connectionString);
+    return pool;
+  } catch (err: unknown) {
+    // Log detailed information to help diagnose connection issues (e.g. private endpoint/network problems)
+    const error = err as Error & { code?: unknown };
+    console.error('Failed to initialize SQL connection pool.', {
+      message: error.message,
+      code: error.code,
+    });
+    throw err;
+  }
 }
 
 export async function setSessionContext(

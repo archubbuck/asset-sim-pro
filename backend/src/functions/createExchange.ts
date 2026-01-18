@@ -122,7 +122,7 @@ export async function createExchange(
         type: 'https://assetsim.com/errors/internal-error',
         title: 'Internal Server Error',
         status: 500,
-        detail: 'An error occurred while creating the exchange',
+        detail: 'An internal error occurred while creating the exchange. Please try again or contact support if the issue persists.',
       },
     };
   }
