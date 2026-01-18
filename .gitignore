@@ -54,3 +54,9 @@ apps/backend/dist/
 __screenshots__/
 
 vitest.config.*.timestamp*
+# Testing artifacts
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+playwright/.cache/
