@@ -12,8 +12,8 @@ Per ADR-005, AssetSim Pro enforces a strict testing pyramid with:
 
 ### Scope
 Unit tests cover all business logic in:
-- `libs/client/features/*` - Frontend feature libraries
-- `apps/backend/functions` - Backend Azure Functions
+- `libs/client/features/*` - Frontend feature libraries (using **Jest** for Angular components)
+- `apps/backend/functions` - Backend Azure Functions (using **Vitest**)
 
 ### Coverage Requirements
 **80% Code Coverage is required before merge** across:
@@ -25,24 +25,29 @@ Unit tests cover all business logic in:
 ### Running Unit Tests
 
 ```bash
-# Run all unit tests
-npm run test:unit
+# Run all unit tests via Nx
+npm test
 
-# Run with coverage
-npm run test:coverage
-
-# Run in watch mode (development)
-npm run test:unit:watch
-
-# Run backend tests
+# Run backend tests (Vitest)
 npm run backend:test
 npm run backend:test:coverage
+
+# Run client feature tests (Jest via Nx)
+npx nx test trading
+
+# Run with coverage in watch mode
+npm run test:unit:watch
 ```
 
+### Test Frameworks
+- **Backend (apps/backend)**: Uses Vitest for fast, modern testing
+- **Client Libraries (libs/client/features/*)**: Uses Jest with jest-preset-angular for Angular components
+- Both frameworks enforce 80% coverage threshold
+
 ### Configuration
-- Root workspace: `vitest.workspace.ts`
-- Trading library: `libs/client/features/trading/vitest.config.mts`
 - Backend: `apps/backend/vitest.config.mts`
+- Trading library: `libs/client/features/trading/jest.config.cts`
+- Finance models: `libs/shared/finance-models/vitest.config.mts`
 
 ## E2E Testing with Playwright
 

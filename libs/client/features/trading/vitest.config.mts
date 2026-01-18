@@ -12,6 +12,7 @@ export default defineConfig(() => ({
     globals: true,
     environment: 'jsdom',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['node_modules', 'dist', '**/*.e2e.spec.ts'],
     reporters: ['default'],
     coverage: {
       reportsDirectory: '../../../../coverage/libs/client/features/trading',
