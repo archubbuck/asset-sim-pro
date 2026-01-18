@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'lib-trading',
   imports: [],
   templateUrl: './trading.html',
-  styleUrl: './trading.css',
+  styleUrl: './trading.scss',
 })
 export class Trading {}
