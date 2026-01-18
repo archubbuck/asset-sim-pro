@@ -12,7 +12,7 @@ services:
       test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'LocalDevPassword123!' -Q 'SELECT 1' || exit 1"]
       interval: 10s
       timeout: 3s
-      retries: 10
+      retries: 10  # SQL Server takes longer to initialize on first start
       start_period: 10s
 
   redis:
