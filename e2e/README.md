@@ -23,10 +23,10 @@ npx playwright test e2e/critical-journey.spec.ts
 In CI, tests run against the Dockerized Local Environment (per ADR-003):
 ```bash
 # Start Docker Compose
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be healthy
-docker-compose ps
+docker compose ps
 
 # Run E2E tests
 npx playwright test

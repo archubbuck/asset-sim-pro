@@ -84,9 +84,9 @@ npm run test:e2e:headed
 ### CI Environment
 In CI, Docker Compose is started automatically:
 ```bash
-docker-compose up -d
+docker compose up -d
 npm run test:e2e
-docker-compose down -v
+docker compose down -v
 ```
 
 ## CI/CD Integration

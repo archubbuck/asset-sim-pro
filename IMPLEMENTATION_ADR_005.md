@@ -144,7 +144,7 @@ E2E tests run against the following services (per ADR-003):
 - Azurite (Azure Storage Emulator)
 - SignalR Emulator
 
-Services are started via `docker-compose up -d` and health-checked before tests run.
+Services are started via `docker compose up -d` and health-checked before tests run.
 
 ## Documentation
 

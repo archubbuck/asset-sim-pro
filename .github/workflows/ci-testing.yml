@@ -85,7 +85,7 @@ jobs:
       - name: Start Dockerized Local Environment
         run: |
           echo "Starting Docker Compose services per ADR-003"
-          docker-compose up -d
+          docker compose up -d
           
       - name: Wait for services to be healthy
         run: |
@@ -94,24 +94,24 @@ jobs:
           elapsed=0
           
           # Get total number of services
-          total_services=$(docker-compose config --services | wc -l)
+          total_services=$(docker compose config --services | wc -l)
           
           while [ $elapsed -lt $timeout ]; do
             # Count running services
-            running_services=$(docker-compose ps --services --filter "status=running" | wc -l)
+            running_services=$(docker compose ps --services --filter "status=running" | wc -l)
             
             # Check if any service is unhealthy or exited
-            if docker-compose ps | grep -qE "(unhealthy|Exit)"; then
+            if docker compose ps | grep -qE "(unhealthy|Exit)"; then
               echo "ERROR: One or more services are unhealthy or exited"
-              docker-compose ps
-              docker-compose logs
+              docker compose ps
+              docker compose logs
               exit 1
             fi
             
             # Check if all services are running
             if [ "$running_services" -eq "$total_services" ]; then
               echo "All $total_services services are running!"
-              docker-compose ps
+              docker compose ps
               break
             fi
             
@@ -122,8 +122,8 @@ jobs:
           
           if [ $elapsed -ge $timeout ]; then
             echo "Timeout waiting for services"
-            docker-compose ps
-            docker-compose logs
+            docker compose ps
+            docker compose logs
             exit 1
           fi
 
@@ -186,7 +186,7 @@ jobs:
           pkill -f "ng serve" || true
           
           # Stop Docker services
-          docker-compose down -v
+          docker compose down -v
 
   # Quality Gate - All tests must pass
   quality-gate:
