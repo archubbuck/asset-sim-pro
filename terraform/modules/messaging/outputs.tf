@@ -1,0 +1,34 @@
+output "eventhub_namespace_id" {
+  description = "ID of the Event Hub namespace"
+  value       = azurerm_eventhub_namespace.eh_ns.id
+}
+
+output "eventhub_namespace_name" {
+  description = "Name of the Event Hub namespace"
+  value       = azurerm_eventhub_namespace.eh_ns.name
+}
+
+output "eventhub_id" {
+  description = "ID of the market ticks Event Hub"
+  value       = azurerm_eventhub.ticks.id
+}
+
+output "eventhub_name" {
+  description = "Name of the market ticks Event Hub"
+  value       = azurerm_eventhub.ticks.name
+}
+
+output "keyvault_id" {
+  description = "ID of the Key Vault"
+  value       = azurerm_key_vault.kv.id
+}
+
+output "keyvault_name" {
+  description = "Name of the Key Vault"
+  value       = azurerm_key_vault.kv.name
+}
+
+output "keyvault_uri" {
+  description = "URI of the Key Vault"
+  value       = azurerm_key_vault.kv.vault_uri
+}
