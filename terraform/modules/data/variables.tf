@@ -23,3 +23,8 @@ variable "sql_admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "private_dns_zone_sql_id" {
+  description = "ID of the SQL private DNS zone"
+  type        = string
+}

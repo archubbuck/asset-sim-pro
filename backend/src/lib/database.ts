@@ -7,23 +7,14 @@ export async function getConnectionPool(): Promise<sql.ConnectionPool> {
     return pool;
   }
 
-  const config: sql.config = {
-    server: process.env.SQL_SERVER || '',
-    database: process.env.SQL_DATABASE || '',
-    authentication: {
-      type: 'default',
-      options: {
-        userName: process.env.SQL_USER || '',
-        password: process.env.SQL_PASSWORD || '',
-      },
-    },
-    options: {
-      encrypt: true,
-      trustServerCertificate: false,
-    },
-  };
+  // Use connection string from environment
+  const connectionString = process.env.SQL_CONNECTION_STRING || '';
 
-  pool = await sql.connect(config);
+  if (!connectionString) {
+    throw new Error('SQL_CONNECTION_STRING environment variable is required');
+  }
+
+  pool = await sql.connect(connectionString);
   return pool;
 }
 

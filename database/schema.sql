@@ -69,7 +69,7 @@ GO
 CREATE TABLE [Trade].[Orders] (
     [OrderId] UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     [PortfolioId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Portfolios]([PortfolioId]),
-    [ExchangeId] UNIQUEIDENTIFIER NOT NULL, -- Denormalized for RLS efficiency
+    [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]), -- Denormalized for RLS efficiency
     [Symbol] NVARCHAR(10) NOT NULL,
     [Side] NVARCHAR(10) NOT NULL CHECK ([Side] IN ('BUY', 'SELL', 'SHORT', 'COVER')),
     [Type] NVARCHAR(10) NOT NULL CHECK ([Type] IN ('MARKET', 'LIMIT', 'STOP')),

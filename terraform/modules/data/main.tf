@@ -66,6 +66,11 @@ resource "azurerm_private_endpoint" "sql_pe" {
     is_manual_connection           = false
   }
 
+  private_dns_zone_group {
+    name                 = "pdzg-sql"
+    private_dns_zone_ids = [var.private_dns_zone_sql_id]
+  }
+
   tags = {
     Service     = "AssetSim"
     Environment = "Production"

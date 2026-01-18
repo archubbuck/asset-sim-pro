@@ -32,3 +32,8 @@ output "private_dns_zone_keyvault_id" {
   description = "ID of the Key Vault private DNS zone"
   value       = azurerm_private_dns_zone.keyvault.id
 }
+
+output "private_dns_zone_blob_id" {
+  description = "ID of the Blob Storage private DNS zone"
+  value       = azurerm_private_dns_zone.blob.id
+}

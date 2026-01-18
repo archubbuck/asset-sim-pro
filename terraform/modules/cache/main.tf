@@ -28,6 +28,11 @@ resource "azurerm_private_endpoint" "redis_pe" {
     is_manual_connection           = false
   }
 
+  private_dns_zone_group {
+    name                 = "redis-dns-zone-group"
+    private_dns_zone_ids = [var.private_dns_zone_redis_id]
+  }
+
   tags = {
     Service     = "AssetSim"
     Environment = "Production"

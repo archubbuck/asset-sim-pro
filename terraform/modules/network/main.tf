@@ -10,7 +10,7 @@ resource "azurerm_subnet" "integration" {
   name                 = "snet-integration"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = [var.subnet_integration_cidr]
 
   delegation {
     name = "delegation"
@@ -26,7 +26,7 @@ resource "azurerm_subnet" "endpoints" {
   name                 = "snet-endpoints"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = [var.subnet_endpoints_cidr]
 }
 
 # Private DNS Zones
@@ -47,6 +47,11 @@ resource "azurerm_private_dns_zone" "eventhub" {
 
 resource "azurerm_private_dns_zone" "keyvault" {
   name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone" "blob" {
+  name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.resource_group_name
 }
 
@@ -76,5 +81,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
   name                  = "link-keyvault"
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.keyvault.name
+  virtual_network_id    = azurerm_virtual_network.vnet.id
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
+  name                  = "link-blob"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.blob.name
   virtual_network_id    = azurerm_virtual_network.vnet.id
 }

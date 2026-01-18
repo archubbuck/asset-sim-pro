@@ -35,6 +35,11 @@ resource "azurerm_private_endpoint" "eventhub_pe" {
     is_manual_connection           = false
   }
 
+  private_dns_zone_group {
+    name                 = "eventhub-dns-zone-group"
+    private_dns_zone_ids = [var.private_dns_zone_eventhub_id]
+  }
+
   tags = {
     Service     = "AssetSim"
     Environment = "Production"
@@ -68,6 +73,11 @@ resource "azurerm_private_endpoint" "keyvault_pe" {
     private_connection_resource_id = azurerm_key_vault.kv.id
     subresource_names              = ["vault"]
     is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "keyvault-dns-zone-group"
+    private_dns_zone_ids = [var.private_dns_zone_keyvault_id]
   }
 
   tags = {

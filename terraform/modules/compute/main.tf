@@ -20,6 +20,32 @@ resource "azurerm_storage_account" "func_storage" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
+  public_network_access_enabled = false
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = "Production"
+  }
+}
+
+# 2b. Private Endpoint for Storage Account
+resource "azurerm_private_endpoint" "storage_pe" {
+  name                = "pe-func-storage"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.subnet_endpoints_id
+
+  private_service_connection {
+    name                           = "psc-func-storage"
+    private_connection_resource_id = azurerm_storage_account.func_storage.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "storage-dns-zone-group"
+    private_dns_zone_ids = [var.private_dns_zone_blob_id]
+  }
 
   tags = {
     Service     = "AssetSim"

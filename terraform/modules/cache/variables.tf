@@ -17,3 +17,8 @@ variable "vnet_id" {
   description = "Virtual Network ID"
   type        = string
 }
+
+variable "private_dns_zone_redis_id" {
+  description = "ID of the Redis private DNS zone"
+  type        = string
+}

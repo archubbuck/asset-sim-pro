@@ -1,4 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import * as sql from 'mssql';
 import { CreateExchangeSchema, ExchangeResponse } from '../types/exchange';
 import { getConnectionPool } from '../lib/database';
 import { requireAuthentication } from '../lib/auth';
@@ -49,8 +50,8 @@ export async function createExchange(
 
       // Create Exchange record
       const exchangeResult = await transaction.request()
-        .input('name', name)
-        .input('createdBy', user.userId)
+        .input('name', sql.NVarChar, name)
+        .input('createdBy', sql.UniqueIdentifier, user.userId)
         .query(`
           INSERT INTO [Trade].[Exchanges] ([Name], [CreatedBy])
           OUTPUT INSERTED.[ExchangeId], INSERTED.[Name], INSERTED.[CreatedAt], INSERTED.[CreatedBy]
@@ -61,7 +62,7 @@ export async function createExchange(
 
       // Create default configuration for the exchange
       await transaction.request()
-        .input('exchangeId', exchange.ExchangeId)
+        .input('exchangeId', sql.UniqueIdentifier, exchange.ExchangeId)
         .query(`
           INSERT INTO [Trade].[ExchangeConfigurations] ([ExchangeId])
           VALUES (@exchangeId)
@@ -69,9 +70,9 @@ export async function createExchange(
 
       // Assign RiskManager (Admin) role to the creator
       await transaction.request()
-        .input('exchangeId', exchange.ExchangeId)
-        .input('userId', user.userId)
-        .input('role', 'RiskManager')
+        .input('exchangeId', sql.UniqueIdentifier, exchange.ExchangeId)
+        .input('userId', sql.UniqueIdentifier, user.userId)
+        .input('role', sql.NVarChar, 'RiskManager')
         .query(`
           INSERT INTO [Trade].[ExchangeRoles] ([ExchangeId], [UserId], [Role])
           VALUES (@exchangeId, @userId, @role)
