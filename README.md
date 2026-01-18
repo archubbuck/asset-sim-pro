@@ -23,6 +23,7 @@ AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates a
 - Node.js 20.x or higher
 - npm or yarn package manager
 - Git
+- Docker and Docker Compose (for local development)
 
 ### Installation
 
@@ -38,6 +39,101 @@ AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates a
    ```
 
    This will automatically set up Husky git hooks for commit message validation.
+
+### Local Development Environment (ADR-003)
+
+AssetSim Pro follows a **Zero Trust** architecture that prevents developers from connecting directly to Azure cloud resources during development. Instead, all services are emulated locally using Docker Compose.
+
+#### Starting Local Services
+
+1. Start all required services (SQL Server, Redis, Azurite, SignalR):
+   ```bash
+   docker compose up -d
+   ```
+
+2. Verify services are running:
+   ```bash
+   docker compose ps
+   ```
+
+3. Check service health:
+   ```bash
+   docker compose logs
+   ```
+
+#### Local Services Configuration
+
+The following services will be available:
+
+- **SQL Server 2022**: `localhost:1433`
+  - Username: `sa`
+  - Password: `LocalDevPassword123!`
+  - Database: `AssetSimPro`
+    - **Database initialization**: After the SQL Server container is running, create the `AssetSimPro` database (if it does not already exist). For example:
+      ```bash
+      docker compose exec sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "LocalDevPassword123!" -Q "IF DB_ID('AssetSimPro') IS NULL CREATE DATABASE AssetSimPro;"
+      ```
+
+- **Redis**: `localhost:6379`
+
+- **Azurite (Azure Storage Emulator)**:
+  - Blob Service: `localhost:10000`
+  - Queue Service: `localhost:10001`
+  - Table Service: `localhost:10002`
+
+- **SignalR Emulator**: `localhost:8888`
+  - Note: Uses community Docker image (klabbet/signalr-emulator) as Microsoft does not publish an official SignalR emulator to Docker Hub. The emulator is distributed as a .NET global tool.
+
+#### Environment Configuration
+
+Connection strings are configured in a `.env.local` file at the repository root, which should point to the local Docker services listed above. This file is automatically excluded from version control and **will not exist in a fresh clone**.
+
+To create your local environment configuration:
+
+1. In the project root (`asset-sim-pro`), create a new file named `.env.local` if it does not already exist.
+2. Add the connection strings and settings required by the application, pointing them to the local Docker endpoints. Use `.env.local.example` as a template:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+3. Review and adjust the connection strings as needed for your local setup.
+4. Save the file. The application will read these values from `.env.local` when running locally.
+
+#### Stopping Services
+
+```bash
+# Stop services but keep data
+docker compose stop
+
+# Stop and remove containers (keeps volumes)
+docker compose down
+
+# Stop and remove everything including data volumes
+docker compose down -v
+```
+
+#### Backend Development
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Install backend dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create your local settings file:
+   ```bash
+   cp local.settings.json.example local.settings.json
+   ```
+
+4. Start the Azure Functions runtime:
+   ```bash
+   npm start
+   ```
+
+The Azure Functions backend reads its configuration from `backend/local.settings.json`. Use the provided `local.settings.json.example` template which includes all required connection strings pointing to the local Docker services.
 
 ### Source Control Governance
 
@@ -94,7 +190,7 @@ Based on the architectural definitions in ARCHITECTURE.md:
 ### Phase 1: Governance & Foundations
 - **ADR-001**: Source Control Governance (Conventional Commits, Trunk-Based Development) ✅ Implemented
 - **ADR-002**: Zero Trust Network Architecture ✅ Implemented
-- **ADR-003**: Docker Compose for Local Development
+- **ADR-003**: Docker Compose for Local Development ✅ Implemented
 - **ADR-004**: Nx Workspace with Angular 21+ and Kendo UI
 - **ADR-005**: Vitest for Unit Testing, Playwright for E2E
 - **ADR-006**: GitHub Copilot Enterprise for AI-Assisted Development

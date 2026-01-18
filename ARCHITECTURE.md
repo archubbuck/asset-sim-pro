@@ -98,6 +98,8 @@ Use **Docker Compose** for local emulation.
       ports:  
         \- "8888:8888"
 
+**Note on SignalR Emulator:** Microsoft distributes the Azure SignalR Local Emulator as a .NET global tool (`Microsoft.Azure.SignalR.Emulator`) and does not publish an official Docker image to mcr.microsoft.com. The implementation uses the community-maintained Docker image `klabbet/signalr-emulator` which packages the official emulator.
+
 * **Environment Config:** The repo contains a .env.local that points connection strings to localhost:1433, localhost:6379, etc.
 
 ## **ADR-004: Workspace & Frontend Architecture (Nx, Angular, Kendo UI)**
