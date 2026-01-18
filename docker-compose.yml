@@ -48,6 +48,8 @@ services:
   # Note: Using community image as Microsoft does not publish an official
   # SignalR emulator Docker image to mcr.microsoft.com. The emulator is
   # distributed as a .NET global tool. This community image packages it.
+  # Version 1.0.0-preview1-10809 is pinned for reproducibility and has been
+  # tested with this project. Update only after verifying compatibility.
   signalr-emulator:
     image: klabbet/signalr-emulator:1.0.0-preview1-10809
     ports:
