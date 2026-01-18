@@ -101,7 +101,7 @@ jobs:
             running_services=$(docker-compose ps --services --filter "status=running" | wc -l)
             
             # Check if any service is unhealthy or exited
-            if docker-compose ps | grep -E "(unhealthy|Exit)"; then
+            if docker-compose ps | grep -qE "(unhealthy|Exit)"; then
               echo "ERROR: One or more services are unhealthy or exited"
               docker-compose ps
               docker-compose logs
