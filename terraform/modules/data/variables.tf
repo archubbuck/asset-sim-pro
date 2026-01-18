@@ -17,3 +17,9 @@ variable "vnet_id" {
   description = "Virtual Network ID"
   type        = string
 }
+
+variable "sql_admin_password" {
+  description = "SQL Server administrator password"
+  type        = string
+  sensitive   = true
+}

@@ -36,6 +36,7 @@ module "data" {
   location            = azurerm_resource_group.rg.location
   subnet_id           = module.network.subnet_endpoints_id
   vnet_id             = module.network.vnet_id
+  sql_admin_password  = var.sql_admin_password
 }
 
 module "cache" {

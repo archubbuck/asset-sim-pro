@@ -34,9 +34,14 @@ export async function setSessionContext(
   isSuperAdmin: boolean = false
 ): Promise<void> {
   // Set SESSION_CONTEXT for Row-Level Security
-  await request.query(`
-    EXEC sp_set_session_context @key = N'UserId', @value = '${userId}';
-    EXEC sp_set_session_context @key = N'ExchangeId', @value = '${exchangeId}';
-    EXEC sp_set_session_context @key = N'IsSuperAdmin', @value = ${isSuperAdmin ? 1 : 0};
-  `);
+  // Using parameterized approach to prevent SQL injection
+  await request
+    .input('userId', sql.UniqueIdentifier, userId)
+    .input('exchangeId', sql.UniqueIdentifier, exchangeId)
+    .input('isSuperAdmin', sql.Bit, isSuperAdmin ? 1 : 0)
+    .query(`
+      EXEC sp_set_session_context @key = N'UserId', @value = @userId;
+      EXEC sp_set_session_context @key = N'ExchangeId', @value = @exchangeId;
+      EXEC sp_set_session_context @key = N'IsSuperAdmin', @value = @isSuperAdmin;
+    `);
 }
