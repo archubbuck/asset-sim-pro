@@ -37,6 +37,9 @@ services:
       - azurite-data:/data
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 -l /data
 
+  # Note: Using community image as Microsoft does not publish an official
+  # SignalR emulator Docker image to mcr.microsoft.com. The emulator is
+  # distributed as a .NET global tool. This community image packages it.
   signalr-emulator:
     image: klabbet/signalr-emulator:1.0.0-preview1-10809
     ports:
@@ -45,6 +48,12 @@ services:
       - Azure__SignalR__Emulator__Upstream__UrlPrefix=http://host.docker.internal:7071
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/health" , "||", "exit", "1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
 volumes:
   sql-data:

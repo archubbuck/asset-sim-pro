@@ -78,6 +78,7 @@ The following services will be available:
   - Table Service: `localhost:10002`
 
 - **SignalR Emulator**: `localhost:8888`
+  - Note: Uses community Docker image (klabbet/signalr-emulator) as Microsoft does not publish an official SignalR emulator to Docker Hub. The emulator is distributed as a .NET global tool.
 
 #### Environment Configuration
 
