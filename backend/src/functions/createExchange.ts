@@ -43,9 +43,10 @@ export async function createExchange(
 
     // 3. Create Exchange and assign RiskManager role in a transaction
     const pool = await getConnectionPool();
-    const transaction = pool.transaction();
+    let transaction;
 
     try {
+      transaction = pool.transaction();
       await transaction.begin();
 
       // Create Exchange record
@@ -95,7 +96,9 @@ export async function createExchange(
         jsonBody: response,
       };
     } catch (error) {
-      await transaction.rollback();
+      if (transaction) {
+        await transaction.rollback();
+      }
       throw error;
     }
   } catch (error) {

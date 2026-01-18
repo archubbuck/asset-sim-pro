@@ -21,7 +21,7 @@ export function getUserFromRequest(req: HttpRequest): UserPrincipal | null {
     try {
       const principal = JSON.parse(Buffer.from(principalHeader, 'base64').toString('utf-8'));
       return {
-        userId: principal.userId || principal.sub,
+        userId: principal.userId ?? principal.sub ?? principal.oid,
         userDetails: principal.userDetails || principal.name || principal.email,
         identityProvider: principal.identityProvider || 'aad',
         userRoles: principal.userRoles || [],
@@ -35,7 +35,7 @@ export function getUserFromRequest(req: HttpRequest): UserPrincipal | null {
   // Fallback for local development (not for production use)
   if (process.env.NODE_ENV === 'development') {
     return {
-      userId: 'dev-user-id',
+      userId: '00000000-0000-0000-0000-000000000001',
       userDetails: 'Developer User',
       identityProvider: 'aad',
       userRoles: ['authenticated'],

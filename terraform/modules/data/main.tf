@@ -1,5 +1,5 @@
 resource "azurerm_mssql_server" "sql" {
-  name                          = "sql-assetsim-prod"
+  name                          = "sql-assetsim-${var.environment}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   version                       = "12.0"
@@ -18,7 +18,7 @@ resource "azurerm_mssql_server" "sql" {
 }
 
 resource "azurerm_mssql_elasticpool" "pool" {
-  name                = "ep-assetsim-prod"
+  name                = "ep-assetsim-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   server_name         = azurerm_mssql_server.sql.name

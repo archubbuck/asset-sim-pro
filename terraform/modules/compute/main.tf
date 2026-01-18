@@ -14,7 +14,7 @@ resource "azurerm_service_plan" "plan" {
 
 # 2. Storage Account for Function App (Required)
 resource "azurerm_storage_account" "func_storage" {
-  name                     = "stfuncassetsimprod"
+  name                     = "stfuncassetsim${var.environment}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
@@ -38,7 +38,7 @@ resource "azurerm_private_endpoint" "storage_pe" {
   private_service_connection {
     name                           = "psc-func-storage"
     private_connection_resource_id = azurerm_storage_account.func_storage.id
-    subresource_names              = ["blob"]
+    subresource_names              = ["blob", "file"]
     is_manual_connection           = false
   }
 
@@ -95,7 +95,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "vnet_integratio
 resource "azurerm_static_web_app" "frontend" {
   name                = "stapp-assetsim-prod"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.static_web_app_location
   sku_tier            = "Standard"
   sku_size            = "Standard"
 
@@ -109,4 +109,6 @@ resource "azurerm_static_web_app" "frontend" {
 resource "azurerm_static_web_app_function_app_registration" "link" {
   static_web_app_id         = azurerm_static_web_app.frontend.id
   function_app_resource_id  = azurerm_linux_function_app.backend.id
+
+  depends_on = [azurerm_linux_function_app.backend]
 }

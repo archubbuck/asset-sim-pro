@@ -28,3 +28,9 @@ variable "private_dns_zone_sql_id" {
   description = "ID of the SQL private DNS zone"
   type        = string
 }
+
+variable "environment" {
+  description = "Environment name (e.g., prod, staging, dev)"
+  type        = string
+  default     = "prod"
+}

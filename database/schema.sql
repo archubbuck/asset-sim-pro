@@ -13,7 +13,7 @@ GO
 
 -- 2. Exchange RBAC (Multi-User, Multi-Role)
 CREATE TABLE [Trade].[ExchangeRoles] (
-    [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]),
+    [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]) ON DELETE CASCADE,
     [UserId] UNIQUEIDENTIFIER NOT NULL, -- Entra Object ID
     [Role] NVARCHAR(50) NOT NULL CHECK ([Role] IN ('RiskManager', 'PortfolioManager', 'Analyst')),
     [AssignedAt] DATETIMEOFFSET DEFAULT SYSDATETIMEOFFSET(),
@@ -23,7 +23,7 @@ GO
 
 -- 3. Configuration (1:1 with Exchange)
 CREATE TABLE [Trade].[ExchangeConfigurations] (
-    [ExchangeId] UNIQUEIDENTIFIER PRIMARY KEY FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]),
+    [ExchangeId] UNIQUEIDENTIFIER PRIMARY KEY FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]) ON DELETE CASCADE,
     [VolatilityIndex] DECIMAL(5, 2) DEFAULT 1.0, -- 1.0 = Normal, 2.0 = High/Crisis
     [StartingCash] MONEY DEFAULT 10000000.00, -- Initial AUM
     [Commission] MONEY DEFAULT 5.00, -- Institutional Commission per Trade

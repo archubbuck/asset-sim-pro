@@ -48,7 +48,7 @@ Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager
 {
   "exchangeId": "550e8400-e29b-41d4-a716-446655440000",
   "name": "Alpha Strategy Fund",
-  "createdAt": "2026-01-18T04:00:00.000Z",
+  "createdAt": "2024-01-15T10:30:00.000Z",
   "createdBy": "user-entra-id"
 }
 ```
@@ -63,10 +63,7 @@ Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager
 
 Required environment variables for Azure deployment:
 
-- `SQL_SERVER`: Azure SQL Server hostname (private endpoint)
-- `SQL_DATABASE`: Database name
-- `SQL_USER`: SQL authentication username
-- `SQL_PASSWORD`: SQL authentication password (or use Managed Identity)
+- `SQL_CONNECTION_STRING`: Full Azure SQL Database connection string (typically stored in Key Vault and referenced via Function App settings)
 
 ## Row-Level Security (RLS)
 

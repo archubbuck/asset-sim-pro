@@ -22,3 +22,15 @@ variable "private_dns_zone_blob_id" {
   description = "ID of the Blob Storage private DNS zone"
   type        = string
 }
+
+variable "environment" {
+  description = "Environment name (e.g., prod, staging, dev)"
+  type        = string
+  default     = "prod"
+}
+
+variable "static_web_app_location" {
+  description = "Location for Static Web App (must be a supported region)"
+  type        = string
+  default     = "Central US"
+}

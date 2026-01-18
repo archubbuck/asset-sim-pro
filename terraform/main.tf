@@ -38,6 +38,7 @@ module "data" {
   vnet_id                  = module.network.vnet_id
   sql_admin_password       = var.sql_admin_password
   private_dns_zone_sql_id  = module.network.private_dns_zone_sql_id
+  environment              = var.environment
 }
 
 module "cache" {
@@ -66,4 +67,5 @@ module "compute" {
   subnet_integration_id   = module.network.subnet_integration_id
   subnet_endpoints_id     = module.network.subnet_endpoints_id
   private_dns_zone_blob_id = module.network.private_dns_zone_blob_id
+  environment             = var.environment
 }
