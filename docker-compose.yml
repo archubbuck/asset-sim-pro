@@ -38,11 +38,11 @@ services:
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 -l /data
 
   signalr-emulator:
-    image: mcr.microsoft.com/azure-signalr/emulator
+    image: klabbet/signalr-emulator:1.0.0-preview1-10809
     ports:
       - "8888:8888"
     environment:
-      - Upstream__UrlPrefix=http://host.docker.internal:7071
+      - Azure__SignalR__Emulator__Upstream__UrlPrefix=http://host.docker.internal:7071
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
