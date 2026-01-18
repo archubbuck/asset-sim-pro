@@ -61,11 +61,12 @@ module "messaging" {
 }
 
 module "compute" {
-  source                  = "./modules/compute"
-  resource_group_name     = azurerm_resource_group.rg.name
-  location                = azurerm_resource_group.rg.location
-  subnet_integration_id   = module.network.subnet_integration_id
-  subnet_endpoints_id     = module.network.subnet_endpoints_id
+  source                   = "./modules/compute"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  subnet_integration_id    = module.network.subnet_integration_id
+  subnet_endpoints_id      = module.network.subnet_endpoints_id
   private_dns_zone_blob_id = module.network.private_dns_zone_blob_id
-  environment             = var.environment
+  environment              = var.environment
+  static_web_app_location  = var.static_web_app_location
 }

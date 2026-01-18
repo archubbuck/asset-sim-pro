@@ -109,6 +109,4 @@ resource "azurerm_static_web_app" "frontend" {
 resource "azurerm_static_web_app_function_app_registration" "link" {
   static_web_app_id         = azurerm_static_web_app.frontend.id
   function_app_resource_id  = azurerm_linux_function_app.backend.id
-
-  depends_on = [azurerm_linux_function_app.backend]
 }

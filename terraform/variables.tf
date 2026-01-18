@@ -21,3 +21,9 @@ variable "sql_admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "static_web_app_location" {
+  description = "Location for Static Web App (must be a supported region)"
+  type        = string
+  default     = "Central US"
+}
