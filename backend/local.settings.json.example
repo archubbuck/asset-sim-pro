@@ -7,6 +7,5 @@
     "REDIS_CONNECTION_STRING": "localhost:6379",
     "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;QueueEndpoint=http://localhost:10001/devstoreaccount1;TableEndpoint=http://localhost:10002/devstoreaccount1;",
     "AZURE_SIGNALR_CONNECTION_STRING": "Endpoint=http://localhost;Port=8999;AccessKey=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGH;Version=1.0;"
-  },
-  "_comment": "SignalR emulator connection string uses Port=8999 as specified by the emulator's output. The container is exposed on port 8888 via docker-compose.yml. This is the emulator's standard format. See .env.local.example for detailed explanation."
+  }
 }
