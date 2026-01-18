@@ -71,7 +71,7 @@ The following services will be available:
   - Database: `AssetSimPro`
     - **Database initialization**: After the SQL Server container is running, create the `AssetSimPro` database (if it does not already exist). For example:
       ```bash
-      docker compose exec sql /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "LocalDevPassword123!" -Q "IF DB_ID('AssetSimPro') IS NULL CREATE DATABASE AssetSimPro;"
+      docker compose exec sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "LocalDevPassword123!" -Q "IF DB_ID('AssetSimPro') IS NULL CREATE DATABASE AssetSimPro;"
       ```
 
 - **Redis**: `localhost:6379`
@@ -123,12 +123,17 @@ docker compose down -v
    npm install
    ```
 
-3. Start the Azure Functions runtime:
+3. Create your local settings file:
+   ```bash
+   cp local.settings.json.example local.settings.json
+   ```
+
+4. Start the Azure Functions runtime:
    ```bash
    npm start
    ```
 
-The backend will automatically connect to the local Docker services using the connection strings from `.env.local`.
+The Azure Functions backend reads its configuration from `backend/local.settings.json`. Use the provided `local.settings.json.example` template which includes all required connection strings pointing to the local Docker services.
 
 ### Source Control Governance
 
