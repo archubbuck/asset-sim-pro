@@ -23,6 +23,7 @@ AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates a
 - Node.js 20.x or higher
 - npm or yarn package manager
 - Git
+- Docker and Docker Compose (for local development)
 
 ### Installation
 
@@ -38,6 +39,81 @@ AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates a
    ```
 
    This will automatically set up Husky git hooks for commit message validation.
+
+### Local Development Environment (ADR-003)
+
+AssetSim Pro follows a **Zero Trust** architecture that prevents developers from connecting directly to Azure cloud resources during development. Instead, all services are emulated locally using Docker Compose.
+
+#### Starting Local Services
+
+1. Start all required services (SQL Server, Redis, Azurite, SignalR):
+   ```bash
+   docker compose up -d
+   ```
+
+2. Verify services are running:
+   ```bash
+   docker compose ps
+   ```
+
+3. Check service health:
+   ```bash
+   docker compose logs
+   ```
+
+#### Local Services Configuration
+
+The following services will be available:
+
+- **SQL Server 2022**: `localhost:1433`
+  - Username: `sa`
+  - Password: `LocalDevPassword123!`
+  - Database: `AssetSimPro`
+
+- **Redis**: `localhost:6379`
+
+- **Azurite (Azure Storage Emulator)**:
+  - Blob Service: `localhost:10000`
+  - Queue Service: `localhost:10001`
+  - Table Service: `localhost:10002`
+
+- **SignalR Emulator**: `localhost:8888`
+
+#### Environment Configuration
+
+Connection strings are configured in `.env.local` which points to the local Docker services. This file is automatically excluded from version control.
+
+#### Stopping Services
+
+```bash
+# Stop services but keep data
+docker compose stop
+
+# Stop and remove containers (keeps volumes)
+docker compose down
+
+# Stop and remove everything including data volumes
+docker compose down -v
+```
+
+#### Backend Development
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Install backend dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the Azure Functions runtime:
+   ```bash
+   npm start
+   ```
+
+The backend will automatically connect to the local Docker services using the connection strings from `.env.local`.
 
 ### Source Control Governance
 
@@ -94,7 +170,7 @@ Based on the architectural definitions in ARCHITECTURE.md:
 ### Phase 1: Governance & Foundations
 - **ADR-001**: Source Control Governance (Conventional Commits, Trunk-Based Development) ✅ Implemented
 - **ADR-002**: Zero Trust Network Architecture ✅ Implemented
-- **ADR-003**: Docker Compose for Local Development
+- **ADR-003**: Docker Compose for Local Development ✅ Implemented
 - **ADR-004**: Nx Workspace with Angular 21+ and Kendo UI
 - **ADR-005**: Vitest for Unit Testing, Playwright for E2E
 - **ADR-006**: GitHub Copilot Enterprise for AI-Assisted Development
