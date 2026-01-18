@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-commit checks will be added here as the project grows
+# Examples: linting, formatting, unit tests
+echo "Running pre-commit checks..."
