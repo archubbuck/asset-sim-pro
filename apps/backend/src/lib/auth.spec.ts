@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { getUserFromRequest, requireAuthentication, UserPrincipal } from './auth';
+import { describe, it, expect } from 'vitest';
+import { getUserFromRequest, requireAuthentication } from './auth';
 import { HttpRequest } from '@azure/functions';
 
 describe('auth', () => {

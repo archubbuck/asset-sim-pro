@@ -92,20 +92,32 @@ jobs:
           echo "Waiting for services to be ready..."
           timeout=300
           elapsed=0
+          
+          # Get total number of services
+          total_services=$(docker-compose config --services | wc -l)
+          
           while [ $elapsed -lt $timeout ]; do
-            if docker-compose ps | grep -q "unhealthy"; then
-              echo "Some services are unhealthy, waiting..."
-              sleep 5
-              elapsed=$((elapsed + 5))
-            elif docker-compose ps | grep -q "starting"; then
-              echo "Services are starting, waiting..."
-              sleep 5
-              elapsed=$((elapsed + 5))
-            else
-              echo "All services are ready!"
+            # Count running services
+            running_services=$(docker-compose ps --services --filter "status=running" | wc -l)
+            
+            # Check if any service is unhealthy or exited
+            if docker-compose ps | grep -E "(unhealthy|Exit)"; then
+              echo "ERROR: One or more services are unhealthy or exited"
+              docker-compose ps
+              docker-compose logs
+              exit 1
+            fi
+            
+            # Check if all services are running
+            if [ "$running_services" -eq "$total_services" ]; then
+              echo "All $total_services services are running!"
               docker-compose ps
               break
             fi
+            
+            echo "Waiting for services... ($running_services/$total_services running)"
+            sleep 5
+            elapsed=$((elapsed + 5))
           done
           
           if [ $elapsed -ge $timeout ]; then
@@ -117,8 +129,6 @@ jobs:
 
       - name: Build Application
         run: npm run build
-        env:
-          NODE_ENV: production
 
       - name: Start Application Server
         run: |
@@ -171,10 +181,10 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          # Stop application
-          if [ ! -z "$APP_PID" ]; then
-            kill $APP_PID || true
-          fi
+          # Stop application - use pkill as APP_PID may be npm wrapper
+          pkill -f "nx serve client" || true
+          pkill -f "ng serve" || true
+          
           # Stop Docker services
           docker-compose down -v
 

@@ -22,34 +22,29 @@ test.describe('Critical User Journey: Trading Flow', () => {
 
     // Step 3: Verify Market Data is Loading
     // The dashboard should show widgets as per ADR configuration
-    await expect(page.locator('app-market-depth, text=Market Depth')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('app-market-depth:has-text("Market Depth")')).toBeVisible({ timeout: 5000 });
     
     // Step 4: Navigate to Execution Page
     await page.click('text=Execution');
     
-    // Step 5: Place an Order
-    // Note: This assumes an order form exists in the execution page
-    // Adjust selectors based on actual implementation
-    const orderButton = page.locator('button:has-text("Place Order"), button:has-text("Submit")').first();
-    if (await orderButton.isVisible({ timeout: 5000 })) {
-      // Fill order form (adjust selectors based on actual implementation)
-      const symbolInput = page.locator('input[name="symbol"], input[placeholder*="Symbol"]').first();
-      if (await symbolInput.isVisible({ timeout: 2000 })) {
-        await symbolInput.fill('SPY');
-      }
-      
-      const quantityInput = page.locator('input[name="quantity"], input[placeholder*="Quantity"]').first();
-      if (await quantityInput.isVisible({ timeout: 2000 })) {
-        await quantityInput.fill('100');
-      }
-    }
+    // Step 5: Place an Order (Currently skipped - order form not yet implemented)
+    // TODO: Once order form is implemented, this test should:
+    // 1. Verify order form is visible
+    // 2. Fill in order details (symbol, quantity, etc.)
+    // 3. Submit the order
+    // 4. Verify order confirmation
     
     // Step 6: Verify Blotter (Order History)
-    // Navigate to portfolio/blotter to verify order appears
+    // Navigate to portfolio/blotter to verify orders appear
     await page.click('text=Fund Performance');
     
     // Verify the page loaded successfully
     await expect(page.locator('body')).toContainText('Fund Performance', { timeout: 5000 });
+    
+    // TODO: Once blotter is implemented, add assertions to verify:
+    // - Order history table is visible
+    // - Orders are displayed with correct details
+    // This completes the critical journey: Login -> Place Order -> Verify Blotter
   });
 
   test('should display trading terminal with widgets', async ({ page }) => {
@@ -76,7 +71,8 @@ test.describe('Critical User Journey: Trading Flow', () => {
           widgetVisible = true;
           break;
         }
-      } catch {
+      } catch (error) {
+        console.warn(`Widget visibility check failed for "${widget}":`, error);
         // Widget not found, continue checking others
         continue;
       }
@@ -90,14 +86,14 @@ test.describe('Critical User Journey: Trading Flow', () => {
     
     // Navigate to Terminal
     await page.click('text=Terminal');
-    await expect(page).toHaveURL(/.*dashboard/);
+    await expect(page).toHaveURL(/\/dashboard($|\/)/);
     
     // Navigate to Fund Performance
     await page.click('text=Fund Performance');
-    await expect(page).toHaveURL(/.*portfolio/);
+    await expect(page).toHaveURL(/\/portfolio($|\/)/);
     
     // Navigate to Execution
     await page.click('text=Execution');
-    await expect(page).toHaveURL(/.*trade/);
+    await expect(page).toHaveURL(/\/trade($|\/)/);
   });
 });

@@ -10,7 +10,7 @@ export default defineConfig({
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,
   workers: process.env['CI'] ? 1 : undefined,
-  reporter: process.env['CI'] ? 'html' : 'list',
+  reporter: process.env['CI'] ? 'github' : 'list',
   
   use: {
     baseURL: process.env['BASE_URL'] || 'http://localhost:4200',
@@ -35,7 +35,7 @@ export default defineConfig({
 
   // Run local dev server before starting tests
   webServer: process.env['CI']
-    ? undefined // In CI, Docker Compose will handle this
+    ? undefined // In CI, the application is started separately by the CI workflow (see .github/workflows/ci-testing.yml)
     : {
         command: 'npm start',
         url: 'http://localhost:4200',
