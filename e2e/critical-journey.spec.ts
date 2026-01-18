@@ -70,9 +70,15 @@ test.describe('Critical User Journey: Trading Flow', () => {
     // At least one widget should be visible
     let widgetVisible = false;
     for (const widget of widgets) {
-      if (await page.locator(`text=${widget}`).isVisible({ timeout: 2000 }).catch(() => false)) {
-        widgetVisible = true;
-        break;
+      try {
+        const locator = page.locator(`text=${widget}`);
+        if (await locator.isVisible({ timeout: 2000 })) {
+          widgetVisible = true;
+          break;
+        }
+      } catch {
+        // Widget not found, continue checking others
+        continue;
       }
     }
     expect(widgetVisible).toBeTruthy();
