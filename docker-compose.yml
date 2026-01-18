@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   sql:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -36,6 +38,12 @@ services:
     volumes:
       - azurite-data:/data
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 -l /data
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:10000/devstoreaccount1?comp=list || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
   # Note: Using community image as Microsoft does not publish an official
   # SignalR emulator Docker image to mcr.microsoft.com. The emulator is

@@ -69,6 +69,10 @@ The following services will be available:
   - Username: `sa`
   - Password: `LocalDevPassword123!`
   - Database: `AssetSimPro`
+    - **Database initialization**: After the SQL Server container is running, create the `AssetSimPro` database (if it does not already exist). For example:
+      ```bash
+      docker exec -it asset-sim-pro-sql-1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "LocalDevPassword123!" -Q "IF DB_ID('AssetSimPro') IS NULL CREATE DATABASE AssetSimPro;"
+      ```
 
 - **Redis**: `localhost:6379`
 
@@ -82,7 +86,17 @@ The following services will be available:
 
 #### Environment Configuration
 
-Connection strings are configured in `.env.local` which points to the local Docker services. This file is automatically excluded from version control.
+Connection strings are configured in a `.env.local` file at the repository root, which should point to the local Docker services listed above. This file is automatically excluded from version control and **will not exist in a fresh clone**.
+
+To create your local environment configuration:
+
+1. In the project root (`asset-sim-pro`), create a new file named `.env.local` if it does not already exist.
+2. Add the connection strings and settings required by the application, pointing them to the local Docker endpoints. Use `.env.local.example` as a template:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+3. Review and adjust the connection strings as needed for your local setup.
+4. Save the file. The application will read these values from `.env.local` when running locally.
 
 #### Stopping Services
 
