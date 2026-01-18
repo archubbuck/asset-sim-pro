@@ -71,7 +71,7 @@ The following services will be available:
   - Database: `AssetSimPro`
     - **Database initialization**: After the SQL Server container is running, create the `AssetSimPro` database (if it does not already exist). For example:
       ```bash
-      docker exec -it asset-sim-pro-sql-1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "LocalDevPassword123!" -Q "IF DB_ID('AssetSimPro') IS NULL CREATE DATABASE AssetSimPro;"
+      docker compose exec sql /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "LocalDevPassword123!" -Q "IF DB_ID('AssetSimPro') IS NULL CREATE DATABASE AssetSimPro;"
       ```
 
 - **Redis**: `localhost:6379`
