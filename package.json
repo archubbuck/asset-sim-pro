@@ -2,7 +2,6 @@
   "name": "asset-sim-pro",
   "version": "1.0.0",
   "description": "Professional Asset Management Simulator - Enterprise-grade simulation platform for Asset Management Firms, Hedge Funds, and Proprietary Trading Desks",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky",

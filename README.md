@@ -151,13 +151,6 @@ All contributions must follow:
 
 ISC License
 
-## Status
-
-**Status**: Approved  
-**Version**: 7.1.0 (Final Release)  
-**Date**: January 17, 2026  
-**Architect**: Senior Architect
-
 ---
 
 For detailed architectural decisions and implementation specifications, see [ARCHITECTURE.md](./ARCHITECTURE.md).

@@ -188,7 +188,7 @@ All commits follow Conventional Commits format:
 |------------|--------|----------------|
 | Conventional Commits format | ✅ Complete | commitlint + Husky |
 | Commit message structure: `<type>(<scope>): <description>` | ✅ Complete | .commitlintrc.json rules |
-| Commitlint in pre-commit hook | ✅ Complete | .husky/commit-msg |
+| Commitlint in commit-msg hook | ✅ Complete | .husky/commit-msg |
 | Scaled Trunk-Based Development | ✅ Complete | Documented in CONTRIBUTING.md |
 | Main as protected branch | ✅ Documented | Requires GitHub settings |
 | Short-lived feature branches | ✅ Documented | Naming conventions defined |
