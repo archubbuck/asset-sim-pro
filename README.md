@@ -8,8 +8,35 @@ Enterprise-grade simulation platform designed for **Asset Management Firms**, **
 
 AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates and Portfolio Managers can train on execution strategies, risk management, and portfolio construction in a controlled environment. Organizations run private **"Exchanges"** (Simulation Venues), allowing Risk Managers to configure specific market regimes (e.g., "High Volatility," "Liquidity Crisis") to test their team's performance under pressure.
 
+## 🏗️ Workspace Structure (ADR-004)
+
+AssetSim Pro uses an **Nx monorepo** with Angular 21+ and Kendo UI:
+
+```
+asset-sim-pro/
+├── apps/
+│   ├── client/          # Institutional Trading Portal (Angular + Kendo UI)
+│   └── backend/         # Azure Function App (API & Market Engine)
+├── libs/
+│   ├── shared/
+│   │   └── finance-models/    # Shared TypeScript types
+│   └── client/
+│       └── features/
+│           └── trading/       # Trading execution logic
+```
+
+**Quick Start:**
+```bash
+npm install           # Install dependencies
+npm start            # Start Angular dev server
+npm run build:prod   # Build for production
+```
+
+See **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)** for detailed workspace documentation.
+
 ## Documentation
 
+- **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)**: Nx workspace structure and development workflow
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Complete architectural decisions and technical specifications
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines, git workflows, and contribution process
 - **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust Network Architecture implementation details

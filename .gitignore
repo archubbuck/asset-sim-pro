@@ -43,5 +43,14 @@ terraform/*.tfvars
 terraform/terraform.tfvars.json
 
 # Azure Functions
-backend/local.settings.json
-backend/dist/
+apps/backend/local.settings.json
+apps/backend/dist/
+
+# Nx
+.nx/cache
+.nx/workspace-data
+.angular
+
+__screenshots__/
+
+vitest.config.*.timestamp*
