@@ -12,6 +12,9 @@ AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates a
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Complete architectural decisions and technical specifications
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines, git workflows, and contribution process
+- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust Network Architecture implementation details
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Step-by-step deployment instructions for Azure infrastructure
+- **[ADR_002_IMPLEMENTATION_SUMMARY.md](./ADR_002_IMPLEMENTATION_SUMMARY.md)**: Complete summary of ADR-002 implementation
 
 ## Getting Started
 
@@ -89,8 +92,8 @@ asset-sim-pro/
 Based on the architectural definitions in ARCHITECTURE.md:
 
 ### Phase 1: Governance & Foundations
-- **ADR-001**: Source Control Governance (Conventional Commits, Trunk-Based Development)
-- **ADR-002**: Zero Trust Network Architecture
+- **ADR-001**: Source Control Governance (Conventional Commits, Trunk-Based Development) ✅ Implemented
+- **ADR-002**: Zero Trust Network Architecture ✅ Implemented
 - **ADR-003**: Docker Compose for Local Development
 - **ADR-004**: Nx Workspace with Angular 21+ and Kendo UI
 - **ADR-005**: Vitest for Unit Testing, Playwright for E2E
