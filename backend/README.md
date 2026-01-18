@@ -48,7 +48,7 @@ Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager
 {
   "exchangeId": "550e8400-e29b-41d4-a716-446655440000",
   "name": "Alpha Strategy Fund",
-  "createdAt": "2024-01-15T10:30:00.000Z",
+  "createdAt": "2026-01-15T10:30:00.000Z",
   "createdBy": "user-entra-id"
 }
 ```

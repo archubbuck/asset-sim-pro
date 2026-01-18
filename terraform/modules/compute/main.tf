@@ -81,7 +81,7 @@ resource "azurerm_linux_function_app" "backend" {
 
   tags = {
     Service     = "AssetSim"
-    Environment = "Production"
+    Environment = var.environment
   }
 }
 
