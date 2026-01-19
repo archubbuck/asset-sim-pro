@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 
 let redisClient: Redis | null = null;
+let connecting: Promise<Redis> | null = null;
 
 /**
  * Get or create Redis client singleton
@@ -15,6 +16,11 @@ export function getRedisClient(): Redis {
     return redisClient;
   }
 
+  // Prevent race condition by using a shared connection promise
+  if (connecting) {
+    throw new Error('Redis client is currently connecting. Please retry.');
+  }
+
   const connectionString = process.env.REDIS_CONNECTION_STRING;
 
   if (!connectionString) {
@@ -22,18 +28,58 @@ export function getRedisClient(): Redis {
   }
 
   try {
-    redisClient = new Redis(connectionString, {
-      enableAutoPipelining: true,
-      maxRetriesPerRequest: 3,
-      retryStrategy: (times: number) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
+    connecting = new Promise<Redis>((resolve, reject) => {
+      try {
+        const client = new Redis(connectionString, {
+          enableAutoPipelining: true,
+          maxRetriesPerRequest: 3,
+          retryStrategy: (times: number) => {
+            const delay = Math.min(times * 50, 2000);
+            return delay;
+          },
+        });
+
+        client.on('error', (error) => {
+          console.error('Redis client error:', error);
+        });
+
+        client.on('ready', () => {
+          redisClient = client;
+          connecting = null;
+          resolve(client);
+        });
+
+        client.on('close', () => {
+          console.warn('Redis connection closed');
+          redisClient = null;
+        });
+      } catch (err) {
+        connecting = null;
+        reject(err);
+      }
     });
 
-    redisClient.on('error', (error) => {
-      console.error('Redis client error:', error);
-    });
+    // For synchronous calls, return immediately if already initialized
+    // This maintains backward compatibility
+    if (!redisClient) {
+      redisClient = new Redis(connectionString, {
+        enableAutoPipelining: true,
+        maxRetriesPerRequest: 3,
+        retryStrategy: (times: number) => {
+          const delay = Math.min(times * 50, 2000);
+          return delay;
+        },
+      });
+
+      redisClient.on('error', (error) => {
+        console.error('Redis client error:', error);
+      });
+
+      redisClient.on('close', () => {
+        console.warn('Redis connection closed');
+        redisClient = null;
+      });
+    }
 
     return redisClient;
   } catch (err: unknown) {
@@ -63,10 +109,15 @@ export async function cacheQuote(
   },
   ttlSeconds: number = 60
 ): Promise<void> {
-  const client = getRedisClient();
-  const key = `QUOTE:${exchangeId}:${symbol}`;
-  
-  await client.setex(key, ttlSeconds, JSON.stringify(quoteData));
+  try {
+    const client = getRedisClient();
+    const key = `QUOTE:${exchangeId}:${symbol}`;
+    
+    await client.setex(key, ttlSeconds, JSON.stringify(quoteData));
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(`Failed to cache quote for ${exchangeId}:${symbol}: ${err.message}`);
+  }
 }
 
 /**
@@ -83,19 +134,25 @@ export async function getQuote(
   change?: number;
   changePercent?: number;
 } | null> {
-  const client = getRedisClient();
-  const key = `QUOTE:${exchangeId}:${symbol}`;
-  
-  const data = await client.get(key);
-  
-  if (!data) {
-    return null;
-  }
-
   try {
-    return JSON.parse(data);
+    const client = getRedisClient();
+    const key = `QUOTE:${exchangeId}:${symbol}`;
+    
+    const data = await client.get(key);
+    
+    if (!data) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      console.error(`Failed to parse cached quote for ${key}:`, error);
+      return null;
+    }
   } catch (error) {
-    console.error(`Failed to parse cached quote for ${key}:`, error);
+    const err = error as Error;
+    console.error(`Failed to retrieve quote for ${exchangeId}:${symbol}: ${err.message}`);
     return null;
   }
 }
@@ -117,10 +174,15 @@ export async function cacheExchangeConfig(
   },
   ttlSeconds: number = 300
 ): Promise<void> {
-  const client = getRedisClient();
-  const key = `CONFIG:${exchangeId}`;
-  
-  await client.setex(key, ttlSeconds, JSON.stringify(config));
+  try {
+    const client = getRedisClient();
+    const key = `CONFIG:${exchangeId}`;
+    
+    await client.setex(key, ttlSeconds, JSON.stringify(config));
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(`Failed to cache exchange config for ${exchangeId}: ${err.message}`);
+  }
 }
 
 /**
@@ -137,19 +199,25 @@ export async function getExchangeConfig(
   maxPortfolioSize?: number;
   dashboardLayout?: string;
 } | null> {
-  const client = getRedisClient();
-  const key = `CONFIG:${exchangeId}`;
-  
-  const data = await client.get(key);
-  
-  if (!data) {
-    return null;
-  }
-
   try {
-    return JSON.parse(data);
+    const client = getRedisClient();
+    const key = `CONFIG:${exchangeId}`;
+    
+    const data = await client.get(key);
+    
+    if (!data) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      console.error(`Failed to parse cached config for ${key}:`, error);
+      return null;
+    }
   } catch (error) {
-    console.error(`Failed to parse cached config for ${key}:`, error);
+    const err = error as Error;
+    console.error(`Failed to retrieve exchange config for ${exchangeId}: ${err.message}`);
     return null;
   }
 }
@@ -159,34 +227,45 @@ export async function getExchangeConfig(
  * Use when configuration is updated
  */
 export async function invalidateExchangeConfig(exchangeId: string): Promise<void> {
-  const client = getRedisClient();
-  const key = `CONFIG:${exchangeId}`;
-  
-  await client.del(key);
+  try {
+    const client = getRedisClient();
+    const key = `CONFIG:${exchangeId}`;
+    
+    await client.del(key);
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(`Failed to invalidate exchange config for ${exchangeId}: ${err.message}`);
+  }
 }
 
 /**
  * Invalidate all cached quotes for an exchange
  * Use when exchange is paused or reset
+ * Uses SCAN with count=1000 for efficient bulk deletion
  */
 export async function invalidateExchangeQuotes(exchangeId: string): Promise<void> {
-  const client = getRedisClient();
-  const pattern = `QUOTE:${exchangeId}:*`;
-  
-  // Use SCAN to avoid blocking
-  const stream = client.scanStream({
-    match: pattern,
-    count: 100,
-  });
+  try {
+    const client = getRedisClient();
+    const pattern = `QUOTE:${exchangeId}:*`;
+    
+    // Use SCAN to avoid blocking (count increased to 1000 for efficiency)
+    const stream = client.scanStream({
+      match: pattern,
+      count: 1000,
+    });
 
-  const keys: string[] = [];
-  
-  for await (const resultKeys of stream) {
-    keys.push(...resultKeys);
-  }
+    const keys: string[] = [];
+    
+    for await (const resultKeys of stream) {
+      keys.push(...resultKeys);
+    }
 
-  if (keys.length > 0) {
-    await client.del(...keys);
+    if (keys.length > 0) {
+      await client.del(...keys);
+    }
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(`Failed to invalidate quotes for exchange ${exchangeId}: ${err.message}`);
   }
 }
 
