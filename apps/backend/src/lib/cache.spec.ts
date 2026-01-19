@@ -7,6 +7,7 @@ import {
   getExchangeConfig,
   invalidateExchangeConfig,
   invalidateExchangeQuotes,
+  closeRedisConnection,
 } from './cache';
 
 // Mock ioredis module
@@ -288,6 +289,28 @@ describe('cache', () => {
 
       // del should not be called if no keys found
       expect(mockRedisInstance.del).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('closeRedisConnection', () => {
+    it('should close the Redis connection and reset singleton', async () => {
+      // First, initialize a client
+      const client = await getRedisClient();
+      expect(client).toBeDefined();
+
+      // Close the connection
+      await closeRedisConnection();
+
+      // Verify quit was called
+      expect(mockRedisInstance.quit).toHaveBeenCalled();
+    });
+
+    it('should handle case when no client exists', async () => {
+      // Close connection without initializing a client
+      await closeRedisConnection();
+
+      // Should not throw and should complete successfully
+      expect(mockRedisInstance.quit).not.toHaveBeenCalled();
     });
   });
 });

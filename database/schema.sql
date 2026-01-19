@@ -157,7 +157,7 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 );
 GO
 
--- 6. Apply RLS Policy to Exchange Feature Flags
+-- 6. Apply RLS Policy to Exchange Feature Flags (RLS Policy #6)
 CREATE SECURITY POLICY [Security].[ExchangeFeatureFlagsPolicy]
     ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags],
     ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags]
