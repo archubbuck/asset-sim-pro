@@ -83,6 +83,7 @@ When handling monetary values or financial calculations:
 
 - **Always use Decimal.js** (`decimal.js` package) for all financial calculations
 - **Never use native JavaScript number arithmetic** for money, percentages, or precise calculations
+- **Project setup requirement:** Ensure `decimal.js` is added as a dependency in `package.json` before using it
 - Import from `decimal.js`: `import { Decimal } from 'decimal.js';`
 
 - **Critical Use Cases:**
@@ -195,13 +196,14 @@ public displayValue = computed(() =>
 ### Logging (Required)
 
 - **Never use `console.log()`** directly in production code
-- **Always use LoggerService** from `@assetsim/client/core`
+- **Always use LoggerService** from `@assetsim/client/core` (to be implemented as part of core infrastructure)
 - Use appropriate log levels:
   - `logEvent()` for user actions and business events
   - `logTrace()` for diagnostic information
   - `logException()` for errors
 
 ```typescript
+// Example: LoggerService pattern (service to be implemented in @assetsim/client/core)
 import { inject } from '@angular/core';
 import { LoggerService } from '@assetsim/client/core';
 
@@ -272,8 +274,9 @@ import { LoggerService } from '@assetsim/client/core';
 })
 export class OrderEntryComponent {
   private logger = inject(LoggerService);
+  // Example: MarketDataService is a planned service (to be created in @assetsim/client/data-access)
   // import { MarketDataService } from '@assetsim/client/data-access';
-  private marketData = inject(MarketDataService); // Assumes service provides priceStream$
+  private marketData = inject(MarketDataService); // Assumes a future service providing priceStream$
   
   // Signals for state
   public orderPrice = signal(new Decimal(0));
@@ -343,7 +346,7 @@ export async function tickerGenerator(timer: Timer, context: InvocationContext) 
 
 // Register the function with Azure Functions runtime
 app.timer('tickerGenerator', {
-  schedule: '0 */1 * * * *', // Every second
+  schedule: '* * * * * *', // Every second
   handler: tickerGenerator
 });
 ```
