@@ -45,21 +45,29 @@ When generating chart or visualization code:
 
 - **Example Pattern:**
   ```typescript
+  // TypeScript component
   import { ChartComponent } from '@progress/kendo-angular-charts';
   
-  // OHLC Candlestick Chart
-  <kendo-chart [seriesDefaults]="{ type: 'candlestick' }">
-    <kendo-chart-series>
-      <kendo-chart-series-item 
-        [data]="ohlcData" 
-        openField="open"
-        highField="high"
-        lowField="low"
-        closeField="close"
-        categoryField="date">
-      </kendo-chart-series-item>
-    </kendo-chart-series>
-  </kendo-chart>
+  @Component({
+    selector: 'app-price-chart',
+    template: `
+      <kendo-chart [seriesDefaults]="{ type: 'candlestick' }">
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            [data]="ohlcData" 
+            openField="open"
+            highField="high"
+            lowField="low"
+            closeField="close"
+            categoryField="date">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+      </kendo-chart>
+    `
+  })
+  export class PriceChartComponent {
+    public ohlcData = signal<OHLCData[]>([]);
+  }
   ```
 
 - **Never use:** Chart.js, D3.js, or other third-party charting libraries without explicit approval
@@ -128,10 +136,13 @@ When handling real-time market data streams or user inputs:
   import { throttleTime, debounceTime, distinctUntilChanged } from 'rxjs/operators';
   
   // Market data streaming from SignalR
+  // Assumes tick objects have structure: { symbol: string, price: number, timestamp: string }
   marketDataService.priceUpdates$
     .pipe(
       throttleTime(250, undefined, { leading: true, trailing: true }),
-      distinctUntilChanged((a, b) => a.price === b.price)
+      distinctUntilChanged((a, b) => 
+        a.symbol === b.symbol && a.price === b.price
+      )
     )
     .subscribe(tick => this.updateChart(tick));
   
@@ -146,10 +157,14 @@ When handling real-time market data streams or user inputs:
 
 - **Anti-pattern to Avoid:**
   ```typescript
-  // ❌ NEVER subscribe directly without throttling for real-time data
+  // ❌ NEVER subscribe directly without throttling for high-frequency real-time data
+  // This pattern causes performance issues with market data streams (100+ updates/sec)
   signalrHub.on('newPrices', (data) => {
-    this.prices = data; // Will cause performance issues
+    this.prices = data; // UI will freeze with high-frequency updates
   });
+  
+  // Note: Low-frequency events (e.g., user notifications, config changes) 
+  // may not require throttling
   ```
 
 ## Additional Coding Standards
@@ -273,7 +288,8 @@ export class OrderEntryComponent {
 ### Market Data Processing
 
 ```typescript
-// Timer-based ticker generator (backend)
+// Timer-based ticker generator (Azure Functions v4 programming model)
+// Reference: apps/backend/src/functions/tickerGenerator.ts
 export async function tickerGenerator(timer: Timer, context: InvocationContext) {
   const updates = [];
   
@@ -323,6 +339,6 @@ When uncertain about implementation details:
 
 ---
 
-**Last Updated:** January 2026  
+**Last Updated:** January 19, 2026  
 **Version:** 1.0.0  
 **Authority:** ADR-006 from ARCHITECTURE.md
