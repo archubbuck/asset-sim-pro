@@ -42,7 +42,7 @@ describe('database', () => {
       
       const mockPool = {
         connected: true,
-      };
+      } as any;
       
       const connectMock = vi.mocked(sql.connect);
       connectMock.mockResolvedValue(mockPool);
@@ -59,7 +59,7 @@ describe('database', () => {
       
       const mockPool = {
         connected: true,
-      };
+      } as any;
       
       const connectMock = vi.mocked(sql.connect);
       connectMock.mockResolvedValue(mockPool);
