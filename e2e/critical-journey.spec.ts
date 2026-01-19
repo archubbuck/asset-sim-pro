@@ -13,6 +13,8 @@ test.describe('Critical User Journey: Trading Flow', () => {
     await page.goto('/');
   });
 
+  // Remove test.skip() once the application UI is ready
+  // Prerequisites: Login functionality, order placement form, and blotter display must be implemented
   test.skip('should complete full trading journey', async ({ page }) => {
     // Step 1: Login
     // Note: In local environment, authentication might be mocked
@@ -50,6 +52,8 @@ test.describe('Critical User Journey: Trading Flow', () => {
     // This completes the critical journey: Login -> Place Order -> Verify Blotter
   });
 
+  // Remove test.skip() once dashboard widgets are implemented
+  // Prerequisites: Dashboard page with market data widgets must be functional
   test.skip('should display trading terminal with widgets', async ({ page }) => {
     await page.goto('/dashboard');
     
@@ -83,6 +87,8 @@ test.describe('Critical User Journey: Trading Flow', () => {
     expect(widgetVisible).toBeTruthy();
   });
 
+  // Remove test.skip() once navigation UI is implemented
+  // Prerequisites: Navigation menu with Terminal, Fund Performance, and Execution links must be available
   test.skip('should handle navigation between sections', async ({ page }) => {
     // Test navigation between main sections
     await page.goto('/');

@@ -8,11 +8,11 @@ Successfully implemented the testing strategy as specified in ARCHITECTURE.md AD
 ### 1. Unit Testing (Vitest) - Backend Functions
 - **Location**: `apps/backend/functions`
 - **Framework**: Vitest (Modern, fast test runner)
-- **Coverage**: **83.63%** (exceeds 80% requirement) ✨
-- **Tests**: 13 tests passing
+- **Coverage**: **92.59%** (exceeds 80% requirement) ✨
+- **Tests**: 12 tests passing
   - Authentication (auth.spec.ts): 6 tests
-  - Database operations (database.spec.ts): 3 tests
-  - Exchange creation (createExchange.spec.ts): 4 tests
+  - Database operations (database.spec.ts): 6 tests
+  - Exchange creation (createExchange.spec.ts): 4 tests (currently skipped via `describe.skip`, not counted in passing total)
 
 ### 2. Unit Testing (Jest) - Client Features
 - **Location**: `libs/client/features/trading`
@@ -114,10 +114,10 @@ Both test frameworks enforce **80% coverage** across:
 
 ### Backend Tests (Vitest)
 ```
-Test Files:  3 passed (3)
-Tests:       13 passed (13)
-Coverage:    83.63% (lines/statements) ✅
-             80% (branches) ✅
+Test Files:  2 passed | 1 skipped (3)
+Tests:       12 passed | 4 skipped (16)
+Coverage:    92.59% (lines/statements) ✅
+             88.88% (branches) ✅
              100% (functions) ✅
 ```
 
@@ -200,4 +200,4 @@ npm run test:ci
 **Status**: ✅ Complete  
 **Date**: January 18, 2026  
 **ADR**: ADR-005 Testing Strategy & Quality Gates  
-**Coverage**: 83.63% (exceeds 80% requirement)
+**Coverage**: 92.59% (exceeds 80% requirement)

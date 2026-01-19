@@ -131,15 +131,16 @@ jobs:
           APP_PID=$!
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
           
-          # Wait for app to be ready
+          # Wait for app to be ready (check for 2xx or 3xx status codes)
           timeout=60
           elapsed=0
           while [ $elapsed -lt $timeout ]; do
-            if curl -f http://localhost:4200 > /dev/null 2>&1; then
-              echo "Application is ready!"
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4200 || echo "000")
+            if [[ "$status_code" =~ ^[23][0-9][0-9]$ ]]; then
+              echo "Application is ready! (HTTP $status_code)"
               break
             fi
-            echo "Waiting for application to start..."
+            echo "Waiting for application to start... (HTTP $status_code)"
             sleep 2
             elapsed=$((elapsed + 2))
           done
@@ -176,9 +177,22 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          # Stop application - use pkill as APP_PID may be npm wrapper
-          pkill -f "nx serve client" || true
-          pkill -f "ng serve" || true
+          # Stop application - try multiple methods for reliability
+          # Method 1: Kill by port (graceful then forceful)
+          if command -v lsof >/dev/null 2>&1; then
+            echo "Attempting graceful shutdown of processes on port 4200..."
+            lsof -ti:4200 | xargs -r kill -15 || true
+            sleep 2
+            # Force kill if still running
+            lsof -ti:4200 | xargs -r kill -9 || true
+          fi
+          
+          # Method 2: Kill by process name patterns
+          pkill -15 -f "nx serve client" || true
+          pkill -15 -f "ng serve" || true
+          sleep 2
+          pkill -9 -f "nx serve client" || true
+          pkill -9 -f "ng serve" || true
           
           # Stop Docker services
           docker compose down -v
