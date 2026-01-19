@@ -116,32 +116,30 @@ export async function marketEngineTick(
 
         const config = configResult.recordset[0];
 
-        // Get all active symbols for this exchange
+        // Get all active symbols with their latest prices for this exchange
+        // Optimized to reduce N+1 query problem by fetching all symbols and prices in one query
         const symbolsResult = await pool.request()
           .input('exchangeId', sql.UniqueIdentifier, exchangeId)
           .query(`
-            SELECT DISTINCT Symbol
-            FROM [Trade].[MarketData]
-            WHERE ExchangeId = @exchangeId
+            WITH LatestPrices AS (
+              SELECT 
+                Symbol,
+                Close,
+                Volume,
+                ROW_NUMBER() OVER (PARTITION BY Symbol ORDER BY Timestamp DESC) as rn
+              FROM [Trade].[MarketData]
+              WHERE ExchangeId = @exchangeId
+            )
+            SELECT Symbol, Close, Volume
+            FROM LatestPrices
+            WHERE rn = 1
           `);
 
         // 3. Generate price ticks for each symbol
         for (const symbolRow of symbolsResult.recordset) {
           const symbol = symbolRow.Symbol;
-
-          // Get last price
-          const lastPriceResult = await pool.request()
-            .input('exchangeId', sql.UniqueIdentifier, exchangeId)
-            .input('symbol', sql.NVarChar, symbol)
-            .query(`
-              SELECT TOP 1 Close, Volume
-              FROM [Trade].[MarketData]
-              WHERE ExchangeId = @exchangeId AND Symbol = @symbol
-              ORDER BY Timestamp DESC
-            `);
-
-          const lastPriceDb = lastPriceResult.recordset[0]?.Close || DEFAULT_INITIAL_PRICE;
-          const lastVolumeDb = lastPriceResult.recordset[0]?.Volume || 0;
+          const lastPriceDb = symbolRow.Close || DEFAULT_INITIAL_PRICE;
+          const lastVolumeDb = symbolRow.Volume || 0;
 
           // Use Decimal.js for all financial calculations (ADR-006)
           const lastPrice = new Decimal(lastPriceDb);
@@ -324,6 +322,31 @@ async function matchOrders(
         const filledQuantity = new Decimal(order.FilledQuantity || 0);
         const remainingQuantity = orderQuantity.minus(filledQuantity);
 
+        // Calculate position and cash changes using Decimal.js
+        const positionMultiplier = order.Side === 'BUY' ? 1 : -1;
+        const quantityChange = remainingQuantity.times(positionMultiplier);
+        const cashChange = remainingQuantity.times(fillPriceDecimal).times(-1 * positionMultiplier);
+
+        // Validate sufficient cash balance for BUY orders (including MARKET orders)
+        if (order.Side === 'BUY') {
+          const portfolioResult = await transaction.request()
+            .input('portfolioId', sql.UniqueIdentifier, order.PortfolioId)
+            .query(`
+              SELECT CashBalance
+              FROM [Trade].[Portfolios]
+              WHERE PortfolioId = @portfolioId
+            `);
+          
+          const currentCashBalance = new Decimal(portfolioResult.recordset[0]?.CashBalance || 0);
+          const requiredCash = remainingQuantity.times(fillPriceDecimal);
+          
+          if (currentCashBalance.lessThan(requiredCash)) {
+            context.log(`Order ${order.OrderId} skipped - insufficient funds. Required: ${requiredCash.toFixed(2)}, Available: ${currentCashBalance.toFixed(2)}`);
+            await transaction.rollback();
+            continue;
+          }
+        }
+
         // Update order to filled
         await transaction.request()
           .input('orderId', sql.UniqueIdentifier, order.OrderId)
@@ -338,11 +361,6 @@ async function matchOrders(
                 UpdatedAt = GETUTCDATE()
             WHERE OrderId = @orderId
           `);
-
-        // Calculate position and cash changes using Decimal.js
-        const positionMultiplier = order.Side === 'BUY' ? 1 : -1;
-        const quantityChange = remainingQuantity.times(positionMultiplier);
-        const cashChange = remainingQuantity.times(fillPriceDecimal).times(-1 * positionMultiplier);
 
         // Update portfolio position with proper handling for position reversals
         await transaction.request()
