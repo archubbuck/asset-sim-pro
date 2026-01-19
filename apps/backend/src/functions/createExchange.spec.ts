@@ -1,12 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock dependencies before imports to prevent module loading errors
+vi.mock('../lib/auth');
+vi.mock('../lib/database');
+vi.mock('./createExchange', () => ({
+  createExchange: vi.fn(),
+}));
+vi.mock('@azure/functions', () => ({
+  HttpRequest: vi.fn(),
+  InvocationContext: vi.fn(),
+  app: { http: vi.fn() },
+}));
+
+// These imports now use mocked versions
 import { HttpRequest, InvocationContext } from '@azure/functions';
 import { createExchange } from './createExchange';
 import * as auth from '../lib/auth';
 import * as database from '../lib/database';
-
-// Mock dependencies
-vi.mock('../lib/auth');
-vi.mock('../lib/database');
 
 /**
  * createExchange function tests
