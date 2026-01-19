@@ -35,7 +35,7 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 - `apps/backend/src/lib/cache.ts` (197 lines)
 - `apps/backend/src/lib/cache.spec.ts` (332 lines, 15 tests)
 
-**Package Added**: `ioredis@^5.3.0`
+**Package Added**: `ioredis@^5.9.2`
 
 #### Key Functions Implemented
 
@@ -207,7 +207,7 @@ Tests  27 passed (27)
 ### NPM Packages Added
 ```json
 {
-  "ioredis": "^5.3.0"
+  "ioredis": "^5.9.2"
 }
 ```
 
