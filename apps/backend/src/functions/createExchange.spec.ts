@@ -3,6 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mock dependencies before imports to prevent module loading errors
 vi.mock('../lib/auth');
 vi.mock('../lib/database');
+vi.mock('mssql', () => ({
+  default: {},
+  ConnectionPool: vi.fn(),
+  Transaction: vi.fn(),
+  Request: vi.fn(),
+  NVarChar: 'NVarChar',
+  UniqueIdentifier: 'UniqueIdentifier',
+}));
 vi.mock('./createExchange', () => ({
   createExchange: vi.fn(),
 }));
