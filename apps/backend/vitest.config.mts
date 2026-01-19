@@ -24,9 +24,10 @@ export default defineConfig(() => ({
         'src/functions/marketEngineTick.ts', // Exclude until Azure Functions dependencies are available
       ],
       thresholds: {
-        // TODO: Increase to 80% as more Azure Functions are implemented and tested
-        // Currently at 70% due to error handling paths in cache.ts that are difficult to test
-        // without a full Redis environment. Main functionality has good coverage.
+        // TODO: Increase to 80% once Azure Functions dependencies are available
+        // Currently at 70% because createOrder.ts, marketEngineTick.ts, and
+        // createExchange.ts are excluded from coverage (tests skipped).
+        // Lib modules (auth, cache, database) have 74.35% average coverage.
         lines: 70,
         functions: 70,
         branches: 70,
