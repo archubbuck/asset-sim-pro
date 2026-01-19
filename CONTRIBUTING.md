@@ -322,7 +322,114 @@ If you have questions or need assistance:
 
 1. Check the [ARCHITECTURE.md](./ARCHITECTURE.md) for architectural decisions
 2. Review existing pull requests for examples
-3. Reach out to the team via your communication channel
+3. Consult the [GitHub Copilot custom instructions](./.github/copilot-instructions.md) for coding guidance
+4. Reach out to the team via your communication channel
+
+## AI-Assisted Development (ADR-006)
+
+AssetSim Pro uses **GitHub Copilot Enterprise** with custom instructions to maintain consistent code quality and architectural standards.
+
+### GitHub Copilot Setup
+
+1. **Install GitHub Copilot** extension in your IDE (VS Code, JetBrains, etc.)
+2. **Sign in** with your GitHub account that has Copilot access
+3. **Custom instructions** are automatically loaded from `.github/copilot-instructions.md`
+
+### Custom Instructions Overview
+
+Repository-wide custom instructions guide Copilot to generate code that follows AssetSim Pro standards:
+
+#### **Mandatory Requirements**
+
+1. **Kendo Financial Charts**
+   - Use Kendo UI for Angular components for all visualizations
+   - Never use Chart.js, D3.js, or other charting libraries
+   - Preferred components: `ChartComponent`, `StockChartComponent`, `SparklineComponent`
+   - Use `candlestick` series for OHLC data, `line` for trends, `column` for volume
+
+2. **Decimal.js for Financial Precision**
+   - All monetary calculations must use `Decimal` from `decimal.js`
+   - Never use native JavaScript number arithmetic for money
+   - Apply to: portfolio valuations, order pricing, commissions, P&L calculations
+   - Example: `new Decimal(price).times(quantity)` instead of `price * quantity`
+
+3. **RxJS Throttling**
+   - Always throttle real-time data streams
+   - Market data: `throttleTime(250)` 
+   - User inputs: `debounceTime(300)`
+   - Chart updates: `throttleTime(500)`
+   - Never subscribe directly to SignalR streams without throttling
+
+#### **Additional Standards**
+
+- **Angular Signals**: Signals-first approach for state management
+- **Logging**: Use `LoggerService` instead of `console.log()`
+- **Validation**: Zod schemas for all API inputs
+- **Security**: Zero Trust principles, no hard-coded credentials
+
+### Using Copilot Effectively
+
+#### **When Writing Code**
+
+Copilot suggestions will automatically follow custom instructions:
+
+```typescript
+// ✅ Copilot will suggest this pattern:
+const totalValue = new Decimal(price).times(quantity);
+
+// ❌ Copilot will avoid suggesting this:
+const totalValue = price * quantity;
+```
+
+#### **Code Review Considerations**
+
+Even with Copilot:
+- Always review generated code for correctness
+- Verify financial calculations use Decimal.js
+- Ensure RxJS operators are properly applied
+- Confirm Kendo UI components are used for charts
+- Run tests before committing
+
+#### **Chat and Questions**
+
+When asking Copilot questions:
+- Copilot has context from `.github/copilot-instructions.md`
+- Reference ADRs by number (e.g., "How does ADR-002 affect this?")
+- Ask about specific patterns (e.g., "Show me the correct way to calculate commissions")
+
+### Example Workflows
+
+#### Creating a Trading Component
+
+Ask Copilot: *"Create an order entry component with price chart"*
+
+Copilot will generate code using:
+- Kendo Chart for price visualization
+- Decimal.js for order calculations
+- RxJS throttling for price updates
+- Angular Signals for state
+
+#### Implementing Portfolio Calculations
+
+Ask Copilot: *"Calculate portfolio value with positions and cash"*
+
+Copilot will suggest:
+- Decimal.js for all arithmetic
+- Proper precision handling
+- Error handling for edge cases
+
+### Troubleshooting
+
+**Copilot not following custom instructions?**
+- Ensure `.github/copilot-instructions.md` is on the main branch
+- Restart your IDE to reload instructions
+- Check that Copilot extension is up to date
+
+**Need to override instructions?**
+- Add explicit comments in your code
+- Example: `// Note: Using native math here for performance in tight loop`
+
+For complete details, see [`.github/copilot-instructions.md`](./.github/copilot-instructions.md).
 
 ## Additional Resources
 
@@ -330,6 +437,8 @@ If you have questions or need assistance:
 - [Trunk-Based Development](https://trunkbaseddevelopment.com/)
 - [commitlint Documentation](https://commitlint.js.org/)
 - [Husky Documentation](https://typicode.github.io/husky/)
+- [GitHub Copilot Custom Instructions](./.github/copilot-instructions.md)
+- [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
 
 ---
 

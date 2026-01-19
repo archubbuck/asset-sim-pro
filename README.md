@@ -220,7 +220,7 @@ Based on the architectural definitions in ARCHITECTURE.md:
 - **ADR-003**: Docker Compose for Local Development ✅ Implemented
 - **ADR-004**: Nx Workspace with Angular 21+ and Kendo UI
 - **ADR-005**: Vitest for Unit Testing, Playwright for E2E
-- **ADR-006**: GitHub Copilot Enterprise for AI-Assisted Development
+- **ADR-006**: GitHub Copilot Enterprise for AI-Assisted Development ✅ Implemented
 
 ### Phase 2: Core Architecture
 - Azure Static Web Apps for frontend
@@ -264,6 +264,28 @@ Based on the architectural definitions in ARCHITECTURE.md:
 - Azure SignalR Service
 - Azure Event Hubs
 
+## AI-Assisted Development (ADR-006)
+
+AssetSim Pro uses **GitHub Copilot Enterprise** with custom instructions to accelerate development while maintaining architectural standards.
+
+### Custom Instructions
+
+Custom coding guidance is configured in [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) and automatically applies to all Copilot suggestions in supported IDEs and GitHub.com.
+
+**Key Focus Areas:**
+- **Kendo Financial Charts**: Mandatory for all data visualizations and charting
+- **Decimal.js**: Required for all financial calculations to ensure precision
+- **RxJS Throttling**: Enforced for real-time data streams to prevent UI performance issues
+
+### Using GitHub Copilot
+
+1. **IDE Setup**: Ensure GitHub Copilot extension is installed in VS Code or your preferred IDE
+2. **Repository Context**: Copilot automatically reads `.github/copilot-instructions.md` from the repository
+3. **Consistent Suggestions**: All code suggestions will follow AssetSim Pro's architectural standards
+4. **Code Reviews**: Copilot-generated code still requires peer review before merge
+
+For complete AI-assisted development guidelines, see the [custom instructions file](./.github/copilot-instructions.md).
+
 ## Contributing
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
@@ -272,6 +294,7 @@ All contributions must follow:
 - Conventional Commits specification
 - Trunk-Based Development workflow
 - Code quality standards (80% test coverage)
+- AI-assisted development guidelines (ADR-006)
 
 ## License
 
