@@ -18,6 +18,11 @@
           {
             "glob": "**/*",
             "input": "apps/client/public"
+          },
+          {
+            "glob": "staticwebapp.config.json",
+            "input": "apps/client",
+            "output": "/"
           }
         ],
         "styles": ["apps/client/src/styles.scss"]

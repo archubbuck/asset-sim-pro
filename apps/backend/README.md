@@ -4,33 +4,44 @@ Azure Functions backend implementing Zero Trust Architecture with Exchange-scope
 
 ## Architecture
 
-This backend implements ADR-002 (Security & Network Isolation) requirements:
+This backend implements:
 
+- **ADR-002**: Security & Network Isolation with Zero Trust
+- **ADR-007**: Serverless Compute with Azure Functions (Premium Plan EP1) and Zod validation
+
+Key features:
 - **VNet Integration**: Function App connects to data services via private endpoints
 - **Microsoft Entra ID**: Single-tenant authentication for identity management
 - **Exchange-scoped RBAC**: Row-Level Security enforcement at the database level
 - **Zero Trust**: All data services have public access disabled
+- **Zod Validation**: All API endpoints validate requests using Zod schemas
 
 ## Project Structure
 
 ```
 backend/
 ├── src/
-│   ├── functions/          # Azure Functions HTTP triggers
-│   │   └── createExchange.ts
-│   ├── lib/                # Shared utilities
-│   │   ├── auth.ts         # Entra ID authentication
-│   │   └── database.ts     # SQL connection and RLS context
-│   └── types/              # TypeScript type definitions
-│       └── exchange.ts
-├── host.json               # Azure Functions host configuration
+│   ├── functions/               # Azure Functions (HTTP & Timer triggers)
+│   │   ├── createExchange.ts   # HTTP: POST /api/v1/exchanges
+│   │   ├── createOrder.ts      # HTTP: POST /api/v1/orders
+│   │   └── marketEngineTick.ts # Timer: Market simulation engine
+│   ├── lib/                     # Shared utilities
+│   │   ├── auth.ts             # Entra ID authentication
+│   │   └── database.ts         # SQL connection and RLS context
+│   └── types/                   # TypeScript type definitions & Zod schemas
+│       ├── exchange.ts
+│       ├── transaction.ts      # Transaction API schemas
+│       └── market-engine.ts    # Market Engine schemas
+├── host.json                    # Azure Functions host configuration
 ├── package.json
 └── tsconfig.json
 ```
 
 ## API Endpoints
 
-### POST /api/v1/exchanges
+### Transaction API (HTTP Triggers)
+
+#### POST /api/v1/exchanges
 
 Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager.
 
@@ -58,6 +69,73 @@ Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager
 2. Exchange record created in `Trade.Exchanges`
 3. Default configuration created in `Trade.ExchangeConfigurations`
 4. Creator assigned RiskManager role in `Trade.ExchangeRoles`
+
+#### POST /api/v1/orders
+
+Creates a new order in the exchange.
+
+**Authentication**: Required (Microsoft Entra ID)
+
+**Request Body** (Zod Validated):
+```json
+{
+  "exchangeId": "550e8400-e29b-41d4-a716-446655440000",
+  "portfolioId": "550e8400-e29b-41d4-a716-446655440001",
+  "symbol": "AAPL",
+  "side": "BUY",
+  "orderType": "LIMIT",
+  "quantity": 100,
+  "price": 150.50
+}
+```
+
+**Order Types**: `MARKET`, `LIMIT`, `STOP`, `STOP_LIMIT`
+**Sides**: `BUY`, `SELL`
+
+**Response** (201 Created):
+```json
+{
+  "orderId": "650e8400-e29b-41d4-a716-446655440002",
+  "exchangeId": "550e8400-e29b-41d4-a716-446655440000",
+  "portfolioId": "550e8400-e29b-41d4-a716-446655440001",
+  "symbol": "AAPL",
+  "side": "BUY",
+  "orderType": "LIMIT",
+  "quantity": 100,
+  "price": 150.50,
+  "status": "PENDING",
+  "filledQuantity": 0,
+  "createdAt": "2026-01-19T10:30:00.000Z",
+  "updatedAt": "2026-01-19T10:30:00.000Z"
+}
+```
+
+**Validation Rules** (Zod):
+- LIMIT and STOP_LIMIT orders require `price`
+- STOP and STOP_LIMIT orders require `stopPrice`
+- User must have access to the specified portfolio
+- All UUIDs must be valid
+
+### Market Engine (Timer Trigger)
+
+#### marketEngineTick
+
+Runs every 5 seconds to simulate market activity.
+
+**Functions**:
+1. Generates price updates for all active symbols in each exchange
+2. Matches pending orders against current market prices
+3. Updates order statuses and portfolio positions
+4. Uses random walk with configurable volatility
+
+**Configuration** (per Exchange):
+- `TickIntervalMs`: Market tick interval (100-60000ms)
+- `Volatility`: Price change volatility (0.001-1.0)
+- `MarketEngineEnabled`: Enable/disable market simulation
+
+**Zod Validation**:
+- All market ticks validated against `MarketTickSchema`
+- Price update events validated against `PriceUpdateEventSchema`
 
 ## Environment Variables
 
@@ -99,6 +177,35 @@ This Function App is deployed via Terraform and Azure Pipelines:
 3. **Deploy**: Deployed via Azure Pipelines using self-hosted agent in VNet
 
 See `/terraform` and ADR-023 for full deployment specifications.
+
+## ADR-007 Implementation
+
+This backend implements **ADR-007: Serverless Compute (SWA & Dedicated Functions)**:
+
+### Azure Function App (Premium Plan - EP1)
+- ✅ **Premium Plan**: Configured in `terraform/modules/compute/main.tf` with `sku_name = "EP1"`
+- ✅ **VNet Integration**: Function App connected to VNet for secure access to data services
+- ✅ **BYOB (Bring Your Own Backend)**: Linked to Azure Static Web Apps via `azurerm_static_web_app_function_app_registration`
+
+### Unified Backend (apps/backend)
+
+#### Transaction API - HTTP Triggers
+- ✅ `createExchange.ts`: Creates simulation venues with RLS-based multi-tenancy
+- ✅ `createOrder.ts`: Creates trading orders with portfolio validation
+- All endpoints use **Zod schemas** for request validation
+
+#### Market Engine - Timer Triggers
+- ✅ `marketEngineTick.ts`: Runs every 5 seconds to:
+  - Generate realistic price movements using random walk
+  - Match pending orders against market prices
+  - Update portfolio positions and cash balances
+- All market data validated with **Zod schemas**
+
+### Zod Validation (Required by ADR-007)
+All API endpoints and market engine functions use Zod for data validation:
+- `types/exchange.ts`: Exchange creation schemas
+- `types/transaction.ts`: Order and transaction schemas
+- `types/market-engine.ts`: Market tick and price update schemas
 
 ## Security
 
