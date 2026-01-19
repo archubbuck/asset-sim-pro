@@ -71,7 +71,8 @@ When generating chart or visualization code:
   export class PriceChartComponent {
     // OHLCData interface typically defined in libs/shared/finance-models
     // interface OHLCData { date: Date; open: number; high: number; low: number; close: number; }
-    public ohlcData = signal<OHLCData[]>([]);
+    // In real implementations, import OHLCData and use signal<OHLCData[]>([])
+    public ohlcData = signal<any[]>([]); // Replace 'any' with OHLCData[] when interface is available
   }
   ```
 
@@ -207,7 +208,7 @@ public displayValue = computed(() =>
 import { inject } from '@angular/core';
 import { LoggerService } from '@assetsim/client/core';
 
-constructor(private logger = inject(LoggerService)) {}
+private logger = inject(LoggerService);
 
 this.logger.logEvent('OrderPlaced', { symbol, quantity, price });
 this.logger.logException(error);
@@ -276,6 +277,7 @@ export class OrderEntryComponent {
   private logger = inject(LoggerService);
   // Example: MarketDataService is a planned service (to be created in @assetsim/client/data-access)
   // import { MarketDataService } from '@assetsim/client/data-access';
+  // @ts-ignore - Example uses planned MarketDataService not yet implemented
   private marketData = inject(MarketDataService); // Assumes a future service providing priceStream$
   
   // Signals for state
