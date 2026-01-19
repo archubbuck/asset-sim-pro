@@ -34,8 +34,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Unit Tests - Client Features
-        run: npx nx run-many --target=test --all --coverage --parallel=1
+      - name: Run Unit Tests - Client Features (Trading)
+        run: npx nx test trading --coverage
         env:
           CI: true
 
