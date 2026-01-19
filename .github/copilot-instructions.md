@@ -66,6 +66,8 @@ When generating chart or visualization code:
     `
   })
   export class PriceChartComponent {
+    // OHLCData interface typically defined in libs/shared/finance-models
+    // interface OHLCData { date: Date; open: number; high: number; low: number; close: number; }
     public ohlcData = signal<OHLCData[]>([]);
   }
   ```
@@ -265,6 +267,7 @@ import { LoggerService } from '@assetsim/client/core';
 })
 export class OrderEntryComponent {
   private logger = inject(LoggerService);
+  private marketData = inject(MarketDataService); // Assumes service provides priceStream$
   
   // Signals for state
   public orderPrice = signal(new Decimal(0));
@@ -290,6 +293,9 @@ export class OrderEntryComponent {
 ```typescript
 // Timer-based ticker generator (Azure Functions v4 programming model)
 // Reference: apps/backend/src/functions/tickerGenerator.ts
+import { app, InvocationContext, Timer } from '@azure/functions';
+import { Decimal } from 'decimal.js';
+
 export async function tickerGenerator(timer: Timer, context: InvocationContext) {
   const updates = [];
   
