@@ -45,12 +45,14 @@ When generating chart or visualization code:
 
 - **Example Pattern:**
   ```typescript
-  // TypeScript component
+  // TypeScript standalone component
   import { Component, signal } from '@angular/core';
-  import { ChartComponent } from '@progress/kendo-angular-charts';
+  import { ChartModule } from '@progress/kendo-angular-charts';
   
   @Component({
     selector: 'app-price-chart',
+    standalone: true,
+    imports: [ChartModule],
     template: `
       <kendo-chart [seriesDefaults]="{ type: 'candlestick' }">
         <kendo-chart-series>
@@ -282,6 +284,7 @@ export class OrderEntryComponent {
   
   // Throttled price updates
   ngOnInit() {
+    // In production: use takeUntilDestroyed() or unsubscribe in ngOnDestroy() to prevent memory leaks
     this.marketData.priceStream$
       .pipe(throttleTime(250))
       .subscribe(price => {
@@ -337,6 +340,12 @@ export async function tickerGenerator(timer: Timer, context: InvocationContext) 
   
   return { signalROutput: updates };
 }
+
+// Register the function with Azure Functions runtime
+app.timer('tickerGenerator', {
+  schedule: '0 */1 * * * *', // Every second
+  handler: tickerGenerator
+});
 ```
 
 ## Architecture References
