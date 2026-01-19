@@ -3,6 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mock dependencies before imports to prevent module loading errors
 vi.mock('../lib/auth');
 vi.mock('../lib/database');
+vi.mock('../lib/cache', () => ({
+  cacheExchangeConfig: vi.fn().mockResolvedValue(undefined),
+  invalidateExchangeConfig: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('mssql', () => ({
   default: {},
   ConnectionPool: vi.fn(),

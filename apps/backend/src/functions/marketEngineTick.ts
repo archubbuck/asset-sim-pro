@@ -3,6 +3,7 @@ import * as sql from 'mssql';
 import Decimal from 'decimal.js';
 import { MarketTickSchema, PriceUpdateEventSchema } from '../types/market-engine';
 import { getConnectionPool } from '../lib/database';
+import { cacheQuote } from '../lib/cache';
 
 /**
  * Default starting price for newly simulated symbols when no explicit reference price
@@ -210,6 +211,20 @@ export async function marketEngineTick(
           const eventValidation = PriceUpdateEventSchema.safeParse(priceUpdateData);
           if (eventValidation.success) {
             context.log(`Price update for ${symbol}: ${newPrice.toFixed(2)} (${priceUpdateData.changePercent.toFixed(2)}%)`);
+            
+            // Cache the quote in Redis (ADR-008: QUOTE:{EXCHANGE_ID}:{SYMBOL})
+            try {
+              await cacheQuote(exchangeId, symbol, {
+                price: priceUpdateData.price,
+                timestamp: priceUpdateData.timestamp,
+                volume: priceUpdateData.volume,
+                change: priceUpdateData.change,
+                changePercent: priceUpdateData.changePercent,
+              });
+            } catch (cacheError) {
+              // Log but don't fail the tick if caching fails
+              context.warn(`Failed to cache quote for ${symbol}: ${cacheError}`);
+            }
           }
         }
 

@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock dependencies
 vi.mock('../lib/database');
+vi.mock('../lib/cache', () => ({
+  cacheQuote: vi.fn().mockResolvedValue(undefined),
+  getQuote: vi.fn().mockResolvedValue(null),
+}));
 vi.mock('mssql', () => ({
   default: {},
   ConnectionPool: vi.fn(),
