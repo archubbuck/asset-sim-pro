@@ -15,6 +15,7 @@ describe('database', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules();
   });
 
   afterEach(() => {
@@ -34,6 +35,68 @@ describe('database', () => {
       await expect(getConnectionPool()).rejects.toThrow(
         'SQL_CONNECTION_STRING environment variable is required'
       );
+    });
+
+    it('should create and return a new connection pool', async () => {
+      process.env.SQL_CONNECTION_STRING = 'Server=localhost;Database=test;';
+      
+      const mockPool = {
+        connected: true,
+      };
+      
+      const connectMock = vi.mocked(sql.connect);
+      connectMock.mockResolvedValue(mockPool);
+
+      const { getConnectionPool } = await import('./database');
+      const pool = await getConnectionPool();
+
+      expect(connectMock).toHaveBeenCalledWith('Server=localhost;Database=test;');
+      expect(pool).toBe(mockPool);
+    });
+
+    it('should return existing pool if already connected', async () => {
+      process.env.SQL_CONNECTION_STRING = 'Server=localhost;Database=test;';
+      
+      const mockPool = {
+        connected: true,
+      };
+      
+      const connectMock = vi.mocked(sql.connect);
+      connectMock.mockResolvedValue(mockPool);
+
+      const { getConnectionPool } = await import('./database');
+      const pool1 = await getConnectionPool();
+      const pool2 = await getConnectionPool();
+
+      // Connect should only be called once since pool is reused
+      expect(connectMock).toHaveBeenCalledTimes(1);
+      expect(pool1).toBe(pool2);
+    });
+
+    it('should handle connection errors and log details', async () => {
+      process.env.SQL_CONNECTION_STRING = 'Server=localhost;Database=test;';
+      
+      const mockError = new Error('Connection failed');
+      (mockError as Error & { code?: string }).code = 'ECONNREFUSED';
+      
+      const connectMock = vi.mocked(sql.connect);
+      connectMock.mockRejectedValue(mockError);
+      
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { getConnectionPool } = await import('./database');
+      
+      await expect(getConnectionPool()).rejects.toThrow('Connection failed');
+      
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to initialize SQL connection pool.',
+        {
+          message: 'Connection failed',
+          code: 'ECONNREFUSED',
+        }
+      );
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
