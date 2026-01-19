@@ -242,11 +242,13 @@ async function matchOrders(
   const currentPriceDecimal = new Decimal(currentPrice);
   
   // Get all pending orders for this symbol
+  // Note: StopTriggered field may not exist in older schemas, using ISNULL for backward compatibility
   const ordersResult = await pool.request()
     .input('exchangeId', sql.UniqueIdentifier, exchangeId)
     .input('symbol', sql.NVarChar, symbol)
     .query(`
-      SELECT OrderId, PortfolioId, Side, OrderType, Quantity, Price, StopPrice, FilledQuantity, StopTriggered
+      SELECT OrderId, PortfolioId, Side, OrderType, Quantity, Price, StopPrice, FilledQuantity, 
+             ISNULL(StopTriggered, 0) as StopTriggered
       FROM [Trade].[Orders]
       WHERE ExchangeId = @exchangeId 
         AND Symbol = @symbol 
@@ -254,54 +256,62 @@ async function matchOrders(
     `);
 
   for (const order of ordersResult.recordset) {
+    let shouldFill = false;
+    let needsStopTriggerUpdate = false;
+
+    // Determine if order should be filled based on type (before starting transaction)
+    switch (order.OrderType) {
+      case 'MARKET':
+        shouldFill = true;
+        break;
+      case 'LIMIT':
+        shouldFill = (order.Side === 'BUY' && currentPrice <= order.Price) ||
+                     (order.Side === 'SELL' && currentPrice >= order.Price);
+        break;
+      case 'STOP':
+        shouldFill = (order.Side === 'BUY' && currentPrice >= order.StopPrice) ||
+                     (order.Side === 'SELL' && currentPrice <= order.StopPrice);
+        break;
+      case 'STOP_LIMIT': {
+        // Two-step behavior: first trigger stop, then match as LIMIT
+        const stopTriggered = order.StopTriggered || 
+          (order.Side === 'BUY' && currentPrice >= order.StopPrice) ||
+          (order.Side === 'SELL' && currentPrice <= order.StopPrice);
+
+        if (stopTriggered && !order.StopTriggered) {
+          needsStopTriggerUpdate = true;
+        }
+
+        // Once triggered, behave exactly like a LIMIT order
+        if (stopTriggered) {
+          shouldFill = (order.Side === 'BUY' && currentPrice <= order.Price) ||
+                       (order.Side === 'SELL' && currentPrice >= order.Price);
+        }
+        break;
+      }
+    }
+
+    // Only start transaction if we need to update something
+    if (!shouldFill && !needsStopTriggerUpdate) {
+      continue;
+    }
+
     // Use transaction to ensure atomic order fill + position + cash update
     const transaction = pool.transaction();
     
     try {
       await transaction.begin();
       
-      let shouldFill = false;
-      let orderTypeToMatch = order.OrderType;
-
-      // Determine if order should be filled based on type
-      switch (order.OrderType) {
-        case 'MARKET':
-          shouldFill = true;
-          break;
-        case 'LIMIT':
-          shouldFill = (order.Side === 'BUY' && currentPrice <= order.Price) ||
-                       (order.Side === 'SELL' && currentPrice >= order.Price);
-          break;
-        case 'STOP':
-          shouldFill = (order.Side === 'BUY' && currentPrice >= order.StopPrice) ||
-                       (order.Side === 'SELL' && currentPrice <= order.StopPrice);
-          break;
-        case 'STOP_LIMIT': {
-          // Two-step behavior: first trigger stop, then match as LIMIT
-          const stopTriggered = order.StopTriggered || 
-            (order.Side === 'BUY' && currentPrice >= order.StopPrice) ||
-            (order.Side === 'SELL' && currentPrice <= order.StopPrice);
-
-          if (stopTriggered && !order.StopTriggered) {
-            // Persist the stop trigger state
-            await transaction.request()
-              .input('orderId', sql.UniqueIdentifier, order.OrderId)
-              .query(`
-                UPDATE [Trade].[Orders]
-                SET StopTriggered = 1,
-                    UpdatedAt = GETUTCDATE()
-                WHERE OrderId = @orderId
-              `);
-            order.StopTriggered = true;
-          }
-
-          // Once triggered, behave exactly like a LIMIT order
-          if (order.StopTriggered) {
-            shouldFill = (order.Side === 'BUY' && currentPrice <= order.Price) ||
-                         (order.Side === 'SELL' && currentPrice >= order.Price);
-          }
-          break;
-        }
+      // Update stop trigger if needed
+      if (needsStopTriggerUpdate) {
+        await transaction.request()
+          .input('orderId', sql.UniqueIdentifier, order.OrderId)
+          .query(`
+            UPDATE [Trade].[Orders]
+            SET StopTriggered = 1,
+                UpdatedAt = GETUTCDATE()
+            WHERE OrderId = @orderId
+          `);
       }
 
       if (shouldFill) {
@@ -350,7 +360,10 @@ async function matchOrders(
                 AveragePrice = CASE 
                   -- Position fully closed: reset average price to 0
                   WHEN (Quantity + @quantityChange) = 0 THEN 0
-                  -- Position direction changes (e.g., long to short or short to long): start new average at current trade price
+                  -- Position direction changes: Detects sign change using multiplication
+                  -- If Quantity > 0 and (Quantity + @quantityChange) < 0, product is negative (long to short)
+                  -- If Quantity < 0 and (Quantity + @quantityChange) > 0, product is negative (short to long)
+                  -- Start new average at current trade price when crossing zero
                   WHEN Quantity * (Quantity + @quantityChange) < 0 THEN @avgPrice
                   -- Scaling into existing position on same side: weighted average
                   ELSE (AveragePrice * Quantity + @avgPrice * @quantityChange) / (Quantity + @quantityChange)
@@ -372,12 +385,10 @@ async function matchOrders(
             WHERE PortfolioId = @portfolioId
           `);
 
-        await transaction.commit();
         context.log(`Order ${order.OrderId} filled at ${fillPriceDecimal.toFixed(2)} for ${symbol}`);
-      } else {
-        // No fill needed, rollback transaction
-        await transaction.rollback();
       }
+
+      await transaction.commit();
     } catch (error) {
       await transaction.rollback();
       context.error(`Error matching order ${order.OrderId}:`, error);
