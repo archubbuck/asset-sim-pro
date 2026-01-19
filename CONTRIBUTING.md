@@ -355,7 +355,7 @@ Repository-wide custom instructions guide Copilot to generate code that follows 
 
 3. **RxJS Throttling**
    - Always throttle real-time data streams
-   - Market data: `throttleTime(250)` 
+   - Market data: `throttleTime(250)` (typical; keep within 100–500ms based on feed characteristics)
    - User inputs: `debounceTime(300)`
    - Chart updates: `throttleTime(500)`
    - Never subscribe directly to SignalR streams without throttling

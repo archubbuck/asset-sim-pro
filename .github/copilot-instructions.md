@@ -46,6 +46,7 @@ When generating chart or visualization code:
 - **Example Pattern:**
   ```typescript
   // TypeScript component
+  import { Component, signal } from '@angular/core';
   import { ChartComponent } from '@progress/kendo-angular-charts';
   
   @Component({
@@ -128,7 +129,7 @@ When handling real-time market data streams or user inputs:
   - `sampleTime()` for fixed-interval sampling
 
 - **Throttling Standards:**
-  - Market data streams: 100-500ms throttle
+  - Market data price/quote streams: 250ms throttle (standard default; adjust 100-500ms based on feed characteristics)
   - User search inputs: 300ms debounce
   - Portfolio calculations: 250ms throttle
   - Chart updates: 500ms throttle (to reduce re-renders)
@@ -160,7 +161,8 @@ When handling real-time market data streams or user inputs:
 - **Anti-pattern to Avoid:**
   ```typescript
   // ❌ NEVER subscribe directly without throttling for high-frequency real-time data
-  // This pattern causes performance issues with market data streams (100+ updates/sec)
+  // This pattern causes performance issues with market data streams (10+ updates/sec without throttling)
+  // With 250ms throttling, 100 updates/sec is reduced to ~4 updates/sec, preventing UI freeze
   signalrHub.on('newPrices', (data) => {
     this.prices = data; // UI will freeze with high-frequency updates
   });
@@ -198,6 +200,7 @@ public displayValue = computed(() =>
   - `logException()` for errors
 
 ```typescript
+import { inject } from '@angular/core';
 import { LoggerService } from '@assetsim/client/core';
 
 constructor(private logger = inject(LoggerService)) {}
@@ -267,6 +270,7 @@ import { LoggerService } from '@assetsim/client/core';
 })
 export class OrderEntryComponent {
   private logger = inject(LoggerService);
+  // import { MarketDataService } from '@assetsim/client/data-access';
   private marketData = inject(MarketDataService); // Assumes service provides priceStream$
   
   // Signals for state
@@ -297,6 +301,16 @@ import { app, InvocationContext, Timer } from '@azure/functions';
 import { Decimal } from 'decimal.js';
 
 export async function tickerGenerator(timer: Timer, context: InvocationContext) {
+  // These would typically be loaded from Redis/SQL in production
+  const activeExchanges = [
+    { exchangeId: 'exch-alpha', volatilityMultiplier: 1.0 },
+    { exchangeId: 'exch-crisis', volatilityMultiplier: 4.5 }
+  ];
+  const baseAssets = [
+    { symbol: 'SPY', basePrice: 450 },
+    { symbol: 'BTC', basePrice: 65000 }
+  ];
+  
   const updates = [];
   
   for (const exchange of activeExchanges) {
