@@ -3,6 +3,10 @@ import * as sql from 'mssql';
 import { MarketTickSchema, PriceUpdateEventSchema } from '../types/market-engine';
 import { getConnectionPool } from '../lib/database';
 
+// Configuration constants
+const DEFAULT_INITIAL_PRICE = 100; // Default starting price for new symbols
+const DEFAULT_VOLATILITY = 0.02; // 2% default volatility
+
 /**
  * Market Engine Timer Trigger
  * 
@@ -40,6 +44,12 @@ export async function marketEngineTick(
     // 2. Process each exchange
     for (const exchange of exchangesResult.recordset) {
       const exchangeId = exchange.ExchangeId;
+      
+      if (!exchangeId) {
+        context.error('Exchange record missing ExchangeId');
+        continue;
+      }
+      
       context.log(`Processing exchange: ${exchange.Name} (${exchangeId})`);
 
       try {
@@ -83,11 +93,11 @@ export async function marketEngineTick(
               ORDER BY Timestamp DESC
             `);
 
-          const lastPrice = lastPriceResult.recordset[0]?.Close || 100;
+          const lastPrice = lastPriceResult.recordset[0]?.Close || DEFAULT_INITIAL_PRICE;
           const lastVolume = lastPriceResult.recordset[0]?.Volume || 0;
 
           // Generate new price using random walk with volatility
-          const volatility = config.Volatility || 0.02; // 2% default
+          const volatility = config.Volatility || DEFAULT_VOLATILITY;
           const change = (Math.random() - 0.5) * 2 * volatility;
           const newPrice = lastPrice * (1 + change);
 
