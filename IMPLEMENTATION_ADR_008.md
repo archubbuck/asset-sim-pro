@@ -103,16 +103,18 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 
 ### 4. Test Coverage
 
-**Total Tests**: 15 new tests for cache module
+**Total Tests**: 17 new tests for cache module
 **Coverage**: 79.62% lines, 87.5% branches, 70% functions
 
 **Test Scenarios**:
-- Redis client initialization and connection reuse
-- Quote caching with correct key patterns and TTLs
-- Exchange config caching with correct key patterns
-- Cache retrieval and null handling
-- Invalid JSON parsing error handling
-- Cache invalidation (single and bulk)
+- Redis client initialization and connection reuse (3 tests)
+- Quote caching with correct key patterns and TTLs (2 tests)
+- Quote retrieval and null handling (3 tests)
+- Exchange config caching with correct key patterns (2 tests)
+- Exchange config retrieval and null handling (2 tests)
+- Cache invalidation - single config (1 test)
+- Cache invalidation - bulk quotes (2 tests)
+- Connection cleanup (2 tests)
 - Environment variable validation
 
 **Mock Strategy**: Class-based mock for ioredis with shared instance across tests
