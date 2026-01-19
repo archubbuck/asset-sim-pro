@@ -360,11 +360,13 @@ async function matchOrders(
                 AveragePrice = CASE 
                   -- Position fully closed: reset average price to 0
                   WHEN (Quantity + @quantityChange) = 0 THEN 0
-                  -- Position direction changes: Detects sign change using multiplication
-                  -- If Quantity > 0 and (Quantity + @quantityChange) < 0, product is negative (long to short)
-                  -- If Quantity < 0 and (Quantity + @quantityChange) > 0, product is negative (short to long)
-                  -- Start new average at current trade price when crossing zero
-                  WHEN Quantity * (Quantity + @quantityChange) < 0 THEN @avgPrice
+                  -- Position direction changes: Detect sign change explicitly using SIGN()
+                  -- If Quantity > 0 and (Quantity + @quantityChange) < 0, signs differ (long to short)
+                  -- If Quantity < 0 and (Quantity + @quantityChange) > 0, signs differ (short to long)
+                  -- Start new average at current trade price when crossing zero, but not on full closeout
+                  -- Using SIGN() is more robust than multiplication for edge cases near zero
+                  WHEN SIGN(Quantity) <> SIGN(Quantity + @quantityChange)
+                       AND (Quantity + @quantityChange) <> 0 THEN @avgPrice
                   -- Scaling into existing position on same side: weighted average
                   ELSE (AveragePrice * Quantity + @avgPrice * @quantityChange) / (Quantity + @quantityChange)
                 END,

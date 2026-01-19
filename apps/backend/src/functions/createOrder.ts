@@ -96,6 +96,9 @@ export async function createOrder(
     const portfolio = portfolioCheck.recordset[0];
     
     // Validate sufficient cash balance for BUY orders using Decimal.js (ADR-006)
+    // Note: MARKET orders cannot be validated at creation time since they don't have a price.
+    // MARKET orders will be validated during order matching in the market engine when the
+    // current market price is known.
     if (side === 'BUY' && (orderType === 'LIMIT' || orderType === 'STOP_LIMIT') && price) {
       const cashBalance = new Decimal(portfolio.CashBalance);
       const orderQuantity = new Decimal(quantity);
@@ -188,9 +191,18 @@ export async function createOrder(
       };
     }
 
-    // Provide more specific error messages based on error type
-    if (error instanceof Error) {
-      if (error.message.includes('database') || error.message.includes('connection')) {
+    // Provide more specific error messages based on error type and SQL error codes
+    // Check for SQL connection errors using error properties instead of string matching
+    if (error && typeof error === 'object') {
+      // SQL Server error codes (from mssql package)
+      const sqlError = error as any;
+      
+      // Connection errors (e.g., ECONNREFUSED, ETIMEOUT, login failures)
+      if (sqlError.code === 'ECONNREFUSED' || 
+          sqlError.code === 'ETIMEOUT' || 
+          sqlError.code === 'ESOCKET' ||
+          sqlError.number === 4060 || // Cannot open database
+          sqlError.number === 18456) { // Login failed
         return {
           status: 503,
           jsonBody: {
@@ -202,7 +214,10 @@ export async function createOrder(
         };
       }
       
-      if (error.message.includes('permission') || error.message.includes('access')) {
+      // Permission errors (SQL Server error numbers for permission denied)
+      if (sqlError.number === 229 ||  // SELECT permission denied
+          sqlError.number === 230 ||  // EXECUTE permission denied
+          sqlError.number === 297) {  // User does not have permission
         return {
           status: 403,
           jsonBody: {
@@ -210,6 +225,19 @@ export async function createOrder(
             title: 'Forbidden',
             status: 403,
             detail: 'You do not have permission to create orders for this portfolio.',
+          },
+        };
+      }
+      
+      // Foreign key constraint violations (invalid portfolio/exchange references)
+      if (sqlError.number === 547) { // FK constraint violation
+        return {
+          status: 400,
+          jsonBody: {
+            type: 'https://assetsim.com/errors/validation-error',
+            title: 'Invalid Reference',
+            status: 400,
+            detail: 'Referenced portfolio or exchange does not exist.',
           },
         };
       }
