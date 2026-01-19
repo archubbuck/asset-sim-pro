@@ -1,26 +1,30 @@
-/// <reference types='vitest' />
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
-  cacheDir: '../../../node_modules/.vite/libs/shared/finance-models',
+  cacheDir: '../../../../node_modules/.vite/libs/client/features/trading',
   plugins: [nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //   plugins: () => [ nxViteTsPaths() ],
-  // },
   test: {
-    name: 'finance-models',
+    name: 'trading',
     watch: false,
     globals: true,
-    environment: 'node',
+    environment: 'jsdom',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['node_modules', 'dist', '**/*.e2e.spec.ts'],
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../../coverage/libs/shared/finance-models',
+      reportsDirectory: '../../../../coverage/libs/client/features/trading',
       provider: 'v8' as const,
+      enabled: true,
+      reporter: ['text', 'json', 'html', 'lcov'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
     },
   },
 }));
