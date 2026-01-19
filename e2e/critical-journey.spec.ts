@@ -79,8 +79,7 @@ test.describe('Critical User Journey: Trading Flow', () => {
           break;
         }
       } catch (error) {
-        console.warn(`Widget visibility check failed for "${widget}":`, error);
-        // Widget not found, continue checking others
+        // Widget not found or check failed; continue checking other widgets.
         continue;
       }
     }
