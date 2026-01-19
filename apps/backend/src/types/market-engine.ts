@@ -19,11 +19,48 @@ export const MarketTickSchema = z.object({
 
 export type MarketTick = z.infer<typeof MarketTickSchema>;
 
-// Market engine configuration schema
+/**
+ * Market engine configuration schema.
+ *
+ * Rationale for validation ranges:
+ * - tickIntervalMs (100ms–60s)
+ *   - Minimum 100ms:
+ *     - Prevents excessively high-frequency timer triggers that could overwhelm Azure Functions,
+ *       SignalR broadcasts, or downstream Azure SQL writes.
+ *     - Aligns with ADR-006 guidance that real-time market data streams are typically throttled
+ *       to 100–500ms to avoid UI and backend saturation.
+ *   - Maximum 60s:
+ *     - Ensures the market engine still behaves as a "real-time" simulator rather than a
+ *       batch process, with at least one tick per minute.
+ *     - Matches common cron/Timer trigger granularity for second-level updates in training
+ *       scenarios (e.g., intraday strategy exercises).
+ *
+ * - volatility (0.001–1.0)
+ *   - Interpreted as a 0–1 scalar applied to price-move calculations (e.g., as a standard
+ *     deviation or percentage move factor in the pricing model).
+ *   - 0.001 (~0.1%) represents a very stable market regime (e.g., highly liquid large-cap
+ *     equities in calm conditions).
+ *   - 1.0 (~100%) represents an extreme or crisis regime where prices can move dramatically
+ *     between ticks (used in stress-testing and tail-risk training).
+ *
+ * These bounds are chosen as safe global limits for the simulator across asset classes and
+ * exchanges. More specific behavior for particular markets or instruments should be modeled
+ * by per-exchange or per-asset multipliers in the pricing logic, while this schema enforces
+ * reasonable, documented limits at the configuration/API boundary.
+ */
 export const MarketEngineConfigSchema = z.object({
   exchangeId: z.string().uuid(),
-  tickIntervalMs: z.number().int().positive().min(100).max(60000), // 100ms to 60s
-  volatility: z.number().positive().min(0.001).max(1.0), // 0.1% to 100%
+  tickIntervalMs: z
+    .number()
+    .int()
+    .positive()
+    .min(100)
+    .max(60000), // Engine tick interval in milliseconds (100ms min for performance, 60s max for real-time behavior)
+  volatility: z
+    .number()
+    .positive()
+    .min(0.001)
+    .max(1.0), // Dimensionless volatility scalar (0.001 ≈ 0.1% moves, 1.0 ≈ 100% extreme volatility)
   enabled: z.boolean(),
 });
 

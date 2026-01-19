@@ -1,5 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
+import Decimal from 'decimal.js';
 import { CreateOrderSchema, OrderResponse } from '../types/transaction';
 import { getConnectionPool } from '../lib/database';
 import { requireAuthentication } from '../lib/auth';
@@ -50,12 +51,33 @@ export async function createOrder(
         EXEC sp_set_session_context @key = N'ExchangeId', @value = @exchangeId;
       `);
 
+    // Validate that the exchange exists and is active
+    const exchangeCheck = await pool.request()
+      .input('exchangeId', sql.UniqueIdentifier, exchangeId)
+      .query(`
+        SELECT ExchangeId
+        FROM [Trade].[Exchanges]
+        WHERE ExchangeId = @exchangeId AND IsActive = 1
+      `);
+
+    if (exchangeCheck.recordset.length === 0) {
+      return {
+        status: 404,
+        jsonBody: {
+          type: 'https://assetsim.com/errors/not-found',
+          title: 'Exchange Not Found',
+          status: 404,
+          detail: 'Exchange not found or is inactive',
+        },
+      };
+    }
+
     // Verify portfolio ownership (RLS will enforce this)
     const portfolioCheck = await pool.request()
       .input('portfolioId', sql.UniqueIdentifier, portfolioId)
       .input('exchangeId', sql.UniqueIdentifier, exchangeId)
       .query(`
-        SELECT PortfolioId FROM [Trade].[Portfolios]
+        SELECT PortfolioId, CashBalance FROM [Trade].[Portfolios]
         WHERE PortfolioId = @portfolioId AND ExchangeId = @exchangeId
       `);
 
@@ -69,6 +91,28 @@ export async function createOrder(
           detail: 'Portfolio not found or you do not have access to it',
         },
       };
+    }
+
+    const portfolio = portfolioCheck.recordset[0];
+    
+    // Validate sufficient cash balance for BUY orders using Decimal.js (ADR-006)
+    if (side === 'BUY' && (orderType === 'LIMIT' || orderType === 'STOP_LIMIT') && price) {
+      const cashBalance = new Decimal(portfolio.CashBalance);
+      const orderQuantity = new Decimal(quantity);
+      const orderPrice = new Decimal(price);
+      const requiredCash = orderQuantity.times(orderPrice);
+      
+      if (cashBalance.lessThan(requiredCash)) {
+        return {
+          status: 400,
+          jsonBody: {
+            type: 'https://assetsim.com/errors/insufficient-funds',
+            title: 'Insufficient Funds',
+            status: 400,
+            detail: `Insufficient cash balance. Required: ${requiredCash.toFixed(2)}, Available: ${cashBalance.toFixed(2)}`,
+          },
+        };
+      }
     }
 
     // 4. Create order record
@@ -108,7 +152,7 @@ export async function createOrder(
 
     context.log(`Order ${order.OrderId} created successfully for portfolio ${portfolioId}`);
 
-    // 5. Return response
+    // 5. Return response using Decimal.js for precision (ADR-006)
     const response: OrderResponse = {
       orderId: order.OrderId,
       exchangeId: order.ExchangeId,
@@ -116,11 +160,11 @@ export async function createOrder(
       symbol: order.Symbol,
       side: order.Side,
       orderType: order.OrderType,
-      quantity: parseFloat(order.Quantity),
-      price: order.Price ? parseFloat(order.Price) : undefined,
-      stopPrice: order.StopPrice ? parseFloat(order.StopPrice) : undefined,
+      quantity: new Decimal(order.Quantity).toNumber(),
+      price: order.Price ? new Decimal(order.Price).toNumber() : undefined,
+      stopPrice: order.StopPrice ? new Decimal(order.StopPrice).toNumber() : undefined,
       status: order.Status,
-      filledQuantity: parseFloat(order.FilledQuantity),
+      filledQuantity: new Decimal(order.FilledQuantity).toNumber(),
       createdAt: order.CreatedAt,
       updatedAt: order.UpdatedAt,
     };
@@ -144,13 +188,40 @@ export async function createOrder(
       };
     }
 
+    // Provide more specific error messages based on error type
+    if (error instanceof Error) {
+      if (error.message.includes('database') || error.message.includes('connection')) {
+        return {
+          status: 503,
+          jsonBody: {
+            type: 'https://assetsim.com/errors/service-unavailable',
+            title: 'Service Unavailable',
+            status: 503,
+            detail: 'Database connection error. Please try again in a moment.',
+          },
+        };
+      }
+      
+      if (error.message.includes('permission') || error.message.includes('access')) {
+        return {
+          status: 403,
+          jsonBody: {
+            type: 'https://assetsim.com/errors/forbidden',
+            title: 'Forbidden',
+            status: 403,
+            detail: 'You do not have permission to create orders for this portfolio.',
+          },
+        };
+      }
+    }
+
     return {
       status: 500,
       jsonBody: {
         type: 'https://assetsim.com/errors/internal-error',
         title: 'Internal Server Error',
         status: 500,
-        detail: 'An internal error occurred while creating the order. Please try again or contact support if the issue persists.',
+        detail: 'An unexpected error occurred while creating the order. Please try again or contact support if the issue persists.',
       },
     };
   }

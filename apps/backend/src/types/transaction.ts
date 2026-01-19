@@ -17,7 +17,7 @@ export type OrderType = z.infer<typeof OrderTypeSchema>;
 export const OrderStatusSchema = z.enum(['PENDING', 'FILLED', 'PARTIAL', 'CANCELLED', 'REJECTED']);
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 
-// Create order request schema
+// Create order request schema with improved validation messages
 export const CreateOrderSchema = z.object({
   exchangeId: z.string().uuid(),
   symbol: z.string().min(1).max(20),
@@ -27,22 +27,43 @@ export const CreateOrderSchema = z.object({
   price: z.number().positive().optional(), // Required for LIMIT orders
   stopPrice: z.number().positive().optional(), // Required for STOP orders
   portfolioId: z.string().uuid(),
-}).refine(
-  (data) => {
-    // LIMIT and STOP_LIMIT orders require price
-    if ((data.orderType === 'LIMIT' || data.orderType === 'STOP_LIMIT') && !data.price) {
-      return false;
-    }
-    // STOP and STOP_LIMIT orders require stopPrice
-    if ((data.orderType === 'STOP' || data.orderType === 'STOP_LIMIT') && !data.stopPrice) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: 'Price and stopPrice must be provided for respective order types',
+}).superRefine((data, ctx) => {
+  // LIMIT orders require price
+  if (data.orderType === 'LIMIT' && !data.price) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'LIMIT orders require a price field',
+      path: ['price'],
+    });
   }
-);
+  
+  // STOP_LIMIT orders require both price and stopPrice
+  if (data.orderType === 'STOP_LIMIT') {
+    if (!data.price) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'STOP_LIMIT orders require a price field (limit price)',
+        path: ['price'],
+      });
+    }
+    if (!data.stopPrice) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'STOP_LIMIT orders require a stopPrice field (trigger price)',
+        path: ['stopPrice'],
+      });
+    }
+  }
+  
+  // STOP orders require stopPrice
+  if (data.orderType === 'STOP' && !data.stopPrice) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'STOP orders require a stopPrice field',
+      path: ['stopPrice'],
+    });
+  }
+});
 
 export type CreateOrderRequest = z.infer<typeof CreateOrderSchema>;
 
@@ -72,7 +93,17 @@ export const CancelOrderSchema = z.object({
 
 export type CancelOrderRequest = z.infer<typeof CancelOrderSchema>;
 
-// Get order query params schema
+/**
+ * Get order query params schema
+ * 
+ * Pagination defaults:
+ * - limit: 50 (Default page size chosen to balance between usability and performance. 
+ *   Allows users to review a meaningful set of orders while keeping response times 
+ *   reasonable and avoiding memory issues on client/server. For high-frequency traders 
+ *   who may have hundreds of orders, pagination is essential.)
+ * - offset: 0 (Standard starting point for pagination)
+ * - max limit: 100 (Maximum to prevent excessive load on database and API)
+ */
 export const GetOrderQuerySchema = z.object({
   exchangeId: z.string().uuid(),
   portfolioId: z.string().uuid().optional(),

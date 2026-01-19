@@ -1,11 +1,58 @@
 import { app, InvocationContext, Timer } from '@azure/functions';
 import * as sql from 'mssql';
+import Decimal from 'decimal.js';
 import { MarketTickSchema, PriceUpdateEventSchema } from '../types/market-engine';
 import { getConnectionPool } from '../lib/database';
 
-// Configuration constants
-const DEFAULT_INITIAL_PRICE = 100; // Default starting price for new symbols
-const DEFAULT_VOLATILITY = 0.02; // 2% default volatility
+/**
+ * Default starting price for newly simulated symbols when no explicit reference price
+ * is available from configuration or the database.
+ *
+ * Rationale:
+ * - 100 is a neutral, round reference level commonly used in financial simulations and
+ *   academic literature for synthetic instruments and indices.
+ * - It makes percentage-based reasoning straightforward (e.g., a 1% move is +1.00),
+ *   which is useful when validating and debugging the market engine.
+ *
+ * Realism considerations:
+ * - For large-cap equities and many ETFs, a price around 100 USD is within a realistic
+ *   order of magnitude.
+ * - For other asset classes (e.g., BTC at tens of thousands, micro-cap stocks below 5,
+ *   some commodities quoted per contract), this is *not* intended to be realistic and
+ *   should be overridden via exchange/asset configuration.
+ *
+ * This constant is therefore a *safety fallback only* and should not be treated as a
+ * domain-accurate default for all assets.
+ */
+const DEFAULT_INITIAL_PRICE = 100;
+
+/**
+ * Default per-tick volatility used when an asset/exchange-specific volatility is not
+ * configured.
+ *
+ * Interpretation:
+ * - 0.02 represents 2% volatility at the simulation's tick interval (see the timer
+ *   schedule below). The actual realized volatility per unit of *wall-clock* time
+ *   depends on how often `marketEngineTick` runs.
+ *
+ * Rationale:
+ * - 2% per tick is a conservative, moderately active level suitable for large-cap
+ *   equities and liquid ETFs when ticks represent short horizons (seconds to minutes).
+ * - It keeps price paths dynamic enough for training execution/risk workflows without
+ *   producing extreme, unrealistic swings by default.
+ *
+ * Realism & asset-class guidance:
+ * - Equities / ETFs: 1–3% per simulation step is a typical range for training scenarios.
+ * - Crypto: often requires much higher effective volatility (e.g., 5–15% per comparable
+ *   step) to be realistic; crypto symbols should therefore override this default.
+ * - Commodities / FX: usually less volatile intraday; 0.5–2% per step is more typical,
+ *   and production configs should tune per symbol or per exchange.
+ *
+ * This value is intended as a generic fallback for environments where detailed
+ * calibration is not yet available. For high-fidelity simulations, configure
+ * symbol-specific volatility parameters instead of relying on this default.
+ */
+const DEFAULT_VOLATILITY = 0.02;
 
 /**
  * Market Engine Timer Trigger
@@ -93,28 +140,34 @@ export async function marketEngineTick(
               ORDER BY Timestamp DESC
             `);
 
-          const lastPrice = lastPriceResult.recordset[0]?.Close || DEFAULT_INITIAL_PRICE;
-          const lastVolume = lastPriceResult.recordset[0]?.Volume || 0;
+          const lastPriceDb = lastPriceResult.recordset[0]?.Close || DEFAULT_INITIAL_PRICE;
+          const lastVolumeDb = lastPriceResult.recordset[0]?.Volume || 0;
+
+          // Use Decimal.js for all financial calculations (ADR-006)
+          const lastPrice = new Decimal(lastPriceDb);
+          const lastVolume = new Decimal(lastVolumeDb);
 
           // Generate new price using random walk with volatility
           const volatility = config.Volatility || DEFAULT_VOLATILITY;
-          const change = (Math.random() - 0.5) * 2 * volatility;
-          const newPrice = lastPrice * (1 + change);
+          const randomFactor = (Math.random() - 0.5) * 2; // -1 to 1
+          const change = new Decimal(randomFactor).times(volatility);
+          const newPrice = lastPrice.times(new Decimal(1).plus(change));
 
           // Generate volume (random around last volume)
-          const volumeChange = (Math.random() - 0.5) * 0.5;
-          const newVolume = Math.max(0, lastVolume * (1 + volumeChange));
+          const volumeRandomFactor = (Math.random() - 0.5) * 0.5; // -0.25 to 0.25
+          const volumeChange = new Decimal(1).plus(volumeRandomFactor);
+          const newVolume = Decimal.max(0, lastVolume.times(volumeChange));
 
           // Validate tick with Zod schema
           const tickData = {
             exchangeId,
             symbol,
             timestamp,
-            open: lastPrice,
-            high: Math.max(lastPrice, newPrice),
-            low: Math.min(lastPrice, newPrice),
-            close: newPrice,
-            volume: Math.round(newVolume),
+            open: lastPrice.toNumber(),
+            high: Decimal.max(lastPrice, newPrice).toNumber(),
+            low: Decimal.min(lastPrice, newPrice).toNumber(),
+            close: newPrice.toNumber(),
+            volume: Math.round(newVolume.toNumber()),
           };
 
           const tickValidation = MarketTickSchema.safeParse(tickData);
@@ -140,15 +193,18 @@ export async function marketEngineTick(
             `);
 
           // 4. Match pending orders for this symbol
-          await matchOrders(pool, exchangeId, symbol, newPrice, context);
+          await matchOrders(pool, exchangeId, symbol, newPrice.toNumber(), context);
 
-          // Validate and log price update event
+          // Validate and log price update event (use Decimal.js for percentage calculations per ADR-006)
+          const priceChange = newPrice.minus(lastPrice);
+          const changePercent = priceChange.dividedBy(lastPrice).times(100);
+          
           const priceUpdateData = {
             exchangeId,
             symbol,
-            price: newPrice,
-            change: newPrice - lastPrice,
-            changePercent: ((newPrice - lastPrice) / lastPrice) * 100,
+            price: newPrice.toNumber(),
+            change: priceChange.toNumber(),
+            changePercent: changePercent.toNumber(),
             volume: tickData.volume,
             timestamp,
           };
@@ -174,7 +230,7 @@ export async function marketEngineTick(
 }
 
 /**
- * Match pending orders against current market price
+ * Match pending orders against current market price with transaction isolation
  */
 async function matchOrders(
   pool: sql.ConnectionPool,
@@ -183,12 +239,14 @@ async function matchOrders(
   currentPrice: number,
   context: InvocationContext
 ): Promise<void> {
+  const currentPriceDecimal = new Decimal(currentPrice);
+  
   // Get all pending orders for this symbol
   const ordersResult = await pool.request()
     .input('exchangeId', sql.UniqueIdentifier, exchangeId)
     .input('symbol', sql.NVarChar, symbol)
     .query(`
-      SELECT OrderId, PortfolioId, Side, OrderType, Quantity, Price, StopPrice, FilledQuantity
+      SELECT OrderId, PortfolioId, Side, OrderType, Quantity, Price, StopPrice, FilledQuantity, StopTriggered
       FROM [Trade].[Orders]
       WHERE ExchangeId = @exchangeId 
         AND Symbol = @symbol 
@@ -196,86 +254,134 @@ async function matchOrders(
     `);
 
   for (const order of ordersResult.recordset) {
-    let shouldFill = false;
+    // Use transaction to ensure atomic order fill + position + cash update
+    const transaction = pool.transaction();
+    
+    try {
+      await transaction.begin();
+      
+      let shouldFill = false;
+      let orderTypeToMatch = order.OrderType;
 
-    // Determine if order should be filled based on type
-    switch (order.OrderType) {
-      case 'MARKET':
-        shouldFill = true;
-        break;
-      case 'LIMIT':
-        shouldFill = (order.Side === 'BUY' && currentPrice <= order.Price) ||
-                     (order.Side === 'SELL' && currentPrice >= order.Price);
-        break;
-      case 'STOP':
-        shouldFill = (order.Side === 'BUY' && currentPrice >= order.StopPrice) ||
-                     (order.Side === 'SELL' && currentPrice <= order.StopPrice);
-        break;
-      case 'STOP_LIMIT':
-        // Simplified: trigger if stop price is hit
-        shouldFill = (order.Side === 'BUY' && currentPrice >= order.StopPrice && currentPrice <= order.Price) ||
-                     (order.Side === 'SELL' && currentPrice <= order.StopPrice && currentPrice >= order.Price);
-        break;
-    }
+      // Determine if order should be filled based on type
+      switch (order.OrderType) {
+        case 'MARKET':
+          shouldFill = true;
+          break;
+        case 'LIMIT':
+          shouldFill = (order.Side === 'BUY' && currentPrice <= order.Price) ||
+                       (order.Side === 'SELL' && currentPrice >= order.Price);
+          break;
+        case 'STOP':
+          shouldFill = (order.Side === 'BUY' && currentPrice >= order.StopPrice) ||
+                       (order.Side === 'SELL' && currentPrice <= order.StopPrice);
+          break;
+        case 'STOP_LIMIT': {
+          // Two-step behavior: first trigger stop, then match as LIMIT
+          const stopTriggered = order.StopTriggered || 
+            (order.Side === 'BUY' && currentPrice >= order.StopPrice) ||
+            (order.Side === 'SELL' && currentPrice <= order.StopPrice);
 
-    if (shouldFill) {
-      const fillPrice = order.OrderType === 'MARKET' ? currentPrice : (order.Price || currentPrice);
-      const remainingQuantity = order.Quantity - order.FilledQuantity;
+          if (stopTriggered && !order.StopTriggered) {
+            // Persist the stop trigger state
+            await transaction.request()
+              .input('orderId', sql.UniqueIdentifier, order.OrderId)
+              .query(`
+                UPDATE [Trade].[Orders]
+                SET StopTriggered = 1,
+                    UpdatedAt = GETUTCDATE()
+                WHERE OrderId = @orderId
+              `);
+            order.StopTriggered = true;
+          }
 
-      // Update order to filled
-      await pool.request()
-        .input('orderId', sql.UniqueIdentifier, order.OrderId)
-        .input('filledQuantity', sql.Decimal(18, 8), order.Quantity)
-        .input('averagePrice', sql.Decimal(18, 8), fillPrice)
-        .input('status', sql.NVarChar, 'FILLED')
-        .query(`
-          UPDATE [Trade].[Orders]
-          SET FilledQuantity = @filledQuantity,
-              AveragePrice = @averagePrice,
-              Status = @status,
-              UpdatedAt = GETUTCDATE()
-          WHERE OrderId = @orderId
-        `);
+          // Once triggered, behave exactly like a LIMIT order
+          if (order.StopTriggered) {
+            shouldFill = (order.Side === 'BUY' && currentPrice <= order.Price) ||
+                         (order.Side === 'SELL' && currentPrice >= order.Price);
+          }
+          break;
+        }
+      }
 
-      // Update portfolio position
-      const positionMultiplier = order.Side === 'BUY' ? 1 : -1;
-      const quantityChange = remainingQuantity * positionMultiplier;
-      const cashChange = -1 * remainingQuantity * fillPrice * positionMultiplier;
+      if (shouldFill) {
+        // Use Decimal.js for all financial calculations (ADR-006)
+        const fillPriceDecimal = order.OrderType === 'MARKET' 
+          ? currentPriceDecimal 
+          : new Decimal(order.Price || currentPrice);
+        
+        const orderQuantity = new Decimal(order.Quantity);
+        const filledQuantity = new Decimal(order.FilledQuantity || 0);
+        const remainingQuantity = orderQuantity.minus(filledQuantity);
 
-      await pool.request()
-        .input('portfolioId', sql.UniqueIdentifier, order.PortfolioId)
-        .input('symbol', sql.NVarChar, symbol)
-        .input('quantityChange', sql.Decimal(18, 8), quantityChange)
-        .input('avgPrice', sql.Decimal(18, 8), fillPrice)
-        .query(`
-          MERGE [Trade].[Positions] AS target
-          USING (SELECT @portfolioId AS PortfolioId, @symbol AS Symbol) AS source
-          ON target.PortfolioId = source.PortfolioId AND target.Symbol = source.Symbol
-          WHEN MATCHED THEN
-            UPDATE SET 
-              Quantity = Quantity + @quantityChange,
-              AveragePrice = CASE 
-                WHEN (Quantity + @quantityChange) = 0 THEN 0
-                ELSE (AveragePrice * Quantity + @avgPrice * @quantityChange) / (Quantity + @quantityChange)
-              END,
-              UpdatedAt = GETUTCDATE()
-          WHEN NOT MATCHED THEN
-            INSERT (PortfolioId, Symbol, Quantity, AveragePrice)
-            VALUES (@portfolioId, @symbol, @quantityChange, @avgPrice);
-        `);
+        // Update order to filled
+        await transaction.request()
+          .input('orderId', sql.UniqueIdentifier, order.OrderId)
+          .input('filledQuantity', sql.Decimal(18, 8), orderQuantity.toNumber())
+          .input('averagePrice', sql.Decimal(18, 8), fillPriceDecimal.toNumber())
+          .input('status', sql.NVarChar, 'FILLED')
+          .query(`
+            UPDATE [Trade].[Orders]
+            SET FilledQuantity = @filledQuantity,
+                AveragePrice = @averagePrice,
+                Status = @status,
+                UpdatedAt = GETUTCDATE()
+            WHERE OrderId = @orderId
+          `);
 
-      // Update portfolio cash balance
-      await pool.request()
-        .input('portfolioId', sql.UniqueIdentifier, order.PortfolioId)
-        .input('cashChange', sql.Decimal(18, 8), cashChange)
-        .query(`
-          UPDATE [Trade].[Portfolios]
-          SET CashBalance = CashBalance + @cashChange,
-              UpdatedAt = GETUTCDATE()
-          WHERE PortfolioId = @portfolioId
-        `);
+        // Calculate position and cash changes using Decimal.js
+        const positionMultiplier = order.Side === 'BUY' ? 1 : -1;
+        const quantityChange = remainingQuantity.times(positionMultiplier);
+        const cashChange = remainingQuantity.times(fillPriceDecimal).times(-1 * positionMultiplier);
 
-      context.log(`Order ${order.OrderId} filled at ${fillPrice} for ${symbol}`);
+        // Update portfolio position with proper handling for position reversals
+        await transaction.request()
+          .input('portfolioId', sql.UniqueIdentifier, order.PortfolioId)
+          .input('symbol', sql.NVarChar, symbol)
+          .input('quantityChange', sql.Decimal(18, 8), quantityChange.toNumber())
+          .input('avgPrice', sql.Decimal(18, 8), fillPriceDecimal.toNumber())
+          .query(`
+            MERGE [Trade].[Positions] AS target
+            USING (SELECT @portfolioId AS PortfolioId, @symbol AS Symbol) AS source
+            ON target.PortfolioId = source.PortfolioId AND target.Symbol = source.Symbol
+            WHEN MATCHED THEN
+              UPDATE SET 
+                Quantity = Quantity + @quantityChange,
+                AveragePrice = CASE 
+                  -- Position fully closed: reset average price to 0
+                  WHEN (Quantity + @quantityChange) = 0 THEN 0
+                  -- Position direction changes (e.g., long to short or short to long): start new average at current trade price
+                  WHEN Quantity * (Quantity + @quantityChange) < 0 THEN @avgPrice
+                  -- Scaling into existing position on same side: weighted average
+                  ELSE (AveragePrice * Quantity + @avgPrice * @quantityChange) / (Quantity + @quantityChange)
+                END,
+                UpdatedAt = GETUTCDATE()
+            WHEN NOT MATCHED THEN
+              INSERT (PortfolioId, Symbol, Quantity, AveragePrice)
+              VALUES (@portfolioId, @symbol, @quantityChange, @avgPrice);
+          `);
+
+        // Update portfolio cash balance
+        await transaction.request()
+          .input('portfolioId', sql.UniqueIdentifier, order.PortfolioId)
+          .input('cashChange', sql.Decimal(18, 8), cashChange.toNumber())
+          .query(`
+            UPDATE [Trade].[Portfolios]
+            SET CashBalance = CashBalance + @cashChange,
+                UpdatedAt = GETUTCDATE()
+            WHERE PortfolioId = @portfolioId
+          `);
+
+        await transaction.commit();
+        context.log(`Order ${order.OrderId} filled at ${fillPriceDecimal.toFixed(2)} for ${symbol}`);
+      } else {
+        // No fill needed, rollback transaction
+        await transaction.rollback();
+      }
+    } catch (error) {
+      await transaction.rollback();
+      context.error(`Error matching order ${order.OrderId}:`, error);
+      // Continue processing other orders
     }
   }
 }
