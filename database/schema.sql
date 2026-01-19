@@ -156,3 +156,10 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
     INDEX [IX_ExchangeFeatureFlags_ExchangeId] ([ExchangeId])
 );
 GO
+
+-- 6. Apply Policy to Exchange Feature Flags
+CREATE SECURITY POLICY [Security].[ExchangeFeatureFlagsPolicy]
+    ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags],
+    ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags]
+    WITH (STATE = ON);
+GO

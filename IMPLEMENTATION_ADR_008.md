@@ -32,8 +32,8 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 ### 2. Redis Caching Infrastructure
 
 **Files**: 
-- `apps/backend/src/lib/cache.ts` (197 lines)
-- `apps/backend/src/lib/cache.spec.ts` (332 lines, 15 tests)
+- `apps/backend/src/lib/cache.ts` (267 lines)
+- `apps/backend/src/lib/cache.spec.ts` (273 lines, 15 tests)
 
 **Package Added**: `ioredis@^5.9.2`
 

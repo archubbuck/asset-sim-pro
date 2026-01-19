@@ -10,15 +10,13 @@ let connecting: Promise<Redis> | null = null;
  * ADR-008: Caching Strategy
  * - Real-Time Quotes: QUOTE:{EXCHANGE_ID}:{SYMBOL}
  * - Exchange Config: CONFIG:{EXCHANGE_ID}
+ * 
+ * @returns Promise that resolves to Redis client when ready
  */
-export function getRedisClient(): Redis {
+export async function getRedisClient(): Promise<Redis> {
+  // Return existing ready client immediately
   if (redisClient && redisClient.status === 'ready') {
     return redisClient;
-  }
-
-  // Prevent race condition by using a shared connection promise
-  if (connecting) {
-    throw new Error('Redis client is currently connecting. Please retry.');
   }
 
   const connectionString = process.env.REDIS_CONNECTION_STRING;
@@ -27,67 +25,55 @@ export function getRedisClient(): Redis {
     throw new Error('REDIS_CONNECTION_STRING environment variable is required');
   }
 
-  try {
-    connecting = new Promise<Redis>((resolve, reject) => {
-      try {
-        const client = new Redis(connectionString, {
-          enableAutoPipelining: true,
-          maxRetriesPerRequest: 3,
-          retryStrategy: (times: number) => {
-            const delay = Math.min(times * 50, 2000);
-            return delay;
-          },
-        });
+  // Prevent race condition by using a shared connection promise
+  if (!connecting) {
+    try {
+      connecting = new Promise<Redis>((resolve, reject) => {
+        try {
+          const client = new Redis(connectionString, {
+            enableAutoPipelining: true,
+            maxRetriesPerRequest: 3,
+            retryStrategy: (times: number) => {
+              const delay = Math.min(times * 50, 2000);
+              return delay;
+            },
+          });
 
-        client.on('error', (error) => {
-          console.error('Redis client error:', error);
-        });
+          client.on('error', (error) => {
+            // Note: Using console.error here is acceptable for utility modules
+            // Azure Functions context.error is used in function handlers
+            console.error('Redis client error:', error);
+          });
 
-        client.on('ready', () => {
-          redisClient = client;
+          client.on('close', () => {
+            console.warn('Redis connection closed');
+            redisClient = null;
+          });
+
+          client.once('ready', () => {
+            redisClient = client;
+            connecting = null;
+            resolve(client);
+          });
+        } catch (err) {
           connecting = null;
-          resolve(client);
-        });
-
-        client.on('close', () => {
-          console.warn('Redis connection closed');
-          redisClient = null;
-        });
-      } catch (err) {
-        connecting = null;
-        reject(err);
-      }
-    });
-
-    // For synchronous calls, return immediately if already initialized
-    // This maintains backward compatibility
-    if (!redisClient) {
-      redisClient = new Redis(connectionString, {
-        enableAutoPipelining: true,
-        maxRetriesPerRequest: 3,
-        retryStrategy: (times: number) => {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
-        },
+          reject(err);
+        }
       });
-
-      redisClient.on('error', (error) => {
-        console.error('Redis client error:', error);
+    } catch (err: unknown) {
+      const error = err as Error & { code?: unknown };
+      console.error('Failed to initialize Redis client.', {
+        message: error.message,
+        code: error.code,
       });
-
-      redisClient.on('close', () => {
-        console.warn('Redis connection closed');
-        redisClient = null;
-      });
+      throw err;
     }
+  }
 
-    return redisClient;
+  try {
+    return await connecting;
   } catch (err: unknown) {
-    const error = err as Error & { code?: unknown };
-    console.error('Failed to initialize Redis client.', {
-      message: error.message,
-      code: error.code,
-    });
+    connecting = null;
     throw err;
   }
 }
@@ -110,7 +96,7 @@ export async function cacheQuote(
   ttlSeconds: number = 60
 ): Promise<void> {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `QUOTE:${exchangeId}:${symbol}`;
     
     await client.setex(key, ttlSeconds, JSON.stringify(quoteData));
@@ -135,7 +121,7 @@ export async function getQuote(
   changePercent?: number;
 } | null> {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `QUOTE:${exchangeId}:${symbol}`;
     
     const data = await client.get(key);
@@ -175,7 +161,7 @@ export async function cacheExchangeConfig(
   ttlSeconds: number = 300
 ): Promise<void> {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `CONFIG:${exchangeId}`;
     
     await client.setex(key, ttlSeconds, JSON.stringify(config));
@@ -200,7 +186,7 @@ export async function getExchangeConfig(
   dashboardLayout?: string;
 } | null> {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `CONFIG:${exchangeId}`;
     
     const data = await client.get(key);
@@ -228,7 +214,7 @@ export async function getExchangeConfig(
  */
 export async function invalidateExchangeConfig(exchangeId: string): Promise<void> {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `CONFIG:${exchangeId}`;
     
     await client.del(key);
@@ -245,7 +231,7 @@ export async function invalidateExchangeConfig(exchangeId: string): Promise<void
  */
 export async function invalidateExchangeQuotes(exchangeId: string): Promise<void> {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const pattern = `QUOTE:${exchangeId}:*`;
     
     // Use SCAN to avoid blocking (count increased to 1000 for efficiency)

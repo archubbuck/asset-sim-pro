@@ -21,6 +21,7 @@ const mockRedisInstance = {
     },
   }),
   on: vi.fn(),
+  once: vi.fn(),
   quit: vi.fn().mockResolvedValue('OK'),
 };
 
@@ -32,7 +33,20 @@ vi.mock('ioredis', () => {
     del = mockRedisInstance.del;
     scanStream = mockRedisInstance.scanStream;
     on = mockRedisInstance.on;
+    once = mockRedisInstance.once;
     quit = mockRedisInstance.quit;
+
+    constructor() {
+      // Simulate immediate 'ready' event for tests
+      setTimeout(() => {
+        const readyCallback = mockRedisInstance.once.mock.calls.find(
+          (call) => call[0] === 'ready'
+        )?.[1];
+        if (readyCallback) {
+          readyCallback();
+        }
+      }, 0);
+    }
   }
 
   return {
@@ -50,6 +64,12 @@ describe('cache', () => {
     mockRedisInstance.get.mockResolvedValue(null);
     mockRedisInstance.setex.mockResolvedValue('OK');
     mockRedisInstance.del.mockResolvedValue(1);
+    mockRedisInstance.once.mockImplementation((event, callback) => {
+      if (event === 'ready') {
+        // Call the callback immediately to simulate ready state
+        setTimeout(() => callback(), 0);
+      }
+    });
   });
 
   afterEach(() => {
@@ -61,28 +81,28 @@ describe('cache', () => {
   });
 
   describe('getRedisClient', () => {
-    it('should throw error when REDIS_CONNECTION_STRING is not set', () => {
+    it('should throw error when REDIS_CONNECTION_STRING is not set', async () => {
       delete process.env.REDIS_CONNECTION_STRING;
 
-      expect(() => getRedisClient()).toThrow(
+      await expect(getRedisClient()).rejects.toThrow(
         'REDIS_CONNECTION_STRING environment variable is required'
       );
     });
 
-    it('should create and return a Redis client', () => {
+    it('should create and return a Redis client', async () => {
       process.env.REDIS_CONNECTION_STRING = 'redis://localhost:6379';
 
-      const client = getRedisClient();
+      const client = await getRedisClient();
 
       expect(client).toBeDefined();
       expect(client.status).toBe('ready');
     });
 
-    it('should return existing client if already connected', () => {
+    it('should return existing client if already connected', async () => {
       process.env.REDIS_CONNECTION_STRING = 'redis://localhost:6379';
 
-      const client1 = getRedisClient();
-      const client2 = getRedisClient();
+      const client1 = await getRedisClient();
+      const client2 = await getRedisClient();
 
       expect(client1).toBe(client2);
     });
