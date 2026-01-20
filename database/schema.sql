@@ -82,7 +82,22 @@ CREATE TABLE [Trade].[Orders] (
 );
 GO
 
--- 8. Aggregated Candles (Hot Path Storage)
+-- 8. Raw Market Data (ADR-010: Source for aggregation, archived to cold storage)
+CREATE TABLE [Trade].[MarketData] (
+    [TickId] BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]),
+    [Symbol] NVARCHAR(10) NOT NULL,
+    [Timestamp] DATETIMEOFFSET NOT NULL,
+    [Open] DECIMAL(18, 8) NOT NULL,
+    [High] DECIMAL(18, 8) NOT NULL,
+    [Low] DECIMAL(18, 8) NOT NULL,
+    [Close] DECIMAL(18, 8) NOT NULL,
+    [Volume] BIGINT DEFAULT 0,
+    INDEX [IX_MarketData_Exchange_Symbol_Time] ([ExchangeId], [Symbol], [Timestamp])
+);
+GO
+
+-- 9. Aggregated Candles (ADR-010: Hot Path Storage - 7 day retention)
 CREATE TABLE [Trade].[OHLC_1M] (
     [CandleId] BIGINT IDENTITY(1,1) PRIMARY KEY,
     [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]),
@@ -92,7 +107,7 @@ CREATE TABLE [Trade].[OHLC_1M] (
     [High] DECIMAL(18, 2) NOT NULL,
     [Low] DECIMAL(18, 2) NOT NULL,
     [Close] DECIMAL(18, 2) NOT NULL,
-    [Volume] INT DEFAULT 0,
+    [Volume] BIGINT DEFAULT 0,
     INDEX [IX_OHLC_Exchange_Symbol_Time] ([ExchangeId], [Symbol], [Timestamp])
 );
 GO
@@ -139,14 +154,21 @@ CREATE SECURITY POLICY [Security].[OrderPolicy]
     WITH (STATE = ON);
 GO
 
--- 5. Apply Policy to OHLC data
+-- 5. Apply Policy to MarketData
+CREATE SECURITY POLICY [Security].[MarketDataPolicy]
+    ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[MarketData],
+    ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[MarketData]
+    WITH (STATE = ON);
+GO
+
+-- 6. Apply Policy to OHLC data
 CREATE SECURITY POLICY [Security].[OHLCPolicy]
     ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[OHLC_1M],
     ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[OHLC_1M]
     WITH (STATE = ON);
 GO
 
--- 9. Exchange Feature Flags (ADR-008: Multi-Tenancy Feature Management)
+-- 10. Exchange Feature Flags (ADR-008: Multi-Tenancy Feature Management)
 CREATE TABLE [Trade].[ExchangeFeatureFlags] (
     [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]) ON DELETE CASCADE,
     [FeatureName] NVARCHAR(100) NOT NULL,
@@ -157,9 +179,97 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 );
 GO
 
--- 6. Apply RLS Policy to Exchange Feature Flags (RLS Policy #6)
+-- 7. Apply RLS Policy to Exchange Feature Flags (RLS Policy #7)
 CREATE SECURITY POLICY [Security].[ExchangeFeatureFlagsPolicy]
     ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags],
     ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags]
     WITH (STATE = ON);
+GO
+
+-- ADR-010: Data Retention & Lifecycle Management Stored Procedures
+
+-- Aggregate raw ticks into 1-minute OHLC candles
+CREATE PROCEDURE [Trade].[sp_AggregateOHLC_1M]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Find the last aggregated timestamp
+    DECLARE @LastAggregated DATETIMEOFFSET;
+    SELECT @LastAggregated = ISNULL(MAX([Timestamp]), '1900-01-01')
+    FROM [Trade].[OHLC_1M];
+    
+    -- Aggregate raw ticks into 1-minute candles for data after last aggregation
+    -- NOTE: Precision reduction from DECIMAL(18,8) to DECIMAL(18,2) handled by SQL implicit conversion
+    -- This is an exception to ADR-006 (Decimal.js requirement) for database-level aggregations
+    -- where moving logic to TypeScript would significantly impact performance
+    INSERT INTO [Trade].[OHLC_1M] ([ExchangeId], [Symbol], [Timestamp], [Open], [High], [Low], [Close], [Volume])
+    SELECT 
+        [ExchangeId],
+        [Symbol],
+        [MinuteTimestamp] AS [Timestamp],
+        MIN(CASE WHEN rn = 1 THEN [Open] END) AS [Open], -- First tick's open in minute
+        MAX([High]) AS [High],
+        MIN([Low]) AS [Low],
+        MAX(CASE WHEN rn_desc = 1 THEN [Close] END) AS [Close], -- Last tick's close in minute
+        SUM([Volume]) AS [Volume]
+    FROM (
+        SELECT 
+            [ExchangeId],
+            [Symbol],
+            [Open],
+            [High],
+            [Low],
+            [Close],
+            [Volume],
+            [Timestamp],
+            [MinuteTimestamp],
+            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], [MinuteTimestamp] ORDER BY [Timestamp] ASC) as rn,
+            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], [MinuteTimestamp] ORDER BY [Timestamp] DESC) as rn_desc
+        FROM (
+            SELECT 
+                [ExchangeId],
+                [Symbol],
+                [Open],
+                [High],
+                [Low],
+                [Close],
+                [Volume],
+                [Timestamp],
+                DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) AS [MinuteTimestamp] -- Round down to minute (computed once)
+            FROM [Trade].[MarketData]
+            WHERE [Timestamp] > @LastAggregated
+        ) AS TimestampComputed
+    ) AS RankedData
+    GROUP BY [ExchangeId], [Symbol], [MinuteTimestamp];
+    
+    RETURN @@ROWCOUNT;
+END;
+GO
+
+-- Clean up hot path data older than 7 days (OHLC_1M retention policy)
+-- Also clean up raw MarketData after it's been aggregated and captured to cold storage
+CREATE PROCEDURE [Trade].[sp_CleanupHotPath]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @RetentionDays INT = 7;
+    DECLARE @CutoffDate DATETIMEOFFSET = DATEADD(DAY, -@RetentionDays, SYSDATETIMEOFFSET());
+    DECLARE @RowsDeleted INT = 0;
+    
+    -- Delete aggregated OHLC candles older than 7 days
+    DELETE FROM [Trade].[OHLC_1M]
+    WHERE [Timestamp] < @CutoffDate;
+    
+    SET @RowsDeleted = @@ROWCOUNT;
+    
+    -- Delete raw MarketData older than 7 days (after Event Hubs Capture has archived it)
+    DELETE FROM [Trade].[MarketData]
+    WHERE [Timestamp] < @CutoffDate;
+    
+    SET @RowsDeleted = @RowsDeleted + @@ROWCOUNT;
+    
+    RETURN @RowsDeleted;
+END;
 GO

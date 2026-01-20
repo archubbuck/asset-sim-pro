@@ -20,6 +20,100 @@ resource "azurerm_eventhub" "ticks" {
   resource_group_name = var.resource_group_name
   partition_count     = 2
   message_retention   = 1
+
+  # ADR-010: Event Hubs Capture for cold path archive
+  capture_description {
+    enabled             = true
+    encoding            = "Avro"
+    interval_in_seconds = 300 # Capture every 5 minutes
+    size_limit_in_bytes = 314572800 # 300 MB
+
+    destination {
+      name                = "EventHubArchive.AzureBlockBlob"
+      archive_name_format = "{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name = azurerm_storage_container.market_data_archive.name
+      storage_account_id  = azurerm_storage_account.cold_storage.id
+    }
+  }
+}
+
+# ADR-010: Storage Account for Cold Path (archived market data)
+resource "azurerm_storage_account" "cold_storage" {
+  name                          = "stassetsim${var.environment}"
+  resource_group_name           = var.resource_group_name
+  location                      = var.location
+  account_tier                  = "Standard"
+  account_replication_type      = "LRS"
+  public_network_access_enabled = false
+  min_tls_version               = "TLS1_2"
+
+  blob_properties {
+    versioning_enabled = true
+
+    # Lifecycle management for cold storage tiering
+    delete_retention_policy {
+      days = 90 # Keep deleted data for 90 days
+    }
+  }
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
+}
+
+# Container for archived market data from Event Hubs Capture
+resource "azurerm_storage_container" "market_data_archive" {
+  name                  = "market-data-archive"
+  storage_account_name  = azurerm_storage_account.cold_storage.name
+  container_access_type = "private"
+}
+
+# Lifecycle management policy for storage tiering
+resource "azurerm_storage_management_policy" "cold_path_lifecycle" {
+  storage_account_id = azurerm_storage_account.cold_storage.id
+
+  rule {
+    name    = "archiveOldMarketData"
+    enabled = true
+
+    filters {
+      prefix_match = ["market-data-archive/"]
+      blob_types   = ["blockBlob"]
+    }
+
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 30  # Move to Cool tier after 30 days
+        tier_to_archive_after_days_since_modification_greater_than = 90  # Move to Archive tier after 90 days
+      }
+    }
+  }
+}
+
+# Private endpoint for Blob Storage
+resource "azurerm_private_endpoint" "storage_pe" {
+  name                = "pe-storage-blob"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.subnet_id
+
+  private_service_connection {
+    name                           = "psc-storage-blob"
+    private_connection_resource_id = azurerm_storage_account.cold_storage.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "storage-blob-dns-zone-group"
+    private_dns_zone_ids = [var.private_dns_zone_blob_id]
+  }
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
 }
 
 resource "azurerm_private_endpoint" "eventhub_pe" {

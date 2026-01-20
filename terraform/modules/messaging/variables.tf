@@ -28,6 +28,11 @@ variable "private_dns_zone_keyvault_id" {
   type        = string
 }
 
+variable "private_dns_zone_blob_id" {
+  description = "ID of the Blob Storage private DNS zone"
+  type        = string
+}
+
 variable "environment" {
   description = "Environment name (e.g., prod, staging, dev)"
   type        = string
