@@ -89,10 +89,12 @@ LOC="${LOC:-eastus2}"
 log_info "Location: $LOC"
 
 # Storage Account Name - must be globally unique, lowercase, alphanumeric
-# Default: sttfstate + timestamp for uniqueness
+# Default: sttfstate + timestamp + random suffix for uniqueness
 if [ -z "${STORAGE:-}" ]; then
     TIMESTAMP=$(date +%s)
-    STORAGE="sttfstate${TIMESTAMP}"
+    # Add random suffix to avoid collisions when running scripts in quick succession
+    RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4)
+    STORAGE="sttfstate${TIMESTAMP}${RANDOM_SUFFIX}"
 fi
 log_info "Storage Account: $STORAGE"
 
@@ -353,10 +355,26 @@ log_success "Documentation written to: $README_FILE"
 # Step 7: Apply Resource Lock (Optional)
 ################################################################################
 echo ""
-read -p "Do you want to apply a resource lock to prevent accidental deletion? (y/N): " -n 1 -r
-echo ""
 
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+# Check if APPLY_RESOURCE_LOCK is set for non-interactive execution
+if [ -n "${APPLY_RESOURCE_LOCK:-}" ]; then
+    if [[ "${APPLY_RESOURCE_LOCK}" =~ ^[Yy](es)?$ ]]; then
+        APPLY_LOCK=true
+    else
+        APPLY_LOCK=false
+    fi
+else
+    # Interactive prompt when environment variable not set
+    read -p "Do you want to apply a resource lock to prevent accidental deletion? (y/N): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        APPLY_LOCK=true
+    else
+        APPLY_LOCK=false
+    fi
+fi
+
+if [ "$APPLY_LOCK" = true ]; then
     log_info "Applying 'CanNotDelete' lock to Resource Group '$RG'..."
     
     LOCK_NAME="terraform-state-lock"

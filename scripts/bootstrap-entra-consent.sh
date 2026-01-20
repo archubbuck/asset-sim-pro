@@ -188,7 +188,12 @@ GRANTED_PERMISSIONS=$(az rest \
 if echo "$GRANTED_PERMISSIONS" | grep -q "$ROLE_ID"; then
     log_success "Verification successful! Permission is active."
     echo ""
-    echo "$GRANTED_PERMISSIONS" | jq '.'
+    # Use jq if available for pretty-printing, otherwise display raw JSON
+    if command -v jq &> /dev/null; then
+        echo "$GRANTED_PERMISSIONS" | jq '.'
+    else
+        echo "$GRANTED_PERMISSIONS"
+    fi
 else
     log_warning "Permission granted but verification query returned no results."
     log_info "This may be due to replication delay. Please verify in Azure Portal:"

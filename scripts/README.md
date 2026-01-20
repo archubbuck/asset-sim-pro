@@ -67,6 +67,11 @@ export LOC="westus2"
 export STORAGE="sttfstatecustom"
 export CONTAINER="tfstate"
 ./scripts/bootstrap-terraform-state.sh
+
+# Option 3: Non-interactive execution (CI/CD)
+export RG="rg-tfstate-prod"
+export APPLY_RESOURCE_LOCK="yes"
+./scripts/bootstrap-terraform-state.sh
 ```
 
 **What It Does:**
@@ -79,10 +84,17 @@ export CONTAINER="tfstate"
 
 **Default Configuration:**
 - Resource Group: `rg-tfstate`
-- Storage Account: `sttfstate{timestamp}` (globally unique)
+- Storage Account: `sttfstate{timestamp}{random}` (globally unique with random suffix)
 - Blob Container: `tfstate`
 - Location: `eastus2`
 - SKU: Standard_LRS (Locally Redundant Storage)
+
+**Environment Variables for Non-Interactive Execution:**
+- `RG` - Custom resource group name
+- `LOC` - Custom Azure location
+- `STORAGE` - Custom storage account name
+- `CONTAINER` - Custom blob container name
+- `APPLY_RESOURCE_LOCK` - Set to "yes" or "no" to skip interactive prompt (useful for CI/CD)
 
 **Generated Files:**
 - `terraform-backend-config/backend.tf` - Terraform backend configuration
