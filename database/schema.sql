@@ -205,10 +205,10 @@ BEGIN
         [ExchangeId],
         [Symbol],
         DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) AS [Timestamp], -- Round down to minute
-        CAST(MIN(CASE WHEN rn = 1 THEN [Open] END) AS DECIMAL(18, 2)) AS [Open], -- First tick's open in minute
-        CAST(MAX([High]) AS DECIMAL(18, 2)) AS [High],
-        CAST(MIN([Low]) AS DECIMAL(18, 2)) AS [Low],
-        CAST(MAX(CASE WHEN rn_desc = 1 THEN [Close] END) AS DECIMAL(18, 2)) AS [Close], -- Last tick's close in minute
+        ROUND(MIN(CASE WHEN rn = 1 THEN [Open] END), 2) AS [Open], -- First tick's open in minute (rounded to 2 decimals)
+        ROUND(MAX([High]), 2) AS [High],
+        ROUND(MIN([Low]), 2) AS [Low],
+        ROUND(MAX(CASE WHEN rn_desc = 1 THEN [Close] END), 2) AS [Close], -- Last tick's close in minute (rounded to 2 decimals)
         CAST(SUM([Volume]) AS INT) AS [Volume]
     FROM (
         SELECT 
