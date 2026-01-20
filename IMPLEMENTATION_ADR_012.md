@@ -28,11 +28,11 @@ All required documentation has been created and integrated into the repository:
 
 #### 1. BOOTSTRAP_GUIDE.md ✅
 **File:** `/BOOTSTRAP_GUIDE.md`  
-**Lines:** 727 lines of comprehensive documentation  
+**Lines:** 732 lines of comprehensive documentation  
 **Status:** Complete
 
 **Contents:**
-- **Phase 1: Terraform State Storage Bootstrap** (Lines 45-212)
+- **Phase 1: Terraform State Storage Bootstrap** (Lines 45-213)
   - Step 1.1: Login to Azure
   - Step 1.2: Create Resource Group for Terraform State (`rg-tfstate`)
   - Step 1.3: Create Storage Account for Terraform State
@@ -40,29 +40,29 @@ All required documentation has been created and integrated into the repository:
   - Step 1.5: Save Configuration for Terraform
   - Optional: Lock State Storage Account
 
-- **Phase 2: Entra ID API Consent** (Lines 214-379)
+- **Phase 2: Entra ID API Consent** (Lines 215-380)
   - Step 2.1: Create Application Registration
   - Step 2.2: Grant Admin Consent for API Permissions (`GroupMember.Read.All`)
   - Step 2.3: Create Client Secret
   - Step 2.4: Configure Redirect URIs (Post-Deployment)
 
-- **Phase 3: Azure DevOps Self-Hosted Agent Pool** (Lines 381-556)
+- **Phase 3: Azure DevOps Self-Hosted Agent Pool** (Lines 382-561)
   - Step 3.1: Create Agent Pool in Azure DevOps (`Self-Hosted-VNet-Pool`)
   - Step 3.2: Generate Agent Registration Token
   - Step 3.3: Document Post-Deployment Agent Setup
   - Step 3.4: Update Pipeline Configuration
 
-- **Phase 4: Verification Checklist** (Lines 558-609)
+- **Phase 4: Verification Checklist** (Lines 563-615)
   - Infrastructure Bootstrap verification
   - Entra ID Consent verification
   - Azure DevOps Agent Pool verification
 
 - **Supporting Sections:**
   - Prerequisites and Required Access (Lines 18-43)
-  - Next Steps (Lines 611-625)
-  - Troubleshooting (Lines 627-669)
-  - Security Best Practices (Lines 671-700)
-  - References and External Resources (Lines 702-724)
+  - Next Steps (Lines 616-631)
+  - Troubleshooting (Lines 632-674)
+  - Security Best Practices (Lines 676-705)
+  - References and External Resources (Lines 707-726)
 
 #### 2. DEPLOYMENT_GUIDE.md Updates ✅
 **File:** `/DEPLOYMENT_GUIDE.md`  
@@ -144,7 +144,7 @@ The documentation clearly explains the "chicken and egg" problem (BOOTSTRAP_GUID
 ### Documentation Quality Metrics
 
 **BOOTSTRAP_GUIDE.md Analysis:**
-- **Total Lines:** 727
+- **Total Lines:** 732
 - **Sections:** 4 main phases + 6 supporting sections
 - **Code Examples:** 35+ complete bash/hcl/yaml examples
 - **Commands:** 50+ executable commands with explanations

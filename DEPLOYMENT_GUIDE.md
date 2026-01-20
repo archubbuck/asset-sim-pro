@@ -36,8 +36,6 @@ Before proceeding, verify you have:
 - [ ] Azure DevOps `Self-Hosted-VNet-Pool` created - see BOOTSTRAP_GUIDE.md Phase 3
 - [ ] Storage account name saved for backend configuration
 
-## Phase 1: Terraform Backend Configuration
-
 > **Note:** The manual infrastructure bootstrap steps (creating `rg-tfstate` and Storage Account) are documented in [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md). This section assumes those steps are complete.
 
 ## Phase 1: Terraform Backend Configuration

@@ -375,7 +375,6 @@ SWA_HOSTNAME="<your-swa-hostname>.azurestaticapps.net"
 az ad app update \
   --id $APP_ID \
   --web-redirect-uris \
-    "https://$SWA_HOSTNAME/.auth/login/aad/callback" \
     "https://$SWA_HOSTNAME/.auth/login/aad/callback"
 ```
 
