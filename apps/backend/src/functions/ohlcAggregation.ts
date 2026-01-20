@@ -41,6 +41,6 @@ export async function ohlcAggregation(
 
 // Timer trigger: runs every minute
 app.timer('ohlcAggregation', {
-  schedule: '0 * * * * *', // Every minute at :00 seconds (NCrontab format: seconds, minutes, hours, day, month, day-of-week)
+  schedule: '0 * * * * *', // Every minute at :00 seconds (CRON expression: seconds, minutes, hours, day of month, month, day of week)
   handler: ohlcAggregation,
 });
