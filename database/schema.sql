@@ -241,8 +241,7 @@ BEGIN
             WHERE [Timestamp] > @LastAggregated
         ) AS TimestampComputed
     ) AS RankedData
-    GROUP BY [ExchangeId], [Symbol], [MinuteTimestamp]
-    ORDER BY [MinuteTimestamp];
+    GROUP BY [ExchangeId], [Symbol], [MinuteTimestamp];
     
     RETURN @@ROWCOUNT;
 END;
