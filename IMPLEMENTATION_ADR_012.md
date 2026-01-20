@@ -28,7 +28,7 @@ All required documentation has been created and integrated into the repository:
 
 #### 1. BOOTSTRAP_GUIDE.md ✅
 **File:** `/BOOTSTRAP_GUIDE.md`  
-**Lines:** 732 lines of comprehensive documentation  
+**Lines:** 731 lines of comprehensive documentation  
 **Status:** Complete
 
 **Contents:**
@@ -40,7 +40,7 @@ All required documentation has been created and integrated into the repository:
   - Step 1.5: Save Configuration for Terraform
   - Optional: Lock State Storage Account
 
-- **Phase 2: Entra ID API Consent** (Lines 215-380)
+- **Phase 2: Entra ID API Consent** (Lines 215-379)
   - Step 2.1: Create Application Registration
   - Step 2.2: Grant Admin Consent for API Permissions (`GroupMember.Read.All`)
   - Step 2.3: Create Client Secret
@@ -123,7 +123,7 @@ The documentation clearly explains the "chicken and egg" problem (BOOTSTRAP_GUID
 
 | Requirement | Documentation Section | Status |
 |-------------|----------------------|--------|
-| **Bootstrap Infrastructure** | BOOTSTRAP_GUIDE.md Phase 1 (lines 45-212) | ✅ Complete |
+| **Bootstrap Infrastructure** | BOOTSTRAP_GUIDE.md Phase 1 (lines 45-214) | ✅ Complete |
 | - Create `rg-tfstate` | Step 1.2 (lines 72-95) | ✅ Complete |
 | - Create Storage Account | Step 1.3 (lines 96-133) | ✅ Complete |
 | - Create Blob Container | Step 1.4 (lines 134-158) | ✅ Complete |
@@ -133,7 +133,7 @@ The documentation clearly explains the "chicken and egg" problem (BOOTSTRAP_GUID
 | - Grant `GroupMember.Read.All` | Step 2.2 (lines 268-334) | ✅ Complete |
 | - Create Client Secret | Step 2.3 (lines 335-364) | ✅ Complete |
 | - Configure Redirect URIs | Step 2.4 (lines 365-379) | ✅ Complete |
-| **Azure DevOps** | BOOTSTRAP_GUIDE.md Phase 3 (lines 381-556) | ✅ Complete |
+| **Azure DevOps** | BOOTSTRAP_GUIDE.md Phase 3 (lines 381-561) | ✅ Complete |
 | - Create `Self-Hosted-VNet-Pool` | Step 3.1 (lines 391-440) | ✅ Complete |
 | - Generate Registration Token | Step 3.2 (lines 441-465) | ✅ Complete |
 | - Document Agent Setup | Step 3.3 (lines 466-519) | ✅ Complete |
@@ -144,7 +144,7 @@ The documentation clearly explains the "chicken and egg" problem (BOOTSTRAP_GUID
 ### Documentation Quality Metrics
 
 **BOOTSTRAP_GUIDE.md Analysis:**
-- **Total Lines:** 732
+- **Total Lines:** 731
 - **Sections:** 4 main phases + 6 supporting sections
 - **Code Examples:** 35+ complete bash/hcl/yaml examples
 - **Commands:** 50+ executable commands with explanations
@@ -212,14 +212,14 @@ ARCHITECTURE.md ADR-013 (lines 261-299) provides reference implementation script
 | **13.1 Entra ID Consent** (lines 267-281) | Phase 2, Step 2.2 (lines 268-334) | ✅ Expanded |
 | - Graph API call | Option B: CLI method | ✅ Included |
 | - App role assignment | Complete example with verification | ✅ Enhanced |
-| **13.2 Terraform State Bootstrap** (lines 283-298) | Phase 1 (lines 45-212) | ✅ Expanded |
+| **13.2 Terraform State Bootstrap** (lines 283-298) | Phase 1 (lines 45-214) | ✅ Expanded |
 | - Resource group creation | Step 1.2 with ARM API option | ✅ Enhanced |
 | - Storage account creation | Step 1.3 with detailed config | ✅ Enhanced |
 | - Container creation | Step 1.4 added (not in ADR-013) | ✅ Added |
 
 **Enhancement Summary:**
 - ADR-013 provides minimal scripts (35 lines)
-- BOOTSTRAP_GUIDE.md provides comprehensive documentation (727 lines)
+- BOOTSTRAP_GUIDE.md provides comprehensive documentation (731 lines)
 - Added: Portal UI instructions, verification steps, troubleshooting, security guidance
 - Added: Azure DevOps agent pool documentation (not in ADR-013)
 
