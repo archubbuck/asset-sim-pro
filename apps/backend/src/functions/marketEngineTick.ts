@@ -4,6 +4,8 @@ import Decimal from 'decimal.js';
 import { MarketTickSchema, PriceUpdateEventSchema } from '../types/market-engine';
 import { getConnectionPool } from '../lib/database';
 import { cacheQuote } from '../lib/cache';
+import { broadcastPriceUpdate } from '../lib/signalr-broadcast';
+import { sendPriceUpdateToEventHub } from '../lib/event-hub';
 
 /**
  * Default starting price for newly simulated symbols when no explicit reference price
@@ -225,6 +227,17 @@ export async function marketEngineTick(
               // Log but don't fail the tick if caching fails
               context.warn(`Failed to cache quote for ${symbol}: ${cacheError}`);
             }
+
+            // ADR-009: Event-Driven Architecture (Targeted Broadcast)
+            // 1. Broadcast to SignalR with MessagePack protocol and deadband filtering
+            await broadcastPriceUpdate(
+              priceUpdateData,
+              lastPrice.toNumber(),
+              context
+            );
+
+            // 2. Send to Event Hubs for downstream audit
+            await sendPriceUpdateToEventHub(priceUpdateData, context);
           }
         }
 
