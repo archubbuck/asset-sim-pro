@@ -97,10 +97,11 @@ rg-tfstate   eastus2     Succeeded
 
 ```bash
 # Generate unique storage account name (must be globally unique)
-STORAGE_NAME="sttfstate$(date +%s)"
+# Using a custom suffix is recommended for better readability and consistency
+STORAGE_NAME="sttfstateassetsimdemo"  # Replace with your unique suffix
 
-# Alternative: Use a custom unique name
-# STORAGE_NAME="sttfstateassetsimdemo"
+# Alternative: Generate with timestamp (works on Linux, requires gnu-coreutils on macOS)
+# STORAGE_NAME="sttfstate$(date +%s)"
 
 # Create storage account
 az storage account create \
@@ -487,9 +488,11 @@ The actual agent VM provisioning happens **after** Terraform deploys the VNet. D
 # On the agent VM (after VNet exists)
 
 # 1. Download agent package
-# Check latest version at: https://github.com/Microsoft/azure-pipelines-agent/releases
+# IMPORTANT: Check for the latest version at:
+# https://github.com/Microsoft/azure-pipelines-agent/releases
+# Replace the version below with the latest stable release
 cd /opt
-AGENT_VERSION="3.232.0"  # Update to latest version
+AGENT_VERSION="3.232.0"  # Update to latest version from releases page
 wget https://vstsagentpackage.azureedge.net/agent/${AGENT_VERSION}/vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz
 mkdir azagent && cd azagent
 tar zxvf ../vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz
