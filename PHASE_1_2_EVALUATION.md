@@ -350,7 +350,7 @@ The custom instructions file provides:
 
    **c. RxJS Throttling & Debouncing (Mandatory):**
    - ✅ Always throttle/debounce high-frequency data streams
-   - ✅ SignalR market data: throttleTime(100ms)
+   - ✅ SignalR market data: throttleTime(250ms)
    - ✅ User input: debounceTime(300ms) for search, 500ms for form fields
    - ✅ Example patterns with RxJS operators
    - ✅ Performance requirement: Prevent UI jank from high-frequency updates
@@ -445,7 +445,7 @@ Provides:
 
 **Timer Triggers:**
 1. ✅ `marketEngineTick.ts` - Market simulation engine
-   - Schedule: Every 1 second (`0 */1 * * * *`)
+   - Schedule: Every 5 seconds (`*/5 * * * * *`)
    - Function: Generate price ticks for all exchanges
    - Output: SignalR broadcast + Event Hubs
 
