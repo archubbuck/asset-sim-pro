@@ -107,7 +107,7 @@ CREATE TABLE [Trade].[OHLC_1M] (
     [High] DECIMAL(18, 2) NOT NULL,
     [Low] DECIMAL(18, 2) NOT NULL,
     [Close] DECIMAL(18, 2) NOT NULL,
-    [Volume] INT DEFAULT 0,
+    [Volume] BIGINT DEFAULT 0,
     INDEX [IX_OHLC_Exchange_Symbol_Time] ([ExchangeId], [Symbol], [Timestamp])
 );
 GO
@@ -209,15 +209,34 @@ BEGIN
         ROUND(MAX([High]), 2) AS [High],
         ROUND(MIN([Low]), 2) AS [Low],
         ROUND(MAX(CASE WHEN rn_desc = 1 THEN [Close] END), 2) AS [Close], -- Last tick's close in minute (rounded to 2 decimals)
-        CAST(SUM([Volume]) AS INT) AS [Volume]
+        SUM([Volume]) AS [Volume]
     FROM (
         SELECT 
-            *,
-            DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) AS [MinuteTimestamp], -- Round down to minute (computed once)
-            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) ORDER BY [Timestamp] ASC) as rn,
-            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) ORDER BY [Timestamp] DESC) as rn_desc
-        FROM [Trade].[MarketData]
-        WHERE [Timestamp] > @LastAggregated
+            [ExchangeId],
+            [Symbol],
+            [Open],
+            [High],
+            [Low],
+            [Close],
+            [Volume],
+            [Timestamp],
+            [MinuteTimestamp],
+            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], [MinuteTimestamp] ORDER BY [Timestamp] ASC) as rn,
+            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], [MinuteTimestamp] ORDER BY [Timestamp] DESC) as rn_desc
+        FROM (
+            SELECT 
+                [ExchangeId],
+                [Symbol],
+                [Open],
+                [High],
+                [Low],
+                [Close],
+                [Volume],
+                [Timestamp],
+                DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) AS [MinuteTimestamp] -- Round down to minute (computed once)
+            FROM [Trade].[MarketData]
+            WHERE [Timestamp] > @LastAggregated
+        ) AS TimestampComputed
     ) AS RankedData
     GROUP BY [ExchangeId], [Symbol], [MinuteTimestamp]
     ORDER BY [MinuteTimestamp];
