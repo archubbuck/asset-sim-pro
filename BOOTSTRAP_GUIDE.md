@@ -345,7 +345,7 @@ SECRET=$(az ad app credential reset \
 # Display secret (SAVE IMMEDIATELY - it won't be shown again)
 echo "===== Client Secret (SAVE NOW) ====="
 echo "Client Secret: $SECRET"
-echo "Expires: $(date -d '+1 year' '+%Y-%m-%d')"
+echo "Expires: 1 year from creation date"
 echo "====================================="
 
 # Store in Azure Key Vault (recommended)
@@ -487,10 +487,12 @@ The actual agent VM provisioning happens **after** Terraform deploys the VNet. D
 # On the agent VM (after VNet exists)
 
 # 1. Download agent package
+# Check latest version at: https://github.com/Microsoft/azure-pipelines-agent/releases
 cd /opt
-wget https://vstsagentpackage.azureedge.net/agent/3.232.0/vsts-agent-linux-x64-3.232.0.tar.gz
+AGENT_VERSION="3.232.0"  # Update to latest version
+wget https://vstsagentpackage.azureedge.net/agent/${AGENT_VERSION}/vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz
 mkdir azagent && cd azagent
-tar zxvf ../vsts-agent-linux-x64-3.232.0.tar.gz
+tar zxvf ../vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz
 
 # 2. Configure agent
 ./config.sh \
