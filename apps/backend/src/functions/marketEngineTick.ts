@@ -230,24 +230,14 @@ export async function marketEngineTick(
 
             // ADR-009: Event-Driven Architecture (Targeted Broadcast)
             // 1. Broadcast to SignalR with MessagePack protocol and deadband filtering
-            try {
-              await broadcastPriceUpdate(
-                priceUpdateData,
-                lastPrice.toNumber(),
-                context
-              );
-            } catch (signalRError) {
-              // Log but don't fail the tick if SignalR broadcast fails
-              context.warn(`Failed to broadcast to SignalR for ${symbol}: ${signalRError}`);
-            }
+            await broadcastPriceUpdate(
+              priceUpdateData,
+              lastPrice.toNumber(),
+              context
+            );
 
             // 2. Send to Event Hubs for downstream audit
-            try {
-              await sendPriceUpdateToEventHub(priceUpdateData, context);
-            } catch (eventHubError) {
-              // Log but don't fail the tick if Event Hub fails
-              context.warn(`Failed to send to Event Hub for ${symbol}: ${eventHubError}`);
-            }
+            await sendPriceUpdateToEventHub(priceUpdateData, context);
           }
         }
 

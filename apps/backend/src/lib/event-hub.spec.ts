@@ -25,6 +25,7 @@ import {
   getEventHubClient,
   resetEventHubClient,
 } from './event-hub';
+import { PriceUpdateEvent } from '../types/market-engine';
 
 describe('Event Hub Service', () => {
   let mockContext: InvocationContext;
@@ -46,7 +47,7 @@ describe('Event Hub Service', () => {
   });
 
   describe('sendPriceUpdateToEventHub', () => {
-    const mockPriceUpdate = {
+    const mockPriceUpdate: PriceUpdateEvent = {
       exchangeId: 'exchange-123',
       symbol: 'AAPL',
       price: 150.50,

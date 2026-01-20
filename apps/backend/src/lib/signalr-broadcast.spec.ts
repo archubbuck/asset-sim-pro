@@ -31,8 +31,8 @@ import {
   addToTickerGroup,
   removeFromTickerGroup,
   resetSignalRClient,
-  PriceUpdateBroadcast,
 } from './signalr-broadcast';
+import { PriceUpdateEvent } from '../types/market-engine';
 
 describe('SignalR Broadcast Service', () => {
   let mockContext: InvocationContext;
@@ -88,7 +88,7 @@ describe('SignalR Broadcast Service', () => {
   });
 
   describe('broadcastPriceUpdate', () => {
-    const mockPriceUpdate: PriceUpdateBroadcast = {
+    const mockPriceUpdate: PriceUpdateEvent = {
       exchangeId: 'exchange-123',
       symbol: 'AAPL',
       price: 150.50,
@@ -159,6 +159,22 @@ describe('SignalR Broadcast Service', () => {
 
       expect(mockWebPubSubClient.group).toHaveBeenCalledWith('ticker:exchange-456');
       expect(mockWebPubSubGroup.removeConnection).toHaveBeenCalledWith('connection-123');
+    });
+
+    it('should handle errors when adding connection to group', async () => {
+      mockWebPubSubGroup.addConnection.mockRejectedValueOnce(new Error('Connection failed'));
+
+      await expect(
+        addToTickerGroup('connection-123', 'exchange-456')
+      ).rejects.toThrow('Failed to add connection to group');
+    });
+
+    it('should handle errors when removing connection from group', async () => {
+      mockWebPubSubGroup.removeConnection.mockRejectedValueOnce(new Error('Removal failed'));
+
+      await expect(
+        removeFromTickerGroup('connection-123', 'exchange-456')
+      ).rejects.toThrow('Failed to remove connection from group');
     });
   });
 });

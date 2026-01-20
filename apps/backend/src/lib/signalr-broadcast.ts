@@ -1,6 +1,8 @@
 import { WebPubSubServiceClient } from '@azure/web-pubsub';
 import { encode } from '@msgpack/msgpack';
 import { InvocationContext } from '@azure/functions';
+import Decimal from 'decimal.js';
+import { PriceUpdateEvent } from '../types/market-engine';
 
 let signalRClient: WebPubSubServiceClient | null = null;
 
@@ -38,32 +40,21 @@ export function getSignalRClient(): WebPubSubServiceClient {
 }
 
 /**
- * Price update event for broadcasting
- */
-export interface PriceUpdateBroadcast {
-  exchangeId: string;
-  symbol: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  volume: number;
-  timestamp: string;
-}
-
-/**
  * Apply deadband filter to price changes
  * 
  * ADR-009: Deadband Filtering
  * - Ignore price changes < $0.01 to reduce bandwidth
+ * 
+ * ADR-006: Uses Decimal.js for all financial calculations
  * 
  * @param lastPrice - Previous price
  * @param newPrice - Current price
  * @returns true if change is significant enough to broadcast
  */
 export function shouldBroadcastPriceUpdate(lastPrice: number, newPrice: number): boolean {
-  const DEADBAND_THRESHOLD = 0.01; // $0.01
-  const priceChange = Math.abs(newPrice - lastPrice);
-  return priceChange >= DEADBAND_THRESHOLD;
+  const DEADBAND_THRESHOLD = new Decimal(0.01); // $0.01
+  const priceChange = new Decimal(newPrice).minus(lastPrice).abs();
+  return priceChange.greaterThanOrEqualTo(DEADBAND_THRESHOLD);
 }
 
 /**
@@ -79,7 +70,7 @@ export function shouldBroadcastPriceUpdate(lastPrice: number, newPrice: number):
  * @param context - Azure Functions context for logging
  */
 export async function broadcastPriceUpdate(
-  priceUpdate: PriceUpdateBroadcast,
+  priceUpdate: PriceUpdateEvent,
   lastPrice: number,
   context: InvocationContext
 ): Promise<void> {
@@ -103,7 +94,7 @@ export async function broadcastPriceUpdate(
     await client.group(groupName).sendToAll(messageData);
 
     context.log(
-      `Broadcast to ${groupName}: ${priceUpdate.symbol} @ ${priceUpdate.price.toFixed(2)}`
+      `Broadcast to ${groupName}: ${priceUpdate.symbol} @ ${priceUpdate.price}`
     );
   } catch (error) {
     const err = error as Error;
@@ -123,10 +114,15 @@ export async function addToTickerGroup(
   connectionId: string,
   exchangeId: string
 ): Promise<void> {
-  const client = getSignalRClient();
-  const groupName = `ticker:${exchangeId}`;
-  
-  await client.group(groupName).addConnection(connectionId);
+  try {
+    const client = getSignalRClient();
+    const groupName = `ticker:${exchangeId}`;
+    
+    await client.group(groupName).addConnection(connectionId);
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(`Failed to add connection to group: ${err.message}`);
+  }
 }
 
 /**
@@ -139,8 +135,13 @@ export async function removeFromTickerGroup(
   connectionId: string,
   exchangeId: string
 ): Promise<void> {
-  const client = getSignalRClient();
-  const groupName = `ticker:${exchangeId}`;
-  
-  await client.group(groupName).removeConnection(connectionId);
+  try {
+    const client = getSignalRClient();
+    const groupName = `ticker:${exchangeId}`;
+    
+    await client.group(groupName).removeConnection(connectionId);
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(`Failed to remove connection from group: ${err.message}`);
+  }
 }

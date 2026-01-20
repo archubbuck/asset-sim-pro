@@ -1,5 +1,6 @@
 import { EventHubProducerClient } from '@azure/event-hubs';
 import { InvocationContext } from '@azure/functions';
+import { PriceUpdateEvent } from '../types/market-engine';
 
 let eventHubClient: EventHubProducerClient | null = null;
 
@@ -44,15 +45,7 @@ export function getEventHubClient(): EventHubProducerClient {
  * @param context - Azure Functions context for logging
  */
 export async function sendPriceUpdateToEventHub(
-  priceUpdate: {
-    exchangeId: string;
-    symbol: string;
-    price: number;
-    change: number;
-    changePercent: number;
-    volume: number;
-    timestamp: string;
-  },
+  priceUpdate: PriceUpdateEvent,
   context: InvocationContext
 ): Promise<void> {
   try {
@@ -81,7 +74,7 @@ export async function sendPriceUpdateToEventHub(
     await client.sendBatch(batch);
 
     context.log(
-      `Sent to Event Hub: ${priceUpdate.symbol} @ ${priceUpdate.price.toFixed(2)}`
+      `Sent to Event Hub: ${priceUpdate.symbol} @ ${priceUpdate.price}`
     );
   } catch (error) {
     const err = error as Error;
