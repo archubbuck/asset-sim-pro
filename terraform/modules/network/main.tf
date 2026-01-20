@@ -3,6 +3,11 @@ resource "azurerm_virtual_network" "vnet" {
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = [var.vnet_cidr]
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
 }
 
 # Subnet for Compute Injection (Outbound)
@@ -33,26 +38,51 @@ resource "azurerm_subnet" "endpoints" {
 resource "azurerm_private_dns_zone" "sql" {
   name                = "privatelink.database.windows.net"
   resource_group_name = var.resource_group_name
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
 }
 
 resource "azurerm_private_dns_zone" "redis" {
   name                = "privatelink.redis.cache.windows.net"
   resource_group_name = var.resource_group_name
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
 }
 
 resource "azurerm_private_dns_zone" "eventhub" {
   name                = "privatelink.servicebus.windows.net"
   resource_group_name = var.resource_group_name
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
 }
 
 resource "azurerm_private_dns_zone" "keyvault" {
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.resource_group_name
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
 }
 
 resource "azurerm_private_dns_zone" "blob" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.resource_group_name
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
 }
 
 # DNS Zone Links
