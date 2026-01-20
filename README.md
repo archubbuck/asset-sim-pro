@@ -47,6 +47,7 @@ See **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)** for detailed workspace 
 - **[TESTING.md](./TESTING.md)**: Testing strategy and quality gates (92.59% coverage)
 
 ### Infrastructure & Security
+- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual operations & bootstrap steps required before deployment (ADR-012)
 - **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust Network Architecture implementation details
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Step-by-step deployment instructions for Azure infrastructure
 - **[ADR_002_IMPLEMENTATION_SUMMARY.md](./ADR_002_IMPLEMENTATION_SUMMARY.md)**: Complete summary of ADR-002 implementation

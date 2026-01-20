@@ -2,6 +2,16 @@
 
 This guide covers deploying the AssetSim Pro Zero Trust Architecture to Azure.
 
+## Before You Begin
+
+⚠️ **IMPORTANT:** Before following this deployment guide, you **MUST** complete the manual bootstrap steps documented in **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**. These steps create the foundation infrastructure required for Terraform automation (ADR-012):
+
+1. **Terraform State Storage**: Create `rg-tfstate` resource group and Storage Account
+2. **Entra ID Consent**: Grant `GroupMember.Read.All` API permission (requires Global Admin)
+3. **Azure DevOps Agent Pool**: Create `Self-Hosted-VNet-Pool` for VNet deployments
+
+If you haven't completed these steps, **STOP** and follow the [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) first.
+
 ## Prerequisites
 
 ### Required Tools
@@ -13,49 +23,59 @@ This guide covers deploying the AssetSim Pro Zero Trust Architecture to Azure.
 
 ### Azure Permissions
 - Owner or Contributor role on target subscription
-- Permission to create service principals
-- Global Administrator for Entra ID app registration (first time only)
+- Completed bootstrap steps per [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) (ADR-012)
 
 ### Network Access
-- Self-hosted agent in VNet (for deployment to private resources)
+- Self-hosted agent in VNet (for deployment to private resources) - configured per BOOTSTRAP_GUIDE.md
 - Or jumpbox/bastion host in VNet for manual operations
 
-## Phase 1: Bootstrap Infrastructure (One-Time Setup)
+### Bootstrap Verification
+Before proceeding, verify you have:
+- [ ] Terraform state storage (`rg-tfstate` + Storage Account) - see BOOTSTRAP_GUIDE.md Phase 1
+- [ ] Entra ID app registration with `GroupMember.Read.All` consent - see BOOTSTRAP_GUIDE.md Phase 2
+- [ ] Azure DevOps `Self-Hosted-VNet-Pool` created - see BOOTSTRAP_GUIDE.md Phase 3
+- [ ] Storage account name saved for backend configuration
 
-### 1.1 Create Terraform State Storage
+## Phase 1: Terraform Backend Configuration
+
+> **Note:** The manual infrastructure bootstrap steps (creating `rg-tfstate` and Storage Account) are documented in [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md). This section assumes those steps are complete.
+
+## Phase 1: Terraform Backend Configuration
+
+### 1.1 Retrieve Backend Configuration
+
+Use the storage account name from your bootstrap process (BOOTSTRAP_GUIDE.md Phase 1):
 
 ```bash
-# Set variables
-LOCATION="eastus2"
+# If you saved the configuration during bootstrap
+cat terraform-backend-config.txt
+
+# Or retrieve from Azure
 RG_NAME="rg-tfstate"
-STORAGE_NAME="sttfstate$(date +%s)"
-
-# Create resource group
-az group create \
-  --name $RG_NAME \
-  --location $LOCATION
-
-# Create storage account
-az storage account create \
-  --name $STORAGE_NAME \
+STORAGE_NAME=$(az storage account list \
   --resource-group $RG_NAME \
-  --location $LOCATION \
-  --sku Standard_LRS \
-  --kind StorageV2 \
-  --min-tls-version TLS1_2 \
-  --allow-blob-public-access false
+  --query "[0].name" \
+  --output tsv)
 
-# Create container
-az storage container create \
-  --name tfstate \
-  --account-name $STORAGE_NAME \
-  --auth-mode login
-
-# Save storage account name for later
-echo "Terraform State Storage: $STORAGE_NAME"
+echo "Storage Account: $STORAGE_NAME"
 ```
 
-### 1.2 Create Service Principal for Terraform
+### 1.2 Create Terraform Backend Configuration File
+
+Create `terraform/backend.tfvars`:
+
+```hcl
+resource_group_name  = "rg-tfstate"
+storage_account_name = "<YOUR_STORAGE_NAME>"  # From bootstrap step
+container_name       = "tfstate"
+key                  = "assetsim-prod.terraform.tfstate"
+```
+
+Replace `<YOUR_STORAGE_NAME>` with the storage account name from BOOTSTRAP_GUIDE.md Phase 1.
+
+### 1.3 Create Service Principal for Terraform (Optional)
+
+If using service principal authentication for Terraform (alternative to Azure CLI):
 
 ```bash
 # Create service principal
@@ -68,49 +88,16 @@ az ad sp create-for-rbac \
   --scopes /subscriptions/$SUBSCRIPTION_ID
 
 # Save output:
-# - appId (client_id)
-# - password (client_secret)
-# - tenant (tenant_id)
+# - appId (ARM_CLIENT_ID)
+# - password (ARM_CLIENT_SECRET)
+# - tenant (ARM_TENANT_ID)
 ```
 
-### 1.3 Configure Entra ID Application (Optional)
-
-For production Microsoft Entra ID authentication:
-
-```bash
-# Create app registration
-APP_NAME="AssetSim Pro"
-APP_ID=$(az ad app create \
-  --display-name "$APP_NAME" \
-  --sign-in-audience AzureADMyOrg \
-  --query appId -o tsv)
-
-# Create service principal
-az ad sp create --id $APP_ID
-
-# Configure redirect URIs (update after Static Web App deployment)
-az ad app update \
-  --id $APP_ID \
-  --web-redirect-uris \
-    "https://<your-swa-hostname>/.auth/login/aad/callback"
-
-echo "Application (client) ID: $APP_ID"
-```
+**Note:** Entra ID application setup for user authentication is documented in BOOTSTRAP_GUIDE.md Phase 2.
 
 ## Phase 2: Deploy Infrastructure with Terraform
 
-### 2.1 Initialize Terraform Backend
-
-Create `terraform/backend.tfvars`:
-
-```hcl
-resource_group_name  = "rg-tfstate"
-storage_account_name = "<YOUR_STORAGE_NAME>"
-container_name       = "tfstate"
-key                  = "assetsim-prod.terraform.tfstate"
-```
-
-### 2.2 Create Terraform Variables
+### 2.1 Create Terraform Variables
 
 Create `terraform/terraform.tfvars`:
 
@@ -123,12 +110,12 @@ sql_admin_password = "<GENERATE_STRONG_PASSWORD>"
 
 **Security Note**: Never commit `terraform.tfvars` to source control. Use Azure Key Vault or pipeline variables in production.
 
-### 2.3 Initialize and Deploy
+### 2.2 Initialize and Deploy
 
 ```bash
 cd terraform
 
-# Initialize Terraform
+# Initialize Terraform with backend configuration
 terraform init -backend-config=backend.tfvars
 
 # Validate configuration
@@ -144,7 +131,7 @@ terraform apply -var-file=terraform.tfvars
 terraform output > ../outputs.txt
 ```
 
-### 2.4 Verify Network Isolation
+### 2.3 Verify Network Isolation
 
 After deployment, verify Zero Trust architecture:
 
