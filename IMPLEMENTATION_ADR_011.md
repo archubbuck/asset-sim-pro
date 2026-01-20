@@ -110,7 +110,10 @@ resource "azurerm_resource_group" "rg" {
 - ✅ Subnet delegation for `Microsoft.Web/serverFarms`
 - ✅ Private DNS zones linked to VNet
 - ✅ Separate subnets for integration vs. endpoints
-- ✅ Tags applied to all network resources
+- ✅ Tagging implemented as follows:
+  - Virtual network and Private DNS zones explicitly tagged with `Service = "AssetSim"`
+  - Subnets inherit tags from the parent virtual network (no separate subnet tags defined)
+  - Private DNS zone virtual network links are connector resources and are not separately tagged
 
 #### Outputs
 - `subnet_integration_id`
