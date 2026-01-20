@@ -12,6 +12,7 @@ export const ASSETSIM_WORK_ITEMS: WorkItem[] = [
   // EPIC
   // ============================================
   {
+    id: '1',
     workItemType: 'Epic',
     title: 'Portfolio Simulation Platform',
     state: 'Active',

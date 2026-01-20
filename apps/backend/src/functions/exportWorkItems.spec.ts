@@ -22,16 +22,16 @@ describe('exportWorkItems', () => {
     expect(response.headers?.['Content-Disposition']).toBe('attachment; filename="assetsim-work-items.csv"');
   });
 
-  it('should include CSV header row', async () => {
+  it('should include CSV header row with ID column', async () => {
     const response = await exportWorkItems(mockRequest, mockContext);
 
     const csvContent = response.body as string;
     const lines = csvContent.split('\n');
     
-    expect(lines[0]).toBe('Work Item Type,Title,State,Priority,Story Points,Description,Acceptance Criteria,Parent');
+    expect(lines[0]).toBe('ID,Work Item Type,Title,State,Priority,Story Points,Description,Acceptance Criteria');
   });
 
-  it('should export all work items', async () => {
+  it('should export all work items in hierarchical format', async () => {
     const response = await exportWorkItems(mockRequest, mockContext);
 
     const csvContent = response.body as string;
@@ -41,31 +41,29 @@ describe('exportWorkItems', () => {
     expect(lines.length).toBe(ASSETSIM_WORK_ITEMS.length + 1);
   });
 
-  it('should export Epic as first row', async () => {
+  it('should export Epic as first row with ID', async () => {
     const response = await exportWorkItems(mockRequest, mockContext);
 
     const csvContent = response.body as string;
     const lines = csvContent.split('\n');
     
-    expect(lines[1]).toContain('Epic,Portfolio Simulation Platform');
+    expect(lines[1]).toContain('1,Epic,Portfolio Simulation Platform');
   });
 
-  it('should include Features with Epic as parent', async () => {
+  it('should include Features as children with empty ID', async () => {
     const response = await exportWorkItems(mockRequest, mockContext);
 
     const csvContent = response.body as string;
     
-    expect(csvContent).toContain('Feature,Exchange Management');
-    expect(csvContent).toContain('Portfolio Simulation Platform'); // Parent reference
+    expect(csvContent).toContain(',Feature,Exchange Management');
   });
 
-  it('should include User Stories with Feature as parent', async () => {
+  it('should include User Stories as children with empty ID', async () => {
     const response = await exportWorkItems(mockRequest, mockContext);
 
     const csvContent = response.body as string;
     
-    expect(csvContent).toContain('User Story,Create Exchange API endpoint');
-    expect(csvContent).toContain('Exchange Management'); // Parent reference
+    expect(csvContent).toContain(',User Story,Create Exchange API endpoint');
   });
 
   it('should properly escape markdown content', async () => {

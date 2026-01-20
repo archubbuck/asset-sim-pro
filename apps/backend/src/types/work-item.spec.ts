@@ -64,7 +64,23 @@ describe('work-item utilities', () => {
   });
 
   describe('workItemToCsvRow', () => {
-    it('should convert work item to CSV row', () => {
+    it('should convert parent work item to CSV row with ID', () => {
+      const workItem: WorkItem = {
+        id: '1',
+        workItemType: 'Epic',
+        title: 'Test Epic',
+        state: 'Active',
+        priority: 1,
+        storyPoints: 100,
+        description: 'Test description',
+        acceptanceCriteria: '- Criteria 1 - Criteria 2',
+      };
+
+      const row = workItemToCsvRow(workItem, false);
+      expect(row).toBe('1,Epic,Test Epic,Active,1,100,Test description,- Criteria 1 - Criteria 2');
+    });
+
+    it('should convert child work item to CSV row with empty ID', () => {
       const workItem: WorkItem = {
         workItemType: 'User Story',
         title: 'Test Story',
@@ -72,29 +88,30 @@ describe('work-item utilities', () => {
         priority: 2,
         storyPoints: 5,
         description: 'Test description',
-        acceptanceCriteria: '- Criteria 1\n- Criteria 2',
+        acceptanceCriteria: '- Criteria 1 - Criteria 2',
         parent: 'Test Feature',
       };
 
-      const row = workItemToCsvRow(workItem);
-      // Newlines are converted to spaces in acceptance criteria
-      expect(row).toBe('User Story,Test Story,Active,2,5,Test description,- Criteria 1 - Criteria 2,Test Feature');
+      const row = workItemToCsvRow(workItem, true);
+      expect(row).toBe(',User Story,Test Story,Active,2,5,Test description,- Criteria 1 - Criteria 2');
     });
 
     it('should handle optional fields', () => {
       const workItem: WorkItem = {
+        id: '1',
         workItemType: 'Epic',
         title: 'Test Epic',
         state: 'New',
         priority: 1,
       };
 
-      const row = workItemToCsvRow(workItem);
-      expect(row).toBe('Epic,Test Epic,New,1,,,,');
+      const row = workItemToCsvRow(workItem, false);
+      expect(row).toBe('1,Epic,Test Epic,New,1,,,,');
     });
 
     it('should properly escape commas in values', () => {
       const workItem: WorkItem = {
+        id: '1',
         workItemType: 'Feature',
         title: 'Feature, with comma',
         state: 'Active',
@@ -102,16 +119,17 @@ describe('work-item utilities', () => {
         description: 'Description, also with comma',
       };
 
-      const row = workItemToCsvRow(workItem);
+      const row = workItemToCsvRow(workItem, false);
       expect(row).toContain('"Feature, with comma"');
       expect(row).toContain('"Description, also with comma"');
     });
   });
 
   describe('workItemsToCSV', () => {
-    it('should generate CSV with header and data rows', () => {
+    it('should generate hierarchical CSV with Epic and children', () => {
       const workItems: WorkItem[] = [
         {
+          id: '1',
           workItemType: 'Epic',
           title: 'Epic 1',
           state: 'Active',
@@ -131,11 +149,10 @@ describe('work-item utilities', () => {
       const csv = workItemsToCSV(workItems);
       const lines = csv.split('\n');
 
-      expect(lines.length).toBe(3); // header + 2 data rows
+      expect(lines.length).toBe(3); // header + Epic + Feature (as child)
       expect(lines[0]).toBe(CSV_HEADERS.join(','));
-      expect(lines[1]).toContain('Epic,Epic 1');
-      expect(lines[2]).toContain('Feature,Feature 1');
-      expect(lines[2]).toContain('Epic 1'); // Parent reference
+      expect(lines[1]).toContain('1,Epic,Epic 1'); // Epic with ID
+      expect(lines[2]).toContain(',Feature,Feature 1'); // Feature with empty ID
     });
 
     it('should generate valid CSV for empty array', () => {
@@ -146,6 +163,7 @@ describe('work-item utilities', () => {
     it('should maintain proper hierarchy in output', () => {
       const workItems: WorkItem[] = [
         {
+          id: '1',
           workItemType: 'Epic',
           title: 'My Epic',
           state: 'Active',
@@ -170,13 +188,22 @@ describe('work-item utilities', () => {
       const csv = workItemsToCSV(workItems);
       const lines = csv.split('\n');
 
-      // Verify hierarchy references
-      expect(lines[2]).toContain('My Epic'); // Feature references Epic
-      expect(lines[3]).toContain('My Feature'); // User Story references Feature
+      // Epic with ID, Feature with empty ID (child), User Story with empty ID (grandchild)
+      expect(lines.length).toBe(4); // header + Epic + Feature + User Story
+      expect(lines[1]).toContain('1,Epic,My Epic'); // Epic with ID
+      expect(lines[2]).toContain(',Feature,My Feature'); // Feature with empty ID
+      expect(lines[3]).toContain(',User Story,My Story'); // User Story with empty ID
     });
 
     it('should handle markdown content in description and acceptance criteria', () => {
       const workItems: WorkItem[] = [
+        {
+          id: '1',
+          workItemType: 'Epic',
+          title: 'Epic with Markdown',
+          state: 'Active',
+          priority: 1,
+        },
         {
           workItemType: 'User Story',
           title: 'Story with Markdown',
@@ -184,6 +211,7 @@ describe('work-item utilities', () => {
           priority: 2,
           description: 'Description with **bold** and *italic* text',
           acceptanceCriteria: '- [x] First item\n- [ ] Second item\n- [ ] Third item',
+          parent: 'Epic with Markdown',
         },
       ];
 
@@ -196,8 +224,9 @@ describe('work-item utilities', () => {
   });
 
   describe('CSV_HEADERS', () => {
-    it('should have the correct Azure DevOps columns', () => {
+    it('should have the correct Azure DevOps hierarchical columns', () => {
       expect(CSV_HEADERS).toEqual([
+        'ID',
         'Work Item Type',
         'Title',
         'State',
@@ -205,7 +234,6 @@ describe('work-item utilities', () => {
         'Story Points',
         'Description',
         'Acceptance Criteria',
-        'Parent',
       ]);
     });
   });

@@ -6,6 +6,7 @@ export type WorkItemState = 'New' | 'Active' | 'Resolved' | 'Closed';
 
 // Zod schemas for validation
 export const WorkItemSchema = z.object({
+  id: z.string().optional(), // ID for parent work items, empty for children
   workItemType: z.enum(['Epic', 'Feature', 'User Story']),
   title: z.string().min(1).max(255),
   state: z.enum(['New', 'Active', 'Resolved', 'Closed']),
@@ -13,7 +14,7 @@ export const WorkItemSchema = z.object({
   storyPoints: z.number().int().min(0).optional(),
   description: z.string().optional(),
   acceptanceCriteria: z.string().optional(),
-  parent: z.string().optional(), // Parent work item title
+  parent: z.string().optional(), // Used internally to track hierarchy
 });
 
 export type WorkItem = z.infer<typeof WorkItemSchema>;
@@ -25,8 +26,9 @@ export interface WorkItemCSVExportResponse {
   rowCount: number;
 }
 
-// CSV column headers for Azure DevOps import
+// CSV column headers for Azure DevOps hierarchical import
 export const CSV_HEADERS = [
+  'ID',
   'Work Item Type',
   'Title',
   'State',
@@ -34,7 +36,6 @@ export const CSV_HEADERS = [
   'Story Points',
   'Description',
   'Acceptance Criteria',
-  'Parent',
 ] as const;
 
 /**
@@ -83,10 +84,12 @@ export function mapGitHubStatusToAzureDevOps(githubStatus: string): WorkItemStat
 }
 
 /**
- * Converts a work item to a CSV row
+ * Converts a work item to a CSV row in Azure DevOps hierarchical format
+ * Parent items have an ID, children have an empty ID field
  */
-export function workItemToCsvRow(item: WorkItem): string {
+export function workItemToCsvRow(item: WorkItem, isChild: boolean = false): string {
   const values = [
+    isChild ? '' : escapeCsvValue(item.id || ''), // Empty ID for children
     escapeCsvValue(item.workItemType),
     escapeCsvValue(item.title),
     escapeCsvValue(item.state),
@@ -94,18 +97,38 @@ export function workItemToCsvRow(item: WorkItem): string {
     escapeCsvValue(item.storyPoints),
     escapeCsvValue(item.description),
     escapeCsvValue(item.acceptanceCriteria),
-    escapeCsvValue(item.parent),
   ];
   
   return values.join(',');
 }
 
 /**
- * Converts an array of work items to a complete CSV string
+ * Converts an array of work items to a complete CSV string in Azure DevOps hierarchical format
+ * Children are listed immediately after their parents with empty ID fields
  */
 export function workItemsToCSV(items: WorkItem[]): string {
   const headerRow = CSV_HEADERS.join(',');
-  const dataRows = items.map(workItemToCsvRow);
+  const dataRows: string[] = [];
+  
+  // Process items hierarchically
+  items.forEach(item => {
+    // If this item has no parent, it's a top-level item (Epic)
+    if (!item.parent) {
+      dataRows.push(workItemToCsvRow(item, false));
+      
+      // Find and add all direct children
+      const children = items.filter(child => child.parent === item.title);
+      children.forEach(child => {
+        dataRows.push(workItemToCsvRow(child, true));
+        
+        // Find and add grandchildren (User Stories under Features)
+        const grandchildren = items.filter(gc => gc.parent === child.title);
+        grandchildren.forEach(grandchild => {
+          dataRows.push(workItemToCsvRow(grandchild, true));
+        });
+      });
+    }
+  });
   
   return [headerRow, ...dataRows].join('\n');
 }
