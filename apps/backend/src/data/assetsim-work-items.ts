@@ -1,0 +1,357 @@
+import { WorkItem } from '../types/work-item';
+
+/**
+ * AssetSim Pro Project Work Items
+ * This represents the complete project backlog with proper hierarchy:
+ * - 1 Epic: Portfolio Simulation Platform
+ * - 6 Features
+ * - 25 User Stories
+ */
+export const ASSETSIM_WORK_ITEMS: WorkItem[] = [
+  // ============================================
+  // EPIC
+  // ============================================
+  {
+    workItemType: 'Epic',
+    title: 'Portfolio Simulation Platform',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 200,
+    description: 'Enterprise-grade simulation platform for Asset Management Firms, Hedge Funds, and Proprietary Trading Desks. Enable training on execution strategies, risk management, and portfolio construction in a controlled, high-fidelity simulation environment.',
+    acceptanceCriteria: '- Platform supports multi-user simulation venues (Exchanges)\n- Risk Managers can configure market regimes\n- Portfolio Managers can execute trades and manage portfolios\n- Real-time market data simulation with configurable volatility\n- Comprehensive analytics and performance metrics',
+  },
+
+  // ============================================
+  // FEATURE 1: Exchange Management
+  // ============================================
+  {
+    workItemType: 'Feature',
+    title: 'Exchange Management',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 34,
+    description: 'Create and manage simulation venues (Exchanges) with multi-tenancy support. Each Exchange is an isolated simulation environment with role-based access control.',
+    acceptanceCriteria: '- Create new Exchanges with unique names\n- Assign Risk Manager role to creator\n- Support multiple concurrent Exchanges\n- Row-Level Security (RLS) enforcement',
+    parent: 'Portfolio Simulation Platform',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Create Exchange API endpoint',
+    state: 'Closed',
+    priority: 1,
+    storyPoints: 8,
+    description: 'Implement POST /api/v1/exchanges endpoint to create new simulation venues. The creator is automatically assigned the RiskManager role.',
+    acceptanceCriteria: '- Validates request body with Zod schema\n- Creates Exchange record in database\n- Creates default ExchangeConfiguration\n- Assigns RiskManager role to creator\n- Returns Exchange details in response',
+    parent: 'Exchange Management',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Implement Exchange RLS policies',
+    state: 'Closed',
+    priority: 1,
+    storyPoints: 13,
+    description: 'Configure Row-Level Security policies in SQL Database to ensure users can only access Exchanges where they have assigned roles.',
+    acceptanceCriteria: '- RLS policy blocks unauthorized access\n- SESSION_CONTEXT properly set for each request\n- Users see only their assigned Exchanges\n- SuperAdmin can see all Exchanges',
+    parent: 'Exchange Management',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Exchange role management UI',
+    state: 'Active',
+    priority: 2,
+    storyPoints: 8,
+    description: 'Build Angular component for managing Exchange roles. Risk Managers can assign PortfolioManager and Analyst roles to users.',
+    acceptanceCriteria: '- Display current role assignments\n- Add/remove user roles\n- Role dropdown with three options: RiskManager, PortfolioManager, Analyst\n- Permission checks enforce RiskManager-only access',
+    parent: 'Exchange Management',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Exchange configuration page',
+    state: 'New',
+    priority: 2,
+    storyPoints: 5,
+    description: 'Create settings page for Exchange configuration including volatility, starting cash, commission rates, and margin settings.',
+    acceptanceCriteria: '- Form displays current configuration\n- Update configuration via API\n- Validation for numeric ranges\n- Changes take effect immediately',
+    parent: 'Exchange Management',
+  },
+
+  // ============================================
+  // FEATURE 2: Order Execution
+  // ============================================
+  {
+    workItemType: 'Feature',
+    title: 'Order Execution',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 42,
+    description: 'Support multiple order types (Market, Limit, Stop, Stop-Limit) with real-time order matching and execution.',
+    acceptanceCriteria: '- All order types supported\n- Orders matched against market prices\n- Portfolio positions updated on fill\n- Order status transitions tracked',
+    parent: 'Portfolio Simulation Platform',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Create Order API endpoint',
+    state: 'Closed',
+    priority: 1,
+    storyPoints: 13,
+    description: 'Implement POST /api/v1/orders endpoint with Zod validation for all order types.',
+    acceptanceCriteria: '- Validates order type, side, quantity, price fields\n- Enforces required fields per order type\n- Creates order record in database\n- Returns order details with PENDING status',
+    parent: 'Order Execution',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Market order matching engine',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 13,
+    description: 'Implement matching logic for Market orders that execute immediately at current market price.',
+    acceptanceCriteria: '- Market orders execute within one tick cycle\n- Uses current bid/ask prices\n- Updates order status to FILLED\n- Creates transaction records',
+    parent: 'Order Execution',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Limit order matching engine',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 8,
+    description: 'Implement matching logic for Limit orders that execute only at specified price or better.',
+    acceptanceCriteria: '- Buy limit orders execute when market price <= limit price\n- Sell limit orders execute when market price >= limit price\n- Partial fills supported\n- Orders remain PENDING until filled or cancelled',
+    parent: 'Order Execution',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Stop and Stop-Limit order support',
+    state: 'New',
+    priority: 2,
+    storyPoints: 8,
+    description: 'Add support for Stop and Stop-Limit orders that trigger when market reaches stop price.',
+    acceptanceCriteria: '- Stop orders convert to Market orders when triggered\n- Stop-Limit orders convert to Limit orders when triggered\n- Trigger logic based on last traded price\n- Status transitions from PENDING to TRIGGERED to FILLED',
+    parent: 'Order Execution',
+  },
+
+  // ============================================
+  // FEATURE 3: Market Simulation Engine
+  // ============================================
+  {
+    workItemType: 'Feature',
+    title: 'Market Simulation Engine',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 34,
+    description: 'Real-time market price simulation using random walk model with configurable volatility and tick intervals.',
+    acceptanceCriteria: '- Price updates generated every tick interval\n- Volatility configurable per Exchange\n- OHLC (Open-High-Low-Close) data aggregated\n- Price updates broadcast via SignalR',
+    parent: 'Portfolio Simulation Platform',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Market tick timer function',
+    state: 'Closed',
+    priority: 1,
+    storyPoints: 8,
+    description: 'Create Azure Function with timer trigger that runs every 5 seconds to generate market updates.',
+    acceptanceCriteria: '- Timer trigger configured in function.json\n- Fetches all active Exchanges\n- Generates price updates for configured symbols\n- Processes pending orders',
+    parent: 'Market Simulation Engine',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Random walk price generation',
+    state: 'Closed',
+    priority: 1,
+    storyPoints: 8,
+    description: 'Implement random walk algorithm for realistic price movements based on Exchange volatility settings.',
+    acceptanceCriteria: '- Uses Gaussian distribution for price changes\n- Volatility parameter controls variance\n- Prices remain positive (no negative values)\n- Price changes validated with Zod schema',
+    parent: 'Market Simulation Engine',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'OHLC data aggregation',
+    state: 'Closed',
+    priority: 2,
+    storyPoints: 13,
+    description: 'Aggregate tick-level price data into OHLC candles for charting and historical analysis.',
+    acceptanceCriteria: '- Supports multiple timeframes (1m, 5m, 15m, 1h, 1d)\n- Aggregation runs as Azure Function timer trigger\n- Data stored in Trade.OHLCData table\n- Efficient queries for chart data retrieval',
+    parent: 'Market Simulation Engine',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'SignalR real-time price broadcast',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 5,
+    description: 'Broadcast price updates to connected clients using Azure SignalR Service with MessagePack protocol.',
+    acceptanceCriteria: '- Price updates sent via SignalR\n- MessagePack serialization for efficiency\n- Clients subscribed to Exchange-specific channels\n- Maximum 100ms latency',
+    parent: 'Market Simulation Engine',
+  },
+
+  // ============================================
+  // FEATURE 4: Portfolio Management
+  // ============================================
+  {
+    workItemType: 'Feature',
+    title: 'Portfolio Management',
+    state: 'Active',
+    priority: 2,
+    storyPoints: 29,
+    description: 'Create and manage portfolios within an Exchange. Track positions, cash balances, and P&L.',
+    acceptanceCriteria: '- Create portfolios with starting cash\n- View current positions and balances\n- Calculate unrealized P&L\n- Support multiple portfolios per user',
+    parent: 'Portfolio Simulation Platform',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Create Portfolio API endpoint',
+    state: 'New',
+    priority: 2,
+    storyPoints: 8,
+    description: 'Implement POST /api/v1/portfolios endpoint to create new portfolios within an Exchange.',
+    acceptanceCriteria: '- Validates request with Zod schema\n- Creates Portfolio record\n- Initializes cash balance from Exchange config\n- Associates portfolio with user and Exchange',
+    parent: 'Portfolio Management',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Portfolio positions view',
+    state: 'New',
+    priority: 2,
+    storyPoints: 8,
+    description: 'Display current positions for a portfolio including symbol, quantity, average cost, and current value.',
+    acceptanceCriteria: '- GET /api/v1/portfolios/:id/positions endpoint\n- Returns array of positions\n- Calculates unrealized P&L per position\n- Updates in real-time via SignalR',
+    parent: 'Portfolio Management',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Portfolio P&L calculation',
+    state: 'New',
+    priority: 2,
+    storyPoints: 8,
+    description: 'Calculate total portfolio P&L including realized and unrealized gains/losses.',
+    acceptanceCriteria: '- Realized P&L from closed positions\n- Unrealized P&L from open positions\n- Total P&L = Realized + Unrealized\n- P&L displayed in portfolio summary',
+    parent: 'Portfolio Management',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Portfolio analytics dashboard',
+    state: 'New',
+    priority: 3,
+    storyPoints: 5,
+    description: 'Build dashboard showing portfolio performance metrics including Sharpe ratio, max drawdown, and volatility.',
+    acceptanceCriteria: '- Display key performance metrics\n- Charts showing equity curve over time\n- Daily returns histogram\n- Risk-adjusted return metrics',
+    parent: 'Portfolio Management',
+  },
+
+  // ============================================
+  // FEATURE 5: Trading UI
+  // ============================================
+  {
+    workItemType: 'Feature',
+    title: 'Trading UI',
+    state: 'Active',
+    priority: 2,
+    storyPoints: 34,
+    description: 'Institutional-grade trading interface with Kendo UI components. Display real-time market data, order entry, and position management.',
+    acceptanceCriteria: '- Professional trading UI with dark theme\n- Real-time price updates via SignalR\n- Order entry form with validation\n- Position and order blotters',
+    parent: 'Portfolio Simulation Platform',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Price chart with Kendo Charts',
+    state: 'Active',
+    priority: 1,
+    storyPoints: 8,
+    description: 'Implement candlestick chart using Kendo ChartComponent to display OHLC price data.',
+    acceptanceCriteria: '- Uses @progress/kendo-angular-charts\n- Candlestick series for price\n- Volume bars below price chart\n- Multiple timeframes supported\n- Real-time updates via SignalR',
+    parent: 'Trading UI',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Order entry form component',
+    state: 'New',
+    priority: 1,
+    storyPoints: 8,
+    description: 'Build order entry form with dropdowns for order type, side, and input fields for quantity and price.',
+    acceptanceCriteria: '- Angular standalone component\n- Kendo UI form controls\n- Real-time validation\n- Submit calls createOrder API\n- Displays success/error messages',
+    parent: 'Trading UI',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Order blotter with Kendo Grid',
+    state: 'New',
+    priority: 2,
+    storyPoints: 8,
+    description: 'Display all orders in a Kendo Grid with sorting, filtering, and real-time updates.',
+    acceptanceCriteria: '- Uses Kendo GridComponent\n- Shows order status, type, symbol, quantity, price\n- Sortable columns\n- Filterable by status\n- Updates in real-time via SignalR',
+    parent: 'Trading UI',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Position blotter',
+    state: 'New',
+    priority: 2,
+    storyPoints: 5,
+    description: 'Display current positions in a grid showing symbol, quantity, average cost, current price, and P&L.',
+    acceptanceCriteria: '- Kendo Grid with position data\n- Color coding for P&L (green/red)\n- Real-time price updates\n- Calculated unrealized P&L',
+    parent: 'Trading UI',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Market depth display',
+    state: 'New',
+    priority: 3,
+    storyPoints: 5,
+    description: 'Show order book depth with bid/ask prices and quantities.',
+    acceptanceCriteria: '- Display top 10 bid/ask levels\n- Color coded (buy=green, sell=red)\n- Real-time updates\n- Click to populate order entry form',
+    parent: 'Trading UI',
+  },
+
+  // ============================================
+  // FEATURE 6: Analytics & Reporting
+  // ============================================
+  {
+    workItemType: 'Feature',
+    title: 'Analytics & Reporting',
+    state: 'New',
+    priority: 3,
+    storyPoints: 27,
+    description: 'Performance analytics, risk metrics, and historical reporting capabilities.',
+    acceptanceCriteria: '- Portfolio performance reports\n- Trade execution quality metrics\n- Risk exposure analysis\n- Historical data export',
+    parent: 'Portfolio Simulation Platform',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Performance attribution report',
+    state: 'New',
+    priority: 3,
+    storyPoints: 8,
+    description: 'Generate performance attribution report breaking down returns by security and time period.',
+    acceptanceCriteria: '- Returns by security\n- Returns by time period (daily, weekly, monthly)\n- Contribution to total return\n- Export to CSV/Excel',
+    parent: 'Analytics & Reporting',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Trade execution quality metrics',
+    state: 'New',
+    priority: 3,
+    storyPoints: 8,
+    description: 'Calculate execution quality metrics including slippage, fill rate, and time to execution.',
+    acceptanceCriteria: '- Slippage calculation (execution price vs. market price)\n- Fill rate percentage\n- Average time to execution\n- Metrics by order type',
+    parent: 'Analytics & Reporting',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Risk exposure dashboard',
+    state: 'New',
+    priority: 3,
+    storyPoints: 8,
+    description: 'Display current risk exposure including concentration risk, sector exposure, and VaR.',
+    acceptanceCriteria: '- Position concentration by symbol\n- Sector/industry exposure breakdown\n- Value at Risk (VaR) calculation\n- Charts with Kendo ChartComponent',
+    parent: 'Analytics & Reporting',
+  },
+  {
+    workItemType: 'User Story',
+    title: 'Historical data export',
+    state: 'New',
+    priority: 3,
+    storyPoints: 3,
+    description: 'Export historical price data, orders, and transactions to CSV format.',
+    acceptanceCriteria: '- Export OHLC data to CSV\n- Export order history to CSV\n- Export transaction history to CSV\n- Date range selection',
+    parent: 'Analytics & Reporting',
+  },
+];
