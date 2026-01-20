@@ -36,9 +36,17 @@ See **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)** for detailed workspace 
 
 ## Documentation
 
-- **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)**: Nx workspace structure and development workflow
+### Project Status
+- **[EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md)**: Phase 1 & 2 evaluation - ✅ **100% COMPLETE**
+- **[PHASE_1_2_EVALUATION.md](./PHASE_1_2_EVALUATION.md)**: Comprehensive evaluation report for all ADRs
+
+### Architecture & Development
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Complete architectural decisions and technical specifications
+- **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)**: Nx workspace structure and development workflow
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines, git workflows, and contribution process
+- **[TESTING.md](./TESTING.md)**: Testing strategy and quality gates (92.59% coverage)
+
+### Infrastructure & Security
 - **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust Network Architecture implementation details
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Step-by-step deployment instructions for Azure infrastructure
 - **[ADR_002_IMPLEMENTATION_SUMMARY.md](./ADR_002_IMPLEMENTATION_SUMMARY.md)**: Complete summary of ADR-002 implementation
