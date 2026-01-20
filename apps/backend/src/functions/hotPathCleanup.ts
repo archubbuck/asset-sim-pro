@@ -39,6 +39,6 @@ export async function hotPathCleanup(
 
 // Timer trigger: runs daily at 2:00 AM UTC
 app.timer('hotPathCleanup', {
-  schedule: '0 0 2 * * *', // Daily at 2:00 AM UTC (CRON format)
+  schedule: '0 0 2 * * *', // Daily at 2:00 AM UTC (NCrontab format: seconds, minutes, hours, day, month, day-of-week)
   handler: hotPathCleanup,
 });

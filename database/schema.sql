@@ -204,7 +204,7 @@ BEGIN
     SELECT 
         [ExchangeId],
         [Symbol],
-        DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) AS [Timestamp], -- Round down to minute
+        [MinuteTimestamp] AS [Timestamp],
         ROUND(MIN(CASE WHEN rn = 1 THEN [Open] END), 2) AS [Open], -- First tick's open in minute (rounded to 2 decimals)
         ROUND(MAX([High]), 2) AS [High],
         ROUND(MIN([Low]), 2) AS [Low],
@@ -213,13 +213,14 @@ BEGIN
     FROM (
         SELECT 
             *,
+            DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) AS [MinuteTimestamp], -- Round down to minute (computed once)
             ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) ORDER BY [Timestamp] ASC) as rn,
             ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) ORDER BY [Timestamp] DESC) as rn_desc
         FROM [Trade].[MarketData]
         WHERE [Timestamp] > @LastAggregated
     ) AS RankedData
-    GROUP BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0)
-    ORDER BY [Timestamp];
+    GROUP BY [ExchangeId], [Symbol], [MinuteTimestamp]
+    ORDER BY [MinuteTimestamp];
     
     RETURN @@ROWCOUNT;
 END;
