@@ -3,6 +3,7 @@ import * as sql from 'mssql';
 import { CreateExchangeSchema, ExchangeResponse } from '../types/exchange';
 import { getConnectionPool } from '../lib/database';
 import { requireAuthentication } from '../lib/auth';
+import { cacheExchangeConfig } from '../lib/cache';
 
 /**
  * POST /api/v1/exchanges
@@ -82,6 +83,22 @@ export async function createExchange(
       await transaction.commit();
 
       context.log(`Exchange ${exchange.ExchangeId} created successfully by user ${user.userId}`);
+
+      // Cache the default exchange configuration (ADR-008)
+      try {
+        await cacheExchangeConfig(exchange.ExchangeId, {
+          volatilityIndex: 1.0,
+          startingCash: 10000000.00,
+          commission: 5.00,
+          allowMargin: true,
+          maxPortfolioSize: 50,
+          dashboardLayout: '[]',
+        });
+        context.log(`Exchange configuration cached for ${exchange.ExchangeId}`);
+      } catch (cacheError) {
+        // Log but don't fail the request if caching fails
+        context.warn(`Failed to cache exchange config: ${cacheError}`);
+      }
 
       // 4. Return response
       const response: ExchangeResponse = {

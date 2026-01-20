@@ -145,3 +145,21 @@ CREATE SECURITY POLICY [Security].[OHLCPolicy]
     ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[OHLC_1M]
     WITH (STATE = ON);
 GO
+
+-- 9. Exchange Feature Flags (ADR-008: Multi-Tenancy Feature Management)
+CREATE TABLE [Trade].[ExchangeFeatureFlags] (
+    [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]) ON DELETE CASCADE,
+    [FeatureName] NVARCHAR(100) NOT NULL,
+    [IsEnabled] BIT NOT NULL DEFAULT 0,
+    [UpdatedAt] DATETIMEOFFSET DEFAULT SYSDATETIMEOFFSET(),
+    PRIMARY KEY ([ExchangeId], [FeatureName]),
+    INDEX [IX_ExchangeFeatureFlags_ExchangeId] ([ExchangeId])
+);
+GO
+
+-- 6. Apply RLS Policy to Exchange Feature Flags (RLS Policy #6)
+CREATE SECURITY POLICY [Security].[ExchangeFeatureFlagsPolicy]
+    ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags],
+    ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags]
+    WITH (STATE = ON);
+GO
