@@ -116,6 +116,61 @@ Creates a new order in the exchange.
 - User must have access to the specified portfolio
 - All UUIDs must be valid
 
+#### GET /api/v1/work-items/export
+
+Exports all AssetSim Pro work items as a CSV file ready for import into Azure DevOps Boards.
+
+**Authentication**: Not required
+
+**Response Format**: `text/csv`
+
+**Response Headers**:
+- `Content-Type: text/csv; charset=utf-8`
+- `Content-Disposition: attachment; filename="assetsim-work-items.csv"`
+
+**CSV Structure**:
+The exported CSV contains:
+- **1 Epic**: Portfolio Simulation Platform
+- **6 Features**: Exchange Management, Order Execution, Market Simulation Engine, Portfolio Management, Trading UI, Analytics & Reporting
+- **25 User Stories**: Distributed across the 6 features
+
+**CSV Columns** (Azure DevOps compatible):
+- `Work Item Type`: Epic | Feature | User Story
+- `Title`: Work item title
+- `State`: New | Active | Resolved | Closed
+- `Priority`: 1-4 (1=highest)
+- `Story Points`: Numeric estimate
+- `Description`: Detailed description (markdown supported, newlines converted to spaces)
+- `Acceptance Criteria`: Acceptance criteria (markdown supported, newlines converted to spaces)
+- `Parent`: Parent work item title for hierarchy
+
+**Hierarchy**:
+```
+Portfolio Simulation Platform (Epic)
+├── Exchange Management (Feature)
+│   ├── Create Exchange API endpoint (User Story)
+│   ├── Implement Exchange RLS policies (User Story)
+│   └── ... (2 more User Stories)
+├── Order Execution (Feature)
+│   └── ... (4 User Stories)
+└── ... (4 more Features with 19 User Stories)
+```
+
+**Usage Example**:
+```bash
+# Download CSV file
+curl http://localhost:7071/api/v1/work-items/export -o assetsim-work-items.csv
+
+# Import into Azure DevOps Boards
+# 1. Navigate to Azure DevOps Boards
+# 2. Click "Import Work Items"
+# 3. Select the downloaded CSV file
+# 4. Map columns (automatic for standard columns)
+# 5. Complete import
+```
+
+**Note**: This endpoint is designed for project management and does not interact with the database. It exports a predefined set of work items representing the AssetSim Pro project structure.
+
 ### Market Engine (Timer Trigger)
 
 #### marketEngineTick
