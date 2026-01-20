@@ -82,7 +82,22 @@ CREATE TABLE [Trade].[Orders] (
 );
 GO
 
--- 8. Aggregated Candles (Hot Path Storage)
+-- 8. Raw Market Data (ADR-010: Source for aggregation, archived to cold storage)
+CREATE TABLE [Trade].[MarketData] (
+    [TickId] BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]),
+    [Symbol] NVARCHAR(10) NOT NULL,
+    [Timestamp] DATETIMEOFFSET NOT NULL,
+    [Open] DECIMAL(18, 8) NOT NULL,
+    [High] DECIMAL(18, 8) NOT NULL,
+    [Low] DECIMAL(18, 8) NOT NULL,
+    [Close] DECIMAL(18, 8) NOT NULL,
+    [Volume] BIGINT DEFAULT 0,
+    INDEX [IX_MarketData_Exchange_Symbol_Time] ([ExchangeId], [Symbol], [Timestamp])
+);
+GO
+
+-- 9. Aggregated Candles (ADR-010: Hot Path Storage - 7 day retention)
 CREATE TABLE [Trade].[OHLC_1M] (
     [CandleId] BIGINT IDENTITY(1,1) PRIMARY KEY,
     [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]),
@@ -139,14 +154,21 @@ CREATE SECURITY POLICY [Security].[OrderPolicy]
     WITH (STATE = ON);
 GO
 
--- 5. Apply Policy to OHLC data
+-- 5. Apply Policy to MarketData
+CREATE SECURITY POLICY [Security].[MarketDataPolicy]
+    ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[MarketData],
+    ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[MarketData]
+    WITH (STATE = ON);
+GO
+
+-- 6. Apply Policy to OHLC data
 CREATE SECURITY POLICY [Security].[OHLCPolicy]
     ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[OHLC_1M],
     ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[OHLC_1M]
     WITH (STATE = ON);
 GO
 
--- 9. Exchange Feature Flags (ADR-008: Multi-Tenancy Feature Management)
+-- 10. Exchange Feature Flags (ADR-008: Multi-Tenancy Feature Management)
 CREATE TABLE [Trade].[ExchangeFeatureFlags] (
     [ExchangeId] UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Trade].[Exchanges]([ExchangeId]) ON DELETE CASCADE,
     [FeatureName] NVARCHAR(100) NOT NULL,
@@ -157,9 +179,64 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 );
 GO
 
--- 6. Apply RLS Policy to Exchange Feature Flags (RLS Policy #6)
+-- 7. Apply RLS Policy to Exchange Feature Flags (RLS Policy #7)
 CREATE SECURITY POLICY [Security].[ExchangeFeatureFlagsPolicy]
     ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags],
     ADD BLOCK PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) ON [Trade].[ExchangeFeatureFlags]
     WITH (STATE = ON);
+GO
+
+-- ADR-010: Data Retention & Lifecycle Management Stored Procedures
+
+-- Aggregate raw ticks into 1-minute OHLC candles
+CREATE PROCEDURE [Trade].[sp_AggregateOHLC_1M]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Find the last aggregated timestamp
+    DECLARE @LastAggregated DATETIMEOFFSET;
+    SELECT @LastAggregated = ISNULL(MAX([Timestamp]), '1900-01-01')
+    FROM [Trade].[OHLC_1M];
+    
+    -- Aggregate raw ticks into 1-minute candles for data after last aggregation
+    INSERT INTO [Trade].[OHLC_1M] ([ExchangeId], [Symbol], [Timestamp], [Open], [High], [Low], [Close], [Volume])
+    SELECT 
+        [ExchangeId],
+        [Symbol],
+        DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) AS [Timestamp], -- Round down to minute
+        CAST(MIN(CASE WHEN rn = 1 THEN [Open] END) AS DECIMAL(18, 2)) AS [Open], -- First tick's open in minute
+        CAST(MAX([High]) AS DECIMAL(18, 2)) AS [High],
+        CAST(MIN([Low]) AS DECIMAL(18, 2)) AS [Low],
+        CAST(MAX(CASE WHEN rn_desc = 1 THEN [Close] END) AS DECIMAL(18, 2)) AS [Close], -- Last tick's close in minute
+        CAST(SUM([Volume]) AS INT) AS [Volume]
+    FROM (
+        SELECT 
+            *,
+            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) ORDER BY [Timestamp] ASC) as rn,
+            ROW_NUMBER() OVER (PARTITION BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0) ORDER BY [Timestamp] DESC) as rn_desc
+        FROM [Trade].[MarketData]
+        WHERE [Timestamp] > @LastAggregated
+    ) AS RankedData
+    GROUP BY [ExchangeId], [Symbol], DATEADD(MINUTE, DATEDIFF(MINUTE, 0, [Timestamp]), 0)
+    ORDER BY [Timestamp];
+    
+    RETURN @@ROWCOUNT;
+END;
+GO
+
+-- Clean up hot path data older than 7 days (OHLC_1M retention policy)
+CREATE PROCEDURE [Trade].[sp_CleanupHotPath]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @RetentionDays INT = 7;
+    DECLARE @CutoffDate DATETIMEOFFSET = DATEADD(DAY, -@RetentionDays, SYSDATETIMEOFFSET());
+    
+    DELETE FROM [Trade].[OHLC_1M]
+    WHERE [Timestamp] < @CutoffDate;
+    
+    RETURN @@ROWCOUNT;
+END;
 GO

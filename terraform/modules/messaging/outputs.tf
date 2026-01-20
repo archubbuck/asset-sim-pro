@@ -32,3 +32,18 @@ output "keyvault_uri" {
   description = "URI of the Key Vault"
   value       = azurerm_key_vault.kv.vault_uri
 }
+
+output "storage_account_id" {
+  description = "ID of the cold storage account for archived market data"
+  value       = azurerm_storage_account.cold_storage.id
+}
+
+output "storage_account_name" {
+  description = "Name of the cold storage account"
+  value       = azurerm_storage_account.cold_storage.name
+}
+
+output "market_data_archive_container_name" {
+  description = "Name of the market data archive container"
+  value       = azurerm_storage_container.market_data_archive.name
+}
