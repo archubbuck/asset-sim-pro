@@ -340,7 +340,7 @@ To add Parquet support, consider:
 ## References
 
 - **ADR-010:** ARCHITECTURE.md lines 219-232
-- **Issue:** [Implement hot/cold data path for data retention and lifecycle](../../../issues/xxx)
+- **Issue:** Implement hot/cold data path for data retention and lifecycle
 - **Implementation Files:**
   - `database/schema.sql`
   - `apps/backend/src/functions/ohlcAggregation.ts`

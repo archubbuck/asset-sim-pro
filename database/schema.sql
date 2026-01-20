@@ -200,15 +200,18 @@ BEGIN
     FROM [Trade].[OHLC_1M];
     
     -- Aggregate raw ticks into 1-minute candles for data after last aggregation
+    -- NOTE: Precision reduction from DECIMAL(18,8) to DECIMAL(18,2) handled by SQL implicit conversion
+    -- This is an exception to ADR-006 (Decimal.js requirement) for database-level aggregations
+    -- where moving logic to TypeScript would significantly impact performance
     INSERT INTO [Trade].[OHLC_1M] ([ExchangeId], [Symbol], [Timestamp], [Open], [High], [Low], [Close], [Volume])
     SELECT 
         [ExchangeId],
         [Symbol],
         [MinuteTimestamp] AS [Timestamp],
-        ROUND(MIN(CASE WHEN rn = 1 THEN [Open] END), 2) AS [Open], -- First tick's open in minute (rounded to 2 decimals)
-        ROUND(MAX([High]), 2) AS [High],
-        ROUND(MIN([Low]), 2) AS [Low],
-        ROUND(MAX(CASE WHEN rn_desc = 1 THEN [Close] END), 2) AS [Close], -- Last tick's close in minute (rounded to 2 decimals)
+        MIN(CASE WHEN rn = 1 THEN [Open] END) AS [Open], -- First tick's open in minute
+        MAX([High]) AS [High],
+        MIN([Low]) AS [Low],
+        MAX(CASE WHEN rn_desc = 1 THEN [Close] END) AS [Close], -- Last tick's close in minute
         SUM([Volume]) AS [Volume]
     FROM (
         SELECT 
@@ -246,6 +249,7 @@ END;
 GO
 
 -- Clean up hot path data older than 7 days (OHLC_1M retention policy)
+-- Also clean up raw MarketData after it's been aggregated and captured to cold storage
 CREATE PROCEDURE [Trade].[sp_CleanupHotPath]
 AS
 BEGIN
@@ -253,10 +257,20 @@ BEGIN
     
     DECLARE @RetentionDays INT = 7;
     DECLARE @CutoffDate DATETIMEOFFSET = DATEADD(DAY, -@RetentionDays, SYSDATETIMEOFFSET());
+    DECLARE @RowsDeleted INT = 0;
     
+    -- Delete aggregated OHLC candles older than 7 days
     DELETE FROM [Trade].[OHLC_1M]
     WHERE [Timestamp] < @CutoffDate;
     
-    RETURN @@ROWCOUNT;
+    SET @RowsDeleted = @@ROWCOUNT;
+    
+    -- Delete raw MarketData older than 7 days (after Event Hubs Capture has archived it)
+    DELETE FROM [Trade].[MarketData]
+    WHERE [Timestamp] < @CutoffDate;
+    
+    SET @RowsDeleted = @RowsDeleted + @@ROWCOUNT;
+    
+    RETURN @RowsDeleted;
 END;
 GO
