@@ -1,8 +1,14 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/backend',
+  resolve: {
+    alias: {
+      '@assetsim/shared/error-models': path.resolve(__dirname, '../../libs/shared/error-models/src/index.ts'),
+    },
+  },
   test: {
     name: 'backend',
     watch: false,

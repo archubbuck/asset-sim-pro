@@ -29,6 +29,16 @@
           Test Signal Update
         </button>
       </div>
+
+      <div class="demo-section">
+        <h3>Error Handling Demo (ADR-018)</h3>
+        <p>Test RFC 7807 Problem Details error notification:</p>
+        <button 
+          class="demo-button"
+          (click)="onTestErrorHandling()">
+          Test Error Notification
+        </button>
+      </div>
     </section>
 
     <router-outlet></router-outlet>
@@ -38,3 +48,6 @@
     <p>AssetSim Pro v1.0.0 | Following ADR-004 Architecture</p>
   </footer>
 </div>
+
+<!-- Error notifications (ADR-018: RFC 7807 Error Handling) -->
+<core-error-notification></core-error-notification>
