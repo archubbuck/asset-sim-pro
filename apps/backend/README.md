@@ -120,7 +120,7 @@ Creates a new order in the exchange.
 
 Exports all AssetSim Pro work items as a CSV file ready for import into Azure DevOps Boards.
 
-**Authentication**: Not required
+**Authentication**: Function key required (`authLevel: 'function'`)
 
 **Response Format**: `text/csv`
 

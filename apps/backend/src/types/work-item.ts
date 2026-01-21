@@ -63,6 +63,9 @@ export function escapeCsvValue(value: string | number | undefined): string {
 
 /**
  * Maps GitHub issue state to Azure DevOps work item state
+ * Note: This function is provided as a utility for future use cases where states 
+ * need to be mapped from GitHub issues. Currently not used as work item states 
+ * are set directly in the data.
  */
 export function mapGitHubStatusToAzureDevOps(githubStatus: string): WorkItemState {
   const status = githubStatus.toLowerCase();
@@ -103,19 +106,29 @@ export function workItemsToCSV(items: WorkItem[]): string {
   const headerRow = CSV_HEADERS.join(',');
   const dataRows: string[] = [];
   
+  // Build parent-child map for efficient lookup
+  const childrenMap = new Map<string, WorkItem[]>();
+  items.forEach(item => {
+    if (item.parent) {
+      const siblings = childrenMap.get(item.parent) || [];
+      siblings.push(item);
+      childrenMap.set(item.parent, siblings);
+    }
+  });
+  
   // Process items hierarchically
   items.forEach(item => {
     // If this item has no parent, it's a top-level item (Epic)
     if (!item.parent) {
       dataRows.push(workItemToCsvRow(item, false));
       
-      // Find and add all direct children
-      const children = items.filter(child => child.parent === item.title);
+      // Add all direct children
+      const children = childrenMap.get(item.title) || [];
       children.forEach(child => {
         dataRows.push(workItemToCsvRow(child, true));
         
-        // Find and add grandchildren (User Stories under Features)
-        const grandchildren = items.filter(gc => gc.parent === child.title);
+        // Add grandchildren (User Stories under Features)
+        const grandchildren = childrenMap.get(child.title) || [];
         grandchildren.forEach(grandchild => {
           dataRows.push(workItemToCsvRow(grandchild, true));
         });
