@@ -4,8 +4,9 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { appRoutes } from './app.routes';
+import { errorInterceptor } from './interceptors/error.interceptor';
 
 /**
  * Application Configuration for AssetSim Pro
@@ -14,6 +15,9 @@ import { appRoutes } from './app.routes';
  * - Zoneless change detection for performance and future-readiness
  * - Angular Signals-first approach (implemented in components)
  * - Kendo UI for Angular support via animations provider
+ * 
+ * Following ADR-018:
+ * - RFC 7807 error handling via errorInterceptor
  */
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,10 +30,10 @@ export const appConfig: ApplicationConfig = {
     // Animations required for Kendo UI components
     provideAnimations(),
     
-    // HTTP client with fetch API and legacy interceptor support
+    // HTTP client with fetch API and error interceptor for RFC 7807 handling
     provideHttpClient(
       withFetch(),
-      withInterceptorsFromDi()
+      withInterceptors([errorInterceptor])
     ),
   ],
 };
