@@ -4,6 +4,10 @@ import { CreateExchangeSchema, ExchangeResponse } from '../types/exchange';
 import { getConnectionPool } from '../lib/database';
 import { requireAuthentication } from '../lib/auth';
 import { cacheExchangeConfig } from '../lib/cache';
+import {
+  createValidationErrorResponse,
+  handleError,
+} from '../lib/error-handler';
 
 /**
  * POST /api/v1/exchanges
@@ -28,16 +32,7 @@ export async function createExchange(
     const validationResult = CreateExchangeSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return {
-        status: 400,
-        jsonBody: {
-          type: 'https://assetsim.com/errors/validation-error',
-          title: 'Validation Error',
-          status: 400,
-          detail: 'Invalid request body',
-          errors: validationResult.error.errors,
-        },
-      };
+      return createValidationErrorResponse(validationResult.error);
     }
 
     const { name } = validationResult.data;
@@ -120,28 +115,7 @@ export async function createExchange(
     }
   } catch (error) {
     context.error('Error creating exchange:', error);
-
-    if (error instanceof Error && error.message === 'Unauthorized: No valid user principal found') {
-      return {
-        status: 401,
-        jsonBody: {
-          type: 'https://assetsim.com/errors/unauthorized',
-          title: 'Unauthorized',
-          status: 401,
-          detail: 'Authentication required',
-        },
-      };
-    }
-
-    return {
-      status: 500,
-      jsonBody: {
-        type: 'https://assetsim.com/errors/internal-error',
-        title: 'Internal Server Error',
-        status: 500,
-        detail: 'An internal error occurred while creating the exchange. Please try again or contact support if the issue persists.',
-      },
-    };
+    return handleError(error);
   }
 }
 

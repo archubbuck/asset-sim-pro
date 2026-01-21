@@ -18,6 +18,9 @@
       "@assetsim/shared/finance-models": [
         "libs/shared/finance-models/src/index.ts"
       ],
+      "@assetsim/shared/error-models": [
+        "libs/shared/error-models/src/index.ts"
+      ],
       "@assetsim/client/features/trading": [
         "libs/client/features/trading/src/index.ts"
       ]

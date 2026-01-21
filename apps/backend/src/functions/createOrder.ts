@@ -4,6 +4,12 @@ import Decimal from 'decimal.js';
 import { CreateOrderSchema, OrderResponse } from '../types/transaction';
 import { getConnectionPool } from '../lib/database';
 import { requireAuthentication } from '../lib/auth';
+import {
+  createValidationErrorResponse,
+  createNotFoundResponse,
+  createInsufficientFundsResponse,
+  handleError,
+} from '../lib/error-handler';
 
 /**
  * POST /api/v1/orders
@@ -25,16 +31,7 @@ export async function createOrder(
     const validationResult = CreateOrderSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return {
-        status: 400,
-        jsonBody: {
-          type: 'https://assetsim.com/errors/validation-error',
-          title: 'Validation Error',
-          status: 400,
-          detail: 'Invalid request body',
-          errors: validationResult.error.errors,
-        },
-      };
+      return createValidationErrorResponse(validationResult.error);
     }
 
     const { exchangeId, symbol, side, orderType, quantity, price, stopPrice, portfolioId } = validationResult.data;
@@ -61,15 +58,7 @@ export async function createOrder(
       `);
 
     if (exchangeCheck.recordset.length === 0) {
-      return {
-        status: 404,
-        jsonBody: {
-          type: 'https://assetsim.com/errors/not-found',
-          title: 'Exchange Not Found',
-          status: 404,
-          detail: 'Exchange not found or is inactive',
-        },
-      };
+      return createNotFoundResponse('Exchange not found or is inactive');
     }
 
     // Verify portfolio ownership (RLS will enforce this)
@@ -82,15 +71,7 @@ export async function createOrder(
       `);
 
     if (portfolioCheck.recordset.length === 0) {
-      return {
-        status: 404,
-        jsonBody: {
-          type: 'https://assetsim.com/errors/not-found',
-          title: 'Portfolio Not Found',
-          status: 404,
-          detail: 'Portfolio not found or you do not have access to it',
-        },
-      };
+      return createNotFoundResponse('Portfolio not found or you do not have access to it');
     }
 
     const portfolio = portfolioCheck.recordset[0];
@@ -106,15 +87,9 @@ export async function createOrder(
       const requiredCash = orderQuantity.times(orderPrice);
       
       if (cashBalance.lessThan(requiredCash)) {
-        return {
-          status: 400,
-          jsonBody: {
-            type: 'https://assetsim.com/errors/insufficient-funds',
-            title: 'Insufficient Funds',
-            status: 400,
-            detail: `Insufficient cash balance. Required: ${requiredCash.toFixed(2)}, Available: ${cashBalance.toFixed(2)}`,
-          },
-        };
+        return createInsufficientFundsResponse(
+          `Insufficient cash balance. Required: ${requiredCash.toFixed(2)}, Available: ${cashBalance.toFixed(2)}`
+        );
       }
     }
 
@@ -178,80 +153,7 @@ export async function createOrder(
     };
   } catch (error) {
     context.error('Error creating order:', error);
-
-    if (error instanceof Error && error.message === 'Unauthorized: No valid user principal found') {
-      return {
-        status: 401,
-        jsonBody: {
-          type: 'https://assetsim.com/errors/unauthorized',
-          title: 'Unauthorized',
-          status: 401,
-          detail: 'Authentication required',
-        },
-      };
-    }
-
-    // Provide more specific error messages based on error type and SQL error codes
-    // Check for SQL connection errors using error properties instead of string matching
-    if (error && typeof error === 'object') {
-      // SQL Server error codes (from mssql package)
-      const sqlError = error as any;
-      
-      // Connection errors (e.g., ECONNREFUSED, ETIMEOUT, login failures)
-      if (sqlError.code === 'ECONNREFUSED' || 
-          sqlError.code === 'ETIMEOUT' || 
-          sqlError.code === 'ESOCKET' ||
-          sqlError.number === 4060 || // Cannot open database
-          sqlError.number === 18456) { // Login failed
-        return {
-          status: 503,
-          jsonBody: {
-            type: 'https://assetsim.com/errors/service-unavailable',
-            title: 'Service Unavailable',
-            status: 503,
-            detail: 'Database connection error. Please try again in a moment.',
-          },
-        };
-      }
-      
-      // Permission errors (SQL Server error numbers for permission denied)
-      if (sqlError.number === 229 ||  // SELECT permission denied
-          sqlError.number === 230 ||  // EXECUTE permission denied
-          sqlError.number === 297) {  // User does not have permission
-        return {
-          status: 403,
-          jsonBody: {
-            type: 'https://assetsim.com/errors/forbidden',
-            title: 'Forbidden',
-            status: 403,
-            detail: 'You do not have permission to create orders for this portfolio.',
-          },
-        };
-      }
-      
-      // Foreign key constraint violations (invalid portfolio/exchange references)
-      if (sqlError.number === 547) { // FK constraint violation
-        return {
-          status: 400,
-          jsonBody: {
-            type: 'https://assetsim.com/errors/validation-error',
-            title: 'Invalid Reference',
-            status: 400,
-            detail: 'Referenced portfolio or exchange does not exist.',
-          },
-        };
-      }
-    }
-
-    return {
-      status: 500,
-      jsonBody: {
-        type: 'https://assetsim.com/errors/internal-error',
-        title: 'Internal Server Error',
-        status: 500,
-        detail: 'An unexpected error occurred while creating the order. Please try again or contact support if the issue persists.',
-      },
-    };
+    return handleError(error);
   }
 }
 
