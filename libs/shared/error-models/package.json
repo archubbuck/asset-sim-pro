@@ -1,5 +1,5 @@
 {
-  "name": "@asset-sim-pro/error-models",
+  "name": "@assetsim/shared/error-models",
   "version": "1.0.0",
   "type": "commonjs"
 }

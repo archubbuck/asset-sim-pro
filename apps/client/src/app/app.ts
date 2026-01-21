@@ -1,7 +1,6 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { ErrorNotificationComponent, ErrorNotificationService } from '@assetsim/client/core';
 
 /**
@@ -22,7 +21,6 @@ import { ErrorNotificationComponent, ErrorNotificationService } from '@assetsim/
   styleUrl: './app.scss',
 })
 export class App {
-  private readonly http = inject(HttpClient);
   private readonly errorService = inject(ErrorNotificationService);
   
   // Signal-based state management

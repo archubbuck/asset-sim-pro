@@ -9,7 +9,7 @@ import { ErrorNotificationService } from '../services/error-notification.service
  * Implements ADR-018: Standardized Error Handling
  */
 @Component({
-  selector: 'app-error-notification',
+  selector: 'core-error-notification',
   standalone: true,
   imports: [CommonModule],
   template: `

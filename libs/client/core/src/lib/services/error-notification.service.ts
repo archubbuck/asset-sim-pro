@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, DestroyRef, inject } from '@angular/core';
+import { timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Error notification interface
@@ -21,6 +23,8 @@ export interface ErrorNotification {
   providedIn: 'root',
 })
 export class ErrorNotificationService {
+  private readonly destroyRef = inject(DestroyRef);
+  
   // Signal for managing error notifications
   private readonly _errors = signal<ErrorNotification[]>([]);
 
@@ -42,10 +46,12 @@ export class ErrorNotificationService {
 
     this._errors.update((errors) => [...errors, error]);
 
-    // Auto-dismiss after 10 seconds
-    setTimeout(() => {
-      this.dismissError(error.id);
-    }, 10000);
+    // Auto-dismiss after 10 seconds using RxJS to prevent memory leaks
+    timer(10000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.dismissError(error.id);
+      });
   }
 
   /**
