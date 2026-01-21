@@ -15,7 +15,7 @@ These scripts automate the manual "chicken and egg" operations documented in ADR
 ### 1. `bootstrap-entra-consent.sh`
 
 **Purpose:** Automate Entra ID API consent for GroupMember.Read.All permission  
-**ADR Section:** 13.1 (lines 267-281)  
+**ADR Section:** ARCHITECTURE.md ADR-013 §13.1 (lines 267-281)  
 **Related Documentation:** BOOTSTRAP_GUIDE.md Phase 2
 
 **Prerequisites:**
@@ -47,7 +47,7 @@ export APP_ID="your-application-client-id"
 ### 2. `bootstrap-terraform-state.sh`
 
 **Purpose:** Automate Azure Resource Group and Storage Account creation for Terraform remote state  
-**ADR Section:** 13.2 (lines 283-298)  
+**ADR Section:** ARCHITECTURE.md ADR-013 §13.2 (lines 283-298)  
 **Related Documentation:** BOOTSTRAP_GUIDE.md Phase 1
 
 **Prerequisites:**
@@ -84,7 +84,7 @@ export APPLY_RESOURCE_LOCK="yes"
 
 **Default Configuration:**
 - Resource Group: `rg-tfstate`
-- Storage Account: `sttfstate{timestamp}{random}` (globally unique with random suffix)
+- Storage Account: `sttfstate{timestamp8}{random4}` (e.g., `sttfstate12345678abcd`)
 - Blob Container: `tfstate`
 - Location: `eastus2`
 - SKU: Standard_LRS (Locally Redundant Storage)

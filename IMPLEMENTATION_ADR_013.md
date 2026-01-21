@@ -1,7 +1,7 @@
 # ADR-013 Implementation Summary: Bootstrap Automation Scripts
 
 **Status:** ✅ Complete  
-**Implementation Date:** January 20, 2026  
+**Implementation Date:** January 21, 2026  
 **ADR Reference:** ARCHITECTURE.md ADR-013 (lines 261-298)  
 **Related ADRs:** ADR-012 (Manual Operations & Bootstrap Guide)
 
@@ -37,14 +37,14 @@ Automate Azure infrastructure bootstrap using:
 **Location:** `/scripts/`  
 **Status:** Complete  
 **Contents:**
-- `bootstrap-entra-consent.sh` (7.8 KB, executable)
-- `bootstrap-terraform-state.sh` (14 KB, executable)
-- `README.md` (8.1 KB, comprehensive documentation)
+- `bootstrap-entra-consent.sh` (245 lines, executable)
+- `bootstrap-terraform-state.sh` (469 lines, executable)
+- `README.md` (281 lines, comprehensive documentation)
 
 ### ✅ Deliverable 2: Entra ID Consent Script
 
 **File:** `/scripts/bootstrap-entra-consent.sh`  
-**Lines:** 218 lines  
+**Lines:** 245 lines  
 **Executable:** ✓ (chmod +x)  
 **ADR Section:** 13.1 (lines 267-281)
 
@@ -116,7 +116,7 @@ export APP_ID="your-application-client-id"
 ### ✅ Deliverable 3: Terraform State Bootstrap Script
 
 **File:** `/scripts/bootstrap-terraform-state.sh`  
-**Lines:** 351 lines  
+**Lines:** 469 lines  
 **Executable:** ✓ (chmod +x)  
 **ADR Section:** 13.2 (lines 283-298)
 
@@ -189,7 +189,7 @@ az storage container create \
 
 **Default Configuration:**
 - Resource Group: `rg-tfstate`
-- Storage Account: `sttfstate{timestamp}` (globally unique)
+- Storage Account: `sttfstate{timestamp8}{random4}` (e.g., `sttfstate12345678abcd`)
 - Blob Container: `tfstate`
 - Location: `eastus2`
 - SKU: Standard_LRS
@@ -209,7 +209,7 @@ export STORAGE="sttfstateprod"
 ### ✅ Deliverable 4: Comprehensive Documentation
 
 **File:** `/scripts/README.md`  
-**Lines:** 331 lines  
+**Lines:** 281 lines  
 **Status:** Complete
 
 **Sections:**
@@ -435,9 +435,9 @@ All ADR-013 requirements have been successfully implemented:
 ## Files Changed
 
 ### New Files Created
-1. `/scripts/bootstrap-entra-consent.sh` (218 lines, executable)
-2. `/scripts/bootstrap-terraform-state.sh` (351 lines, executable)
-3. `/scripts/README.md` (331 lines)
+1. `/scripts/bootstrap-entra-consent.sh` (245 lines, executable)
+2. `/scripts/bootstrap-terraform-state.sh` (469 lines, executable)
+3. `/scripts/README.md` (281 lines)
 4. `/IMPLEMENTATION_ADR_013.md` (this document)
 
 ### Files Modified

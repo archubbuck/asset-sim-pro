@@ -115,11 +115,36 @@ log_info "Querying Application Service Principal..."
 APP_SP_ID=$(az ad sp list --filter "appId eq '$APP_ID'" --query "[0].id" -o tsv)
 
 if [ -z "$APP_SP_ID" ]; then
-    log_error "Failed to retrieve Application Service Principal ID for client ID: $APP_ID"
-    log_error "Please ensure the application is registered and has a service principal."
-    log_info "You may need to create the service principal first:"
-    log_info "  az ad sp create --id $APP_ID"
-    exit 1
+    log_warning "No Application Service Principal found for client ID: $APP_ID"
+    log_info "This is common on first-time setup if a service principal has not been created yet."
+    echo ""
+    read -p "Would you like to create the service principal now? [y/N]: " CREATE_APP_SP
+
+    case "$CREATE_APP_SP" in
+        y|Y)
+            log_info "Creating Application Service Principal with Azure CLI..."
+            if az ad sp create --id "$APP_ID" > /dev/null; then
+                log_success "Service principal created successfully."
+                # Re-query for the newly created Service Principal ID
+                APP_SP_ID=$(az ad sp list --filter "appId eq '$APP_ID'" --query "[0].id" -o tsv)
+                if [ -z "$APP_SP_ID" ]; then
+                    log_error "Service principal was created but its ID could not be retrieved. Please verify in the Azure Portal and re-run this script."
+                    exit 1
+                fi
+            else
+                log_error "Failed to create the Application Service Principal automatically."
+                log_error "Please run the following command manually and then re-run this script:"
+                log_info "  az ad sp create --id $APP_ID"
+                exit 1
+            fi
+            ;;
+        *)
+            log_error "Application Service Principal is required to continue."
+            log_info "You can create it manually with the following command and then re-run this script:"
+            log_info "  az ad sp create --id $APP_ID"
+            exit 1
+            ;;
+    esac
 fi
 log_success "Application Service Principal ID: $APP_SP_ID"
 
@@ -151,18 +176,19 @@ if az rest \
     --method POST \
     --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$APP_SP_ID/appRoleAssignedTo" \
     --headers "Content-Type=application/json" \
-    --body "$REQUEST_BODY" &> /dev/null; then
+    --body "$REQUEST_BODY" > /dev/null; then
     
     log_success "API permission 'GroupMember.Read.All' granted successfully!"
 else
     EXIT_CODE=$?
     
     # Check if permission already exists (common scenario)
-    if az rest \
+    EXISTING_PERMISSIONS=$(az rest \
         --method GET \
         --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$APP_SP_ID/appRoleAssignments" \
-        --query "value[?appRoleId=='$ROLE_ID']" -o tsv | grep -q "$ROLE_ID"; then
-        
+        --query "value[?appRoleId=='$ROLE_ID']" -o tsv 2>/dev/null || true)
+    
+    if [ -n "$EXISTING_PERMISSIONS" ]; then
         log_warning "API permission 'GroupMember.Read.All' is already granted."
         log_info "No action needed."
     else
@@ -183,15 +209,16 @@ GRANTED_PERMISSIONS=$(az rest \
     --method GET \
     --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$APP_SP_ID/appRoleAssignments" \
     --query "value[?appRoleId=='$ROLE_ID'].{ResourceDisplayName:resourceDisplayName, AppRoleId:appRoleId}" \
-    -o json)
+    -o json 2>/dev/null || echo "[]")
 
-if echo "$GRANTED_PERMISSIONS" | grep -q "$ROLE_ID"; then
+if [ "$GRANTED_PERMISSIONS" != "[]" ] && [ -n "$GRANTED_PERMISSIONS" ]; then
     log_success "Verification successful! Permission is active."
     echo ""
     # Use jq if available for pretty-printing, otherwise display raw JSON
     if command -v jq &> /dev/null; then
         echo "$GRANTED_PERMISSIONS" | jq '.'
     else
+        log_info "Note: Install 'jq' for formatted JSON output. Displaying raw JSON:"
         echo "$GRANTED_PERMISSIONS"
     fi
 else

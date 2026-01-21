@@ -93,8 +93,16 @@ log_info "Location: $LOC"
 if [ -z "${STORAGE:-}" ]; then
     TIMESTAMP=$(date +%s)
     # Add random suffix to avoid collisions when running scripts in quick succession
-    RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4)
-    STORAGE="sttfstate${TIMESTAMP}${RANDOM_SUFFIX}"
+    if [ -r /dev/urandom ]; then
+        RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4)
+    else
+        # Fallback for environments without /dev/urandom (e.g., some Windows Git Bash setups)
+        RANDOM_SUFFIX=$(printf '%04x' "$RANDOM" | head -c 4)
+    fi
+    # Use shorter timestamp (last 8 digits) to avoid exceeding 24 char limit
+    # sttfstate (9) + timestamp (8) + random (4) = 21 chars (within 24 limit)
+    SHORT_TIMESTAMP="${TIMESTAMP: -8}"
+    STORAGE="sttfstate${SHORT_TIMESTAMP}${RANDOM_SUFFIX}"
 fi
 log_info "Storage Account: $STORAGE"
 
@@ -132,7 +140,7 @@ EOF
     if az rest \
         --method PUT \
         --uri "https://management.azure.com/subscriptions/${SUBSCRIPTION_ID}/resourcegroups/${RG}?api-version=2021-04-01" \
-        --body "$REQUEST_BODY" &> /dev/null; then
+        --body "$REQUEST_BODY" > /dev/null; then
         
         log_success "Resource Group '$RG' created successfully in $LOC"
     else
@@ -182,13 +190,40 @@ EOF
     if az rest \
         --method PUT \
         --uri "https://management.azure.com/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG}/providers/Microsoft.Storage/storageAccounts/${STORAGE}?api-version=2021-04-01" \
-        --body "$REQUEST_BODY" > /dev/null; then
+        --body "$REQUEST_BODY"; then
         
-        log_success "Storage Account '$STORAGE' created successfully"
+        log_success "Storage Account '$STORAGE' creation initiated"
         
-        # Wait for storage account to be fully provisioned
+        # Wait for storage account to be fully provisioned by polling provisioningState
         log_info "Waiting for storage account provisioning to complete..."
-        sleep 10
+        MAX_WAIT_SECONDS=120
+        SLEEP_INTERVAL=5
+        ELAPSED=0
+        PROVISIONING_STATE=""
+        while [ "$ELAPSED" -lt "$MAX_WAIT_SECONDS" ]; do
+            PROVISIONING_STATE=$(az storage account show \
+                --resource-group "$RG" \
+                --name "$STORAGE" \
+                --query "provisioningState" \
+                -o tsv 2>/dev/null || true)
+            
+            if [ "$PROVISIONING_STATE" = "Succeeded" ]; then
+                log_success "Storage Account '$STORAGE' provisioning completed"
+                break
+            fi
+            
+            if [ -n "$PROVISIONING_STATE" ]; then
+                log_info "Current provisioning state: $PROVISIONING_STATE. Waiting..."
+            fi
+            
+            sleep "$SLEEP_INTERVAL"
+            ELAPSED=$((ELAPSED + SLEEP_INTERVAL))
+        done
+        
+        if [ "$PROVISIONING_STATE" != "Succeeded" ]; then
+            log_error "Timed out waiting for Storage Account '$STORAGE' provisioning to complete"
+            exit 1
+        fi
     else
         log_error "Failed to create Storage Account '$STORAGE'"
         exit 1
@@ -281,6 +316,9 @@ export TF_BACKEND_CONTAINER="$CONTAINER"
 export TF_BACKEND_KEY="terraform.tfstate"
 
 # Storage Account Access Key (for Terraform init)
+# WARNING: This file contains sensitive credentials. Protect it with:
+#   chmod 600 terraform-backend-config/backend.env
+# Consider using Azure CLI auth or Managed Identity instead for production.
 export ARM_ACCESS_KEY="$STORAGE_KEY"
 EOF
 
