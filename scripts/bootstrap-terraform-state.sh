@@ -101,7 +101,8 @@ if [ -z "${STORAGE:-}" ]; then
     fi
     # Use shorter timestamp (last 8 digits) to avoid exceeding 24 char limit
     # sttfstate (9) + timestamp (8) + random (4) = 21 chars (within 24 limit)
-    SHORT_TIMESTAMP="${TIMESTAMP: -8}"
+    # Use POSIX-compliant substring extraction
+    SHORT_TIMESTAMP="${TIMESTAMP#${TIMESTAMP%????????}}"
     STORAGE="sttfstate${SHORT_TIMESTAMP}${RANDOM_SUFFIX}"
 fi
 log_info "Storage Account: $STORAGE"
@@ -200,6 +201,9 @@ EOF
         SLEEP_INTERVAL=5
         ELAPSED=0
         PROVISIONING_STATE=""
+        CONSECUTIVE_FAILURES=0
+        MAX_CONSECUTIVE_FAILURES=3
+        
         while [ "$ELAPSED" -lt "$MAX_WAIT_SECONDS" ]; do
             PROVISIONING_STATE=$(az storage account show \
                 --resource-group "$RG" \
@@ -214,6 +218,14 @@ EOF
             
             if [ -n "$PROVISIONING_STATE" ]; then
                 log_info "Current provisioning state: $PROVISIONING_STATE. Waiting..."
+                CONSECUTIVE_FAILURES=0
+            else
+                CONSECUTIVE_FAILURES=$((CONSECUTIVE_FAILURES + 1))
+                if [ "$CONSECUTIVE_FAILURES" -ge "$MAX_CONSECUTIVE_FAILURES" ]; then
+                    log_error "Failed to query storage account status $MAX_CONSECUTIVE_FAILURES times in a row"
+                    log_error "This may indicate network issues or insufficient permissions"
+                    exit 1
+                fi
             fi
             
             sleep "$SLEEP_INTERVAL"
@@ -322,7 +334,11 @@ export TF_BACKEND_KEY="terraform.tfstate"
 export ARM_ACCESS_KEY="$STORAGE_KEY"
 EOF
 
+# Set restrictive permissions on the file containing sensitive credentials
+chmod 600 "$ENV_FILE"
+
 log_success "Environment variables written to: $ENV_FILE"
+log_info "File permissions set to 600 (owner read/write only) for security"
 
 # Generate README for configuration files
 README_FILE="${OUTPUT_DIR}/README.md"
@@ -396,16 +412,16 @@ echo ""
 
 # Check if APPLY_RESOURCE_LOCK is set for non-interactive execution
 if [ -n "${APPLY_RESOURCE_LOCK:-}" ]; then
-    if [[ "${APPLY_RESOURCE_LOCK}" =~ ^[Yy](es)?$ ]]; then
+    if [[ "${APPLY_RESOURCE_LOCK}" =~ ^[Yy]([Ee][Ss])?$ ]]; then
         APPLY_LOCK=true
     else
         APPLY_LOCK=false
     fi
 else
     # Interactive prompt when environment variable not set
-    read -p "Do you want to apply a resource lock to prevent accidental deletion? (y/N): " -n 1 -r
+    read -p "Do you want to apply a resource lock to prevent accidental deletion? (y/N): " -r
     echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [[ $REPLY =~ ^[Yy](es)?$ ]]; then
         APPLY_LOCK=true
     else
         APPLY_LOCK=false

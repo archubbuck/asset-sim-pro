@@ -121,7 +121,7 @@ if [ -z "$APP_SP_ID" ]; then
     read -p "Would you like to create the service principal now? [y/N]: " CREATE_APP_SP
 
     case "$CREATE_APP_SP" in
-        y|Y)
+        [yY])
             log_info "Creating Application Service Principal with Azure CLI..."
             if az ad sp create --id "$APP_ID" > /dev/null; then
                 log_success "Service principal created successfully."
@@ -172,13 +172,15 @@ EOF
 log_info "Creating App Role Assignment via Microsoft Graph API..."
 
 # Execute the Graph API call to grant consent
+ERROR_OUTPUT=$(mktemp)
 if az rest \
     --method POST \
     --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$APP_SP_ID/appRoleAssignedTo" \
     --headers "Content-Type=application/json" \
-    --body "$REQUEST_BODY" > /dev/null; then
+    --body "$REQUEST_BODY" 2>"$ERROR_OUTPUT" > /dev/null; then
     
     log_success "API permission 'GroupMember.Read.All' granted successfully!"
+    rm -f "$ERROR_OUTPUT"
 else
     EXIT_CODE=$?
     
@@ -191,12 +193,22 @@ else
     if [ -n "$EXISTING_PERMISSIONS" ]; then
         log_warning "API permission 'GroupMember.Read.All' is already granted."
         log_info "No action needed."
+        rm -f "$ERROR_OUTPUT"
     else
         log_error "Failed to grant API permission. Exit code: $EXIT_CODE"
+        if [ -s "$ERROR_OUTPUT" ]; then
+            log_error "Error details:"
+            cat "$ERROR_OUTPUT" >&2
+        fi
+        rm -f "$ERROR_OUTPUT"
         log_error "Please verify you have Global Administrator rights."
         exit 1
     fi
 fi
+
+# Allow time for Entra ID / Azure AD replication before verification
+log_info "Waiting a few seconds for permission propagation..."
+sleep 5
 
 ################################################################################
 # Step 5: Verify Permissions

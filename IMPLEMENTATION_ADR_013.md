@@ -37,14 +37,14 @@ Automate Azure infrastructure bootstrap using:
 **Location:** `/scripts/`  
 **Status:** Complete  
 **Contents:**
-- `bootstrap-entra-consent.sh` (245 lines, executable)
-- `bootstrap-terraform-state.sh` (469 lines, executable)
+- `bootstrap-entra-consent.sh` (257 lines, executable)
+- `bootstrap-terraform-state.sh` (485 lines, executable)
 - `README.md` (281 lines, comprehensive documentation)
 
 ### ✅ Deliverable 2: Entra ID Consent Script
 
 **File:** `/scripts/bootstrap-entra-consent.sh`  
-**Lines:** 245 lines  
+**Lines:** 257 lines  
 **Executable:** ✓ (chmod +x)  
 **ADR Section:** 13.1 (lines 267-281)
 
@@ -116,7 +116,7 @@ export APP_ID="your-application-client-id"
 ### ✅ Deliverable 3: Terraform State Bootstrap Script
 
 **File:** `/scripts/bootstrap-terraform-state.sh`  
-**Lines:** 469 lines  
+**Lines:** 485 lines  
 **Executable:** ✓ (chmod +x)  
 **ADR Section:** 13.2 (lines 283-298)
 
@@ -394,11 +394,11 @@ All ADR-013 requirements have been successfully implemented:
 
 | Criteria | Status | Evidence |
 |----------|--------|----------|
-| Entra ID consent automation script created | ✅ | `/scripts/bootstrap-entra-consent.sh` (218 lines) |
-| Terraform state bootstrap script created | ✅ | `/scripts/bootstrap-terraform-state.sh` (351 lines) |
+| Entra ID consent automation script created | ✅ | `/scripts/bootstrap-entra-consent.sh` (257 lines) |
+| Terraform state bootstrap script created | ✅ | `/scripts/bootstrap-terraform-state.sh` (485 lines) |
 | Scripts use Azure CLI and REST APIs | ✅ | `az rest` commands for Graph API and ARM API |
 | Scripts implement ADR-013 specification | ✅ | Exact API calls match ARCHITECTURE.md lines 267-298 |
-| Comprehensive documentation provided | ✅ | `/scripts/README.md` (331 lines) |
+| Comprehensive documentation provided | ✅ | `/scripts/README.md` (281 lines) |
 | Scripts are executable | ✅ | chmod +x applied, permissions verified |
 | Error handling implemented | ✅ | `set -euo pipefail`, comprehensive error checks |
 | Idempotency guaranteed | ✅ | Detect and skip existing resources |
@@ -435,8 +435,8 @@ All ADR-013 requirements have been successfully implemented:
 ## Files Changed
 
 ### New Files Created
-1. `/scripts/bootstrap-entra-consent.sh` (245 lines, executable)
-2. `/scripts/bootstrap-terraform-state.sh` (469 lines, executable)
+1. `/scripts/bootstrap-entra-consent.sh` (257 lines, executable)
+2. `/scripts/bootstrap-terraform-state.sh` (485 lines, executable)
 3. `/scripts/README.md` (281 lines)
 4. `/IMPLEMENTATION_ADR_013.md` (this document)
 
@@ -493,6 +493,6 @@ The implementation successfully bridges the gap between manual operations (ADR-0
 
 ---
 
-**Implementation Date:** January 20, 2026  
+**Implementation Date:** January 21, 2026  
 **Validation Status:** ✅ Complete  
 **Production Ready:** Yes
