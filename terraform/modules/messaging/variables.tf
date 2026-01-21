@@ -33,6 +33,11 @@ variable "private_dns_zone_blob_id" {
   type        = string
 }
 
+variable "private_dns_zone_signalr_id" {
+  description = "ID of the SignalR private DNS zone"
+  type        = string
+}
+
 variable "environment" {
   description = "Environment name (e.g., prod, staging, dev)"
   type        = string

@@ -1,3 +1,11 @@
+# Data Module - ARCHITECTURE.md L443-L495
+# Implements secure database infrastructure with:
+# - Azure SQL Server with system-assigned managed identity
+# - Elastic pool for efficient resource sharing across databases
+# - SQL database within the elastic pool
+# - Private endpoint for Zero Trust network access
+# - Public network access disabled for security
+
 resource "azurerm_mssql_server" "sql" {
   name                          = "sql-assetsim-${var.environment}"
   resource_group_name           = var.resource_group_name

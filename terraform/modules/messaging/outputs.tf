@@ -47,3 +47,24 @@ output "market_data_archive_container_name" {
   description = "Name of the market data archive container"
   value       = azurerm_storage_container.market_data_archive.name
 }
+
+output "signalr_id" {
+  description = "ID of the SignalR Service"
+  value       = azurerm_signalr_service.sig.id
+}
+
+output "signalr_name" {
+  description = "Name of the SignalR Service"
+  value       = azurerm_signalr_service.sig.name
+}
+
+output "signalr_hostname" {
+  description = "Hostname of the SignalR Service"
+  value       = azurerm_signalr_service.sig.hostname
+}
+
+output "signalr_primary_connection_string" {
+  description = "Primary connection string of the SignalR Service"
+  value       = azurerm_signalr_service.sig.primary_connection_string
+  sensitive   = true
+}

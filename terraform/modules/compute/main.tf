@@ -1,3 +1,13 @@
+# Compute Module - ARCHITECTURE.md L556-L603
+# Implements secure compute infrastructure with:
+# - Azure Service Plan (Elastic Premium EP1) for Function Apps
+# - Storage Account for Function App backend (with private endpoint)
+# - Azure Function App (Node.js 20) with VNet integration
+# - VNet integration for outbound traffic routing through the network
+# - Static Web App for Angular frontend hosting
+# - BYOB (Bring Your Own Backend) linking SWA to Function App
+# - System-assigned managed identities for secure authentication
+
 # 1. Premium Plan for Function App
 resource "azurerm_service_plan" "plan" {
   name                = "asp-assetsim-${var.environment}"

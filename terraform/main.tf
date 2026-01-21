@@ -65,6 +65,7 @@ module "messaging" {
   private_dns_zone_eventhub_id  = module.network.private_dns_zone_eventhub_id
   private_dns_zone_keyvault_id  = module.network.private_dns_zone_keyvault_id
   private_dns_zone_blob_id      = module.network.private_dns_zone_blob_id
+  private_dns_zone_signalr_id   = module.network.private_dns_zone_signalr_id
   environment                   = var.environment
 }
 
