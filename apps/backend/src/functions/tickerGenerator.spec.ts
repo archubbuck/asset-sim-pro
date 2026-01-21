@@ -124,7 +124,14 @@ describe('tickerGenerator', () => {
         ],
       })
       .mockResolvedValueOnce({
-        recordset: [], // Empty prices result
+        recordset: [
+          // Need to provide some symbols so the function doesn't return early
+          {
+            ExchangeId: validExchangeId,
+            Symbol: 'AAPL',
+            Close: 150.00,
+          },
+        ],
       });
 
     await tickerGenerator(mockTimer, mockContext);
