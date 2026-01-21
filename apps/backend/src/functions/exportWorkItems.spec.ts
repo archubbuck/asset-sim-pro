@@ -85,7 +85,7 @@ describe('exportWorkItems', () => {
   it('should log work item count', async () => {
     await exportWorkItems(mockRequest, mockContext);
 
-    expect(mockContext.log).toHaveBeenCalledWith(expect.stringContaining('32 work items'));
+    expect(mockContext.log).toHaveBeenCalledWith(expect.stringContaining(`${ASSETSIM_WORK_ITEMS.length} work items`));
   });
 
   it('should handle errors gracefully', async () => {
@@ -103,8 +103,13 @@ describe('exportWorkItems', () => {
     const csvContent = response.body as string;
     const lines = csvContent.split('\n').filter(line => line.trim() !== '');
     
-    // 1 Epic + 6 Features + 25 User Stories + 1 Header = 33 lines
-    expect(lines.length).toBe(33);
+    // Calculate expected counts dynamically from data
+    const expectedEpics = ASSETSIM_WORK_ITEMS.filter(item => item.workItemType === 'Epic').length;
+    const expectedFeatures = ASSETSIM_WORK_ITEMS.filter(item => item.workItemType === 'Feature').length;
+    const expectedStories = ASSETSIM_WORK_ITEMS.filter(item => item.workItemType === 'User Story').length;
+    
+    // Total: Header + all work items
+    expect(lines.length).toBe(ASSETSIM_WORK_ITEMS.length + 1);
     
     // Count by type based on hierarchical CSV format:
     // - Epic rows: ID followed by "Epic" (e.g. "123,Epic,...")
@@ -114,9 +119,9 @@ describe('exportWorkItems', () => {
     const featureCount = lines.filter(line => line.startsWith(',Feature,')).length;
     const storyCount = lines.filter(line => line.startsWith(',User Story,')).length;
     
-    expect(epicCount).toBe(1);
-    expect(featureCount).toBe(6);
-    expect(storyCount).toBe(25);
+    expect(epicCount).toBe(expectedEpics);
+    expect(featureCount).toBe(expectedFeatures);
+    expect(storyCount).toBe(expectedStories);
   });
 
   it('should include all required columns for each row', async () => {
