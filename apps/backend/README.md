@@ -135,6 +135,7 @@ The exported CSV contains:
 - **25 User Stories**: Distributed across the 6 features
 
 **CSV Columns** (Azure DevOps compatible):
+- `ID`: Azure DevOps hierarchical import ID; set for parent items and left empty for child items to establish hierarchy
 - `Work Item Type`: Epic | Feature | User Story
 - `Title`: Work item title
 - `State`: New | Active | Resolved | Closed
@@ -142,7 +143,6 @@ The exported CSV contains:
 - `Story Points`: Numeric estimate
 - `Description`: Detailed description (markdown supported, newlines converted to spaces)
 - `Acceptance Criteria`: Acceptance criteria (markdown supported, newlines converted to spaces)
-- `ID`: Azure DevOps hierarchical import ID; set for parent items and left empty for child items to establish hierarchy
 
 **Hierarchy**:
 ```
