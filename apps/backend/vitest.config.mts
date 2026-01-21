@@ -1,8 +1,14 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/backend',
+  resolve: {
+    alias: {
+      '@assetsim/shared/finance-models': path.resolve(__dirname, '../../libs/shared/finance-models/src/index.ts'),
+    },
+  },
   test: {
     name: 'backend',
     watch: false,
