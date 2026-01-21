@@ -21,8 +21,8 @@ If running the backend locally with Azure Functions Core Tools:
 cd apps/backend
 npm start
 
-# Download the CSV
-curl http://localhost:7071/api/v1/work-items/export -o assetsim-work-items.csv
+# Download the CSV (replace YOUR_FUNCTION_KEY with your function key)
+curl "http://localhost:7071/api/v1/work-items/export?code=YOUR_FUNCTION_KEY" -o assetsim-work-items.csv
 ```
 
 ### Production
@@ -30,8 +30,8 @@ curl http://localhost:7071/api/v1/work-items/export -o assetsim-work-items.csv
 If deployed to Azure:
 
 ```bash
-# Download the CSV (replace with your Function App URL)
-curl https://your-function-app.azurewebsites.net/api/v1/work-items/export -o assetsim-work-items.csv
+# Download the CSV (replace with your Function App URL and function key)
+curl "https://your-function-app.azurewebsites.net/api/v1/work-items/export?code=YOUR_FUNCTION_KEY" -o assetsim-work-items.csv
 ```
 
 ## Importing to Azure DevOps Boards

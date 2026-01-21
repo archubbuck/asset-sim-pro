@@ -158,8 +158,8 @@ Portfolio Simulation Platform (Epic)
 
 **Usage Example**:
 ```bash
-# Download CSV file
-curl http://localhost:7071/api/v1/work-items/export -o assetsim-work-items.csv
+# Download CSV file (replace YOUR_FUNCTION_KEY with your Azure Functions function key)
+curl "http://localhost:7071/api/v1/work-items/export?code=YOUR_FUNCTION_KEY" -o assetsim-work-items.csv
 
 # Import into Azure DevOps Boards
 # 1. Navigate to Azure DevOps Boards
