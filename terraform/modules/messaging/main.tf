@@ -204,11 +204,6 @@ resource "azurerm_signalr_service" "sig" {
   service_mode                  = "Serverless"
   public_network_access_enabled = false
 
-  # MessagePack protocol requirement from ADR-009
-  cors {
-    allowed_origins = ["*"]
-  }
-
   tags = {
     Service     = "AssetSim"
     Environment = var.environment
