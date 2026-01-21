@@ -152,11 +152,13 @@ describe('tickerGenerator', () => {
   });
 
   it('should handle no symbols found', async () => {
+    const validExchangeId = '550e8400-e29b-41d4-a716-446655440006';
+    
     mockConnectionPool.query
       .mockResolvedValueOnce({
         recordset: [
           {
-            ExchangeId: 'exch-alpha-uuid',
+            ExchangeId: validExchangeId,
             Name: 'Exchange Alpha',
             VolatilityMultiplier: 1.0,
             MarketEngineEnabled: 1,

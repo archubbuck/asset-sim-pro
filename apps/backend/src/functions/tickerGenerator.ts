@@ -118,10 +118,11 @@ export async function tickerGenerator(
           // ADR-006: Use Decimal.js for all financial calculations
           const basePriceDecimal = new Decimal(basePrice);
           // Base volatility of 1% per tick (1 second interval)
-          // This translates to ~283% annualized volatility at base regime (sqrt(31536000 seconds) * 0.01)
+          // Annualized volatility calculation: 0.01 × √31,536,000 ≈ 56.15 (5615%)
+          // For training scenarios, this creates highly dynamic price movements
           // Scaled by volatilityMultiplier for different regime conditions:
-          // - Normal regime (1.0): ~283% annualized
-          // - Crisis regime (4.5): ~1274% annualized
+          // - Normal regime (1.0): ~5615% annualized
+          // - Crisis regime (4.5): ~25,268% annualized
           const volatility = new Decimal(0.01).times(volatilityMultiplier);
           const randomFactor = new Decimal(Math.random() - 0.5); // -0.5 to 0.5
           const change = basePriceDecimal.times(volatility).times(randomFactor);
