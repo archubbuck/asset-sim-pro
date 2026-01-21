@@ -70,7 +70,7 @@ describe('tickerGenerator', () => {
     // Mock Math.random to ensure a significant price change that passes deadband filter
     // Use a high volatility multiplier to ensure change > $0.01
     // randomFactor = 0.3 - 0.5 = -0.2
-    // change = 450 * 0.02 * 4.5 * -0.2 = -8.1 (which is definitely > $0.01 threshold)
+    // change = 450 * 0.01 * 4.5 * -0.2 = -4.05 (which is definitely > $0.01 threshold)
     const mockRandom = vi.spyOn(Math, 'random').mockReturnValue(0.3);
 
     const validExchangeId = '550e8400-e29b-41d4-a716-446655440000'; // Valid UUID v4
@@ -87,13 +87,9 @@ describe('tickerGenerator', () => {
           },
         ],
       })
-      // Mock symbols query
+      // Mock prices query (batch query for all exchanges and symbols)
       .mockResolvedValueOnce({
-        recordset: [{ Symbol: 'SPY' }],
-      })
-      // Mock price query for SPY
-      .mockResolvedValueOnce({
-        recordset: [{ Close: 450.0 }],
+        recordset: [{ ExchangeId: validExchangeId, Symbol: 'SPY', Close: 450.0 }],
       });
 
     await tickerGenerator(mockTimer, mockContext);
@@ -128,7 +124,7 @@ describe('tickerGenerator', () => {
         ],
       })
       .mockResolvedValueOnce({
-        recordset: [{ Symbol: 'SPY' }],
+        recordset: [], // Empty prices result
       });
 
     await tickerGenerator(mockTimer, mockContext);
@@ -189,7 +185,7 @@ describe('tickerGenerator', () => {
         ],
       })
       .mockResolvedValueOnce({
-        recordset: [{ Symbol: 'SPY' }],
+        recordset: [{ ExchangeId: validExchangeId, Symbol: 'SPY', Close: 450.0 }],
       });
 
     // Mock cached quote
@@ -203,8 +199,8 @@ describe('tickerGenerator', () => {
     await tickerGenerator(mockTimer, mockContext);
 
     expect(cache.getQuote).toHaveBeenCalledWith(validExchangeId, 'SPY');
-    // Should not query database for price since cached quote was available
-    expect(mockConnectionPool.query).toHaveBeenCalledTimes(2); // Only exchanges and symbols queries
+    // With optimized query, we now have 2 queries total (exchanges + batch prices)
+    expect(mockConnectionPool.query).toHaveBeenCalledTimes(2);
   });
 
   it('should apply volatility multiplier to regime physics', async () => {
@@ -223,10 +219,7 @@ describe('tickerGenerator', () => {
         ],
       })
       .mockResolvedValueOnce({
-        recordset: [{ Symbol: 'BTC' }],
-      })
-      .mockResolvedValueOnce({
-        recordset: [{ Close: 65000.0 }],
+        recordset: [{ ExchangeId: validExchangeId, Symbol: 'BTC', Close: 65000.0 }],
       });
 
     await tickerGenerator(mockTimer, mockContext);
@@ -239,26 +232,31 @@ describe('tickerGenerator', () => {
   it('should continue processing after error on individual symbol', async () => {
     const validExchangeId = '550e8400-e29b-41d4-a716-446655440004';
     
+    // Mock Math.random to ensure price change passes deadband
+    const mockRandom = vi.spyOn(Math, 'random').mockReturnValue(0.3);
+    
     mockConnectionPool.query
       .mockResolvedValueOnce({
         recordset: [
           {
             ExchangeId: validExchangeId,
             Name: 'Exchange Alpha',
-            VolatilityMultiplier: 1.0,
+            VolatilityMultiplier: 4.5, // Use high volatility to ensure it passes deadband
             MarketEngineEnabled: 1,
           },
         ],
       })
       .mockResolvedValueOnce({
-        recordset: [{ Symbol: 'SPY' }, { Symbol: 'BTC' }],
-      })
-      // First symbol fails
-      .mockRejectedValueOnce(new Error('Database error'))
-      // Second symbol succeeds
-      .mockResolvedValueOnce({
-        recordset: [{ Close: 65000.0 }],
+        recordset: [
+          { ExchangeId: validExchangeId, Symbol: 'SPY', Close: 450.0 },
+          { ExchangeId: validExchangeId, Symbol: 'BTC', Close: 65000.0 }
+        ],
       });
+
+    // Make cache.getQuote fail for SPY but succeed for BTC
+    vi.mocked(cache.getQuote)
+      .mockRejectedValueOnce(new Error('Cache error'))
+      .mockResolvedValueOnce(null); // BTC not in cache, will use priceMap
 
     await tickerGenerator(mockTimer, mockContext);
 
@@ -270,6 +268,8 @@ describe('tickerGenerator', () => {
     expect(mockContext.log).toHaveBeenCalledWith(
       expect.stringContaining('Ticker Generator completed successfully')
     );
+    
+    mockRandom.mockRestore();
   });
 
   it('should throw error on fatal database connection failure', async () => {
@@ -287,11 +287,13 @@ describe('tickerGenerator', () => {
   });
 
   it('should handle invalid tick data gracefully', async () => {
+    const validExchangeId = '550e8400-e29b-41d4-a716-446655440007';
+    
     mockConnectionPool.query
       .mockResolvedValueOnce({
         recordset: [
           {
-            ExchangeId: 'invalid-uuid',
+            ExchangeId: validExchangeId,
             Name: 'Invalid Exchange',
             VolatilityMultiplier: 1.0,
             MarketEngineEnabled: 1,
@@ -299,10 +301,7 @@ describe('tickerGenerator', () => {
         ],
       })
       .mockResolvedValueOnce({
-        recordset: [{ Symbol: 'SPY' }],
-      })
-      .mockResolvedValueOnce({
-        recordset: [{ Close: -100.0 }], // Invalid negative price
+        recordset: [{ ExchangeId: validExchangeId, Symbol: 'SPY', Close: -100.0 }], // Invalid negative price
       });
 
     await tickerGenerator(mockTimer, mockContext);
@@ -332,10 +331,7 @@ describe('tickerGenerator', () => {
         ],
       })
       .mockResolvedValueOnce({
-        recordset: [{ Symbol: 'SPY' }],
-      })
-      .mockResolvedValueOnce({
-        recordset: [{ Close: 450.0 }],
+        recordset: [{ ExchangeId: validExchangeId, Symbol: 'SPY', Close: 450.0 }],
       });
 
     await tickerGenerator(mockTimer, mockContext);

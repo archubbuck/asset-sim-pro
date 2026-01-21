@@ -1,4 +1,4 @@
-import { app, InvocationContext, Timer, output } from '@azure/functions';
+import { app, InvocationContext, Timer } from '@azure/functions';
 import * as sql from 'mssql';
 import Decimal from 'decimal.js';
 import { PriceUpdateEventSchema } from '../types/market-engine';
@@ -48,7 +48,7 @@ export async function tickerGenerator(
     // 1. Get all active exchanges with their volatility configurations
     const exchangesResult = await pool.request().query(`
       SELECT e.ExchangeId, e.Name, 
-             ISNULL(ec.Volatility, 0.02) AS VolatilityMultiplier,
+             ISNULL(ec.Volatility, 1.0) AS VolatilityMultiplier,
              ISNULL(ec.MarketEngineEnabled, 1) AS MarketEngineEnabled
       FROM [Trade].[Exchanges] e
       LEFT JOIN [Trade].[ExchangeConfigurations] ec 
@@ -63,13 +63,38 @@ export async function tickerGenerator(
 
     context.log(`Processing ${exchangesResult.recordset.length} active exchanges`);
 
-    // 2. Get all unique symbols across all exchanges
-    const symbolsResult = await pool.request().query(`
-      SELECT DISTINCT Symbol
-      FROM [Trade].[MarketData]
+    // 2. Fetch all latest prices for all active exchanges and symbols in a single optimized query
+    // This reduces N×M queries to a single batch query for better performance
+    const pricesResult = await pool.request().query(`
+      WITH LatestPrices AS (
+        SELECT 
+          ExchangeId,
+          Symbol,
+          Close,
+          ROW_NUMBER() OVER (PARTITION BY ExchangeId, Symbol ORDER BY Timestamp DESC) as rn
+        FROM [Trade].[MarketData]
+        WHERE ExchangeId IN (
+          SELECT ExchangeId 
+          FROM [Trade].[Exchanges] 
+          WHERE IsActive = 1
+        )
+      )
+      SELECT ExchangeId, Symbol, Close
+      FROM LatestPrices
+      WHERE rn = 1
     `);
 
-    const symbols = symbolsResult.recordset.map(row => row.Symbol);
+    // Build a map of exchange -> symbol -> price for quick lookup
+    const priceMap = new Map<string, Map<string, number>>();
+    for (const row of pricesResult.recordset) {
+      if (!priceMap.has(row.ExchangeId)) {
+        priceMap.set(row.ExchangeId, new Map());
+      }
+      priceMap.get(row.ExchangeId)!.set(row.Symbol, row.Close);
+    }
+
+    // Get all unique symbols
+    const symbols = Array.from(new Set(pricesResult.recordset.map((row: any) => row.Symbol as string)));
     
     if (symbols.length === 0) {
       context.log('No symbols found for tick generation');
@@ -91,38 +116,29 @@ export async function tickerGenerator(
       // Process each symbol for this exchange
       for (const symbol of symbols) {
         try {
-          // Get current price from cache or database
+          // Get current price from cache, priceMap, or defaults
           let basePrice: number;
-          const cachedQuote = await getQuote(exchangeId, symbol);
+          const cachedQuote = await getQuote(exchangeId, symbol as string);
           
           if (cachedQuote?.price) {
             basePrice = cachedQuote.price;
           } else {
-            // Fallback to database
-            const priceResult = await pool.request()
-              .input('exchangeId', sql.UniqueIdentifier, exchangeId)
-              .input('symbol', sql.NVarChar, symbol)
-              .query(`
-                SELECT TOP 1 Close
-                FROM [Trade].[MarketData]
-                WHERE ExchangeId = @exchangeId AND Symbol = @symbol
-                ORDER BY Timestamp DESC
-              `);
-            
-            basePrice = priceResult.recordset[0]?.Close 
-              || DEFAULT_BASE_PRICES[symbol] 
+            // Try to get from priceMap
+            const exchangePrices = priceMap.get(exchangeId);
+            basePrice = exchangePrices?.get(symbol as string) 
+              || (DEFAULT_BASE_PRICES as Record<string, number>)[symbol as string] 
               || DEFAULT_BASE_PRICES.DEFAULT;
           }
 
           // 4. Apply Regime Physics with volatility multiplier
           // ADR-006: Use Decimal.js for all financial calculations
           const basePriceDecimal = new Decimal(basePrice);
-          // Base volatility of 1% per tick (1 second interval)
-          // Annualized volatility calculation: 0.01 × √31,536,000 ≈ 56.15 (5615%)
-          // For training scenarios, this creates highly dynamic price movements
-          // Scaled by volatilityMultiplier for different regime conditions:
-          // - Normal regime (1.0): ~5615% annualized
-          // - Crisis regime (4.5): ~25,268% annualized
+          // Base volatility of 1% per tick (1 second interval).
+          // NOTE: This is an intentionally exaggerated per-tick move for training simulations,
+          // not a representation of real-world annualized volatility or market microstructure.
+          // The volatilityMultiplier scales the per-tick move for different regime conditions, e.g.:
+          // - Normal regime (1.0): baseline training volatility
+          // - Crisis regime (4.5): amplified training volatility for stress scenarios
           const volatility = new Decimal(0.01).times(volatilityMultiplier);
           const randomFactor = new Decimal(Math.random() - 0.5); // -0.5 to 0.5
           const change = basePriceDecimal.times(volatility).times(randomFactor);
@@ -140,7 +156,7 @@ export async function tickerGenerator(
           // Validate with Zod schema
           const priceUpdateData = {
             exchangeId,
-            symbol,
+            symbol: symbol as string,
             price: newPrice.toNumber(),
             change: change.toNumber(),
             changePercent: changePercent.toNumber(),
@@ -155,7 +171,7 @@ export async function tickerGenerator(
           }
 
           // Cache the updated quote in Redis
-          await cacheQuote(exchangeId, symbol, {
+          await cacheQuote(exchangeId, symbol as string, {
             price: priceUpdateData.price,
             timestamp: priceUpdateData.timestamp,
             change: priceUpdateData.change,
