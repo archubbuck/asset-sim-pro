@@ -102,6 +102,8 @@ describe('apiDocs', () => {
   it('should set appropriate cache headers', async () => {
     const response = await apiDocs(mockRequest, mockContext);
 
-    expect(response.headers?.['Cache-Control']).toBe('public, max-age=3600');
+    expect(response.headers).toBeDefined();
+    const headers = response.headers as Record<string, string>;
+    expect(headers['Cache-Control']).toBe('public, max-age=3600');
   });
 });
