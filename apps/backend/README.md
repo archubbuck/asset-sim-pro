@@ -8,6 +8,7 @@ This backend implements:
 
 - **ADR-002**: Security & Network Isolation with Zero Trust
 - **ADR-007**: Serverless Compute with Azure Functions (Premium Plan EP1) and Zod validation
+- **ADR-017**: API Documentation & Standards with zod-to-openapi
 
 Key features:
 - **VNet Integration**: Function App connects to data services via private endpoints
@@ -15,6 +16,7 @@ Key features:
 - **Exchange-scoped RBAC**: Row-Level Security enforcement at the database level
 - **Zero Trust**: All data services have public access disabled
 - **Zod Validation**: All API endpoints validate requests using Zod schemas
+- **OpenAPI Documentation**: Code-first API docs generated from Zod schemas
 
 ## Project Structure
 
@@ -22,12 +24,14 @@ Key features:
 backend/
 ├── src/
 │   ├── functions/               # Azure Functions (HTTP & Timer triggers)
+│   │   ├── apiDocs.ts          # HTTP: GET /api/docs (OpenAPI spec)
 │   │   ├── createExchange.ts   # HTTP: POST /api/v1/exchanges
 │   │   ├── createOrder.ts      # HTTP: POST /api/v1/orders
 │   │   └── marketEngineTick.ts # Timer: Market simulation engine
 │   ├── lib/                     # Shared utilities
 │   │   ├── auth.ts             # Entra ID authentication
-│   │   └── database.ts         # SQL connection and RLS context
+│   │   ├── database.ts         # SQL connection and RLS context
+│   │   └── openapi-registry.ts # OpenAPI spec generation (ADR-017)
 │   └── types/                   # TypeScript type definitions & Zod schemas
 │       ├── exchange.ts
 │       ├── transaction.ts      # Transaction API schemas
@@ -38,6 +42,52 @@ backend/
 ```
 
 ## API Endpoints
+
+### API Documentation (Development/Staging Only)
+
+#### GET /api/docs
+
+Returns the OpenAPI v3 specification for all API endpoints. This endpoint is available in development and staging environments only and should be disabled or restricted in production.
+
+**Authentication**: Not required (public in dev/staging)
+
+**Response** (200 OK):
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AssetSim Pro API",
+    "version": "1.0.0",
+    "description": "Enterprise-grade simulation platform API..."
+  },
+  "servers": [...],
+  "paths": {
+    "/api/v1/orders": {...},
+    "/api/v1/exchanges": {...}
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {...}
+    }
+  }
+}
+```
+
+**Implementation**: ADR-017 (API Documentation & Standards)
+- Code-first OpenAPI generation using `zod-to-openapi`
+- Automatically generated from Zod validation schemas
+- Includes all endpoints, request/response schemas, and security requirements
+
+**Usage**:
+```bash
+# Access locally during development
+curl http://localhost:7071/api/docs
+
+# Or open in browser to view with JSON formatter
+open http://localhost:7071/api/docs
+
+# Use with OpenAPI tools like Swagger UI or Postman
+```
 
 ### Transaction API (HTTP Triggers)
 

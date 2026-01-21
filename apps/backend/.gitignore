@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Build output
 dist/
@@ -18,6 +17,9 @@ local.settings.json
 
 # Logs
 *.log
+
+# Manual tests
+src/__manual_tests__/
 
 # OS
 .DS_Store
