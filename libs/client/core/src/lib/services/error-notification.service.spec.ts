@@ -57,4 +57,47 @@ describe('ErrorNotificationService', () => {
     jest.useRealTimers();
     done();
   });
+
+  it('should cleanup timer subscription when error is manually dismissed', () => {
+    jest.useFakeTimers();
+    
+    service.showError('Test Error', 'This should be dismissed early');
+    const errorId = service.errors()[0].id;
+    
+    // Manually dismiss before timer expires
+    service.dismissError(errorId);
+    
+    expect(service.errors().length).toBe(0);
+    
+    // Advance time to verify timer doesn't fire after manual dismissal
+    jest.advanceTimersByTime(10000);
+    
+    // Should still be 0, no additional side effects
+    expect(service.errors().length).toBe(0);
+    
+    jest.useRealTimers();
+  });
+
+  it('should cleanup all timer subscriptions when clearAll is called', () => {
+    jest.useFakeTimers();
+    
+    service.showError('Error 1', 'Message 1');
+    service.showError('Error 2', 'Message 2');
+    service.showError('Error 3', 'Message 3');
+    
+    expect(service.errors().length).toBe(3);
+    
+    // Clear all errors
+    service.clearAll();
+    
+    expect(service.errors().length).toBe(0);
+    
+    // Advance time to verify timers don't fire after clearAll
+    jest.advanceTimersByTime(10000);
+    
+    // Should still be 0, no additional side effects
+    expect(service.errors().length).toBe(0);
+    
+    jest.useRealTimers();
+  });
 });

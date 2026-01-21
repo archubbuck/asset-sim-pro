@@ -1,5 +1,5 @@
 import { Injectable, signal, DestroyRef, inject } from '@angular/core';
-import { timer } from 'rxjs';
+import { timer, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
@@ -27,6 +27,9 @@ export class ErrorNotificationService {
   
   // Signal for managing error notifications
   private readonly _errors = signal<ErrorNotification[]>([]);
+  
+  // Map to store timer subscriptions for proper cleanup
+  private readonly timerSubscriptions = new Map<string, Subscription>();
 
   /**
    * Readonly signal exposing the errors array
@@ -47,11 +50,14 @@ export class ErrorNotificationService {
     this._errors.update((errors) => [...errors, error]);
 
     // Auto-dismiss after 10 seconds using RxJS to prevent memory leaks
-    timer(10000)
+    const subscription = timer(10000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.dismissError(error.id);
       });
+    
+    // Store subscription for cleanup when manually dismissed
+    this.timerSubscriptions.set(error.id, subscription);
   }
 
   /**
@@ -59,6 +65,13 @@ export class ErrorNotificationService {
    */
   dismissError(id: string): void {
     this._errors.update((errors) => errors.filter((e) => e.id !== id));
+    
+    // Unsubscribe and remove timer subscription for this error
+    const subscription = this.timerSubscriptions.get(id);
+    if (subscription) {
+      subscription.unsubscribe();
+      this.timerSubscriptions.delete(id);
+    }
   }
 
   /**
@@ -66,5 +79,9 @@ export class ErrorNotificationService {
    */
   clearAll(): void {
     this._errors.set([]);
+    
+    // Unsubscribe from all timer subscriptions
+    this.timerSubscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.timerSubscriptions.clear();
   }
 }
