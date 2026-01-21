@@ -1,9 +1,11 @@
 # Bootstrap Guide - Manual Operations (ADR-012)
 
 **Status:** Required Pre-Deployment Steps  
-**Version:** 1.0.0  
-**Date:** January 20, 2026  
+**Version:** 1.1.0  
+**Date:** January 21, 2026  
 **ADR Reference:** ARCHITECTURE.md ADR-012 (lines 249-259)
+
+> 📢 **NEW:** Automation scripts are now available! See [scripts/](./scripts/) for automated implementations of Phase 1 and Phase 2 (ADR-013).
 
 ## Overview
 
@@ -14,6 +16,15 @@ Per ADR-012, the following steps must be completed manually:
 1. **Bootstrap Infrastructure**: Create Resource Group `rg-tfstate` and Storage Account for Terraform remote state
 2. **Entra ID Consent**: Global Admin must grant `GroupMember.Read.All` API permission
 3. **Azure DevOps Self-Hosted Agent Pool**: Create `Self-Hosted-VNet-Pool` for deployments to private resources
+
+### Automation Available (ADR-013)
+
+✨ **Phases 1 and 2 can now be automated using the provided scripts:**
+- **Phase 1**: Run `./scripts/bootstrap-terraform-state.sh` (ADR-013 Section 13.2)
+- **Phase 2**: Run `./scripts/bootstrap-entra-consent.sh` (ADR-013 Section 13.1)
+- **Phase 3**: Still requires manual setup (Azure DevOps Agent Pool)
+
+See [scripts/README.md](./scripts/README.md) for complete automation documentation.
 
 ## Prerequisites
 

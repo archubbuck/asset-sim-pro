@@ -41,6 +41,7 @@ terraform/*.tfstate
 terraform/*.tfstate.backup
 terraform/*.tfvars
 terraform/terraform.tfvars.json
+terraform-backend-config/
 
 # Azure Functions
 apps/backend/local.settings.json
