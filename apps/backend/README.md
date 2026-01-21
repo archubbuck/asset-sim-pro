@@ -142,7 +142,7 @@ The exported CSV contains:
 - `Story Points`: Numeric estimate
 - `Description`: Detailed description (markdown supported, newlines converted to spaces)
 - `Acceptance Criteria`: Acceptance criteria (markdown supported, newlines converted to spaces)
-- `Parent`: Parent work item title for hierarchy
+- `ID`: Azure DevOps hierarchical import ID; set for parent items and left empty for child items to establish hierarchy
 
 **Hierarchy**:
 ```

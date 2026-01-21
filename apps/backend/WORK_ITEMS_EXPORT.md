@@ -66,7 +66,8 @@ curl https://your-function-app.azurewebsites.net/api/v1/work-items/export -o ass
    - Story Points → Story Points (or Effort)
    - Description → Description
    - Acceptance Criteria → Acceptance Criteria
-   - Parent → Parent
+
+   > Note: The CSV **does not contain a separate `Parent` column**. Azure DevOps infers parent-child relationships using its hierarchical import format: parent items have an `ID` value and child items immediately follow their parent with an empty `ID`.
 
 5. **Review and Import**
    - Review the preview of work items to be imported
@@ -123,6 +124,7 @@ curl https://your-function-app.azurewebsites.net/api/v1/work-items/export -o ass
 
 ### Column Descriptions
 
+- **ID**: Azure DevOps hierarchical import ID; parent items (Epic) have an ID value, child items (Features, User Stories) have empty ID field
 - **Work Item Type**: Epic, Feature, or User Story
 - **Title**: Brief title of the work item
 - **State**: New, Active, Resolved, or Closed
@@ -130,7 +132,6 @@ curl https://your-function-app.azurewebsites.net/api/v1/work-items/export -o ass
 - **Story Points**: Estimated effort (optional for Epics and Features)
 - **Description**: Detailed description of the work item (markdown supported)
 - **Acceptance Criteria**: List of criteria that must be met (markdown supported)
-- **Parent**: Title of the parent work item (empty for Epic)
 
 ### Special Handling
 
@@ -147,16 +148,16 @@ If the import fails:
 
 1. **Check CSV Format**: Open the CSV in a text editor to verify format
 2. **Verify Column Headers**: Ensure headers match Azure DevOps field names
-3. **Check Parent References**: Verify parent work items are spelled exactly as in their Title field
+3. **Check Hierarchy Columns**: Verify that parent work items have values in the `ID` column and that their child items immediately follow them with a blank `ID` value
 4. **Review Error Messages**: Azure DevOps will provide specific error details
 
 ### Hierarchy Issues
 
 If the hierarchy doesn't display correctly:
 
-1. **Verify Parent Names**: Parent field must match the exact title of the parent work item
-2. **Import Order**: Epic should be imported first, then Features, then User Stories
-3. **Case Sensitivity**: Parent references are case-sensitive
+1. **Verify Hierarchical Layout**: Each parent work item (Epic or Feature) must have an `ID` value, and all of its child items (Features or User Stories) must immediately follow it in the CSV with a blank `ID` value
+2. **Preserve Row Ordering**: Do not reorder rows in Excel or other tools; the CSV relies on parents appearing before their children and on children being grouped directly under their parent
+3. **Check for Gaps**: Ensure there are no unrelated work items inserted between a parent and its children, as this can break the inferred hierarchy during import
 
 ### Missing Fields
 

@@ -89,14 +89,8 @@ describe('exportWorkItems', () => {
   });
 
   it('should handle errors gracefully', async () => {
-    // Mock a function that will throw an error
-    const errorRequest = {
-      ...mockRequest,
-      // This would cause an error in a real scenario
-    } as HttpRequest;
-
     // We can't easily test the error path without mocking the workItemsToCSV function
-    // But we can verify the error handler structure
+    // But we can verify the handler still returns a successful response in the normal case
     const response = await exportWorkItems(mockRequest, mockContext);
     
     // Normal case should succeed
@@ -112,10 +106,13 @@ describe('exportWorkItems', () => {
     // 1 Epic + 6 Features + 25 User Stories + 1 Header = 33 lines
     expect(lines.length).toBe(33);
     
-    // Count by type
-    const epicCount = lines.filter(line => line.startsWith('Epic,')).length;
-    const featureCount = lines.filter(line => line.startsWith('Feature,')).length;
-    const storyCount = lines.filter(line => line.startsWith('User Story,')).length;
+    // Count by type based on hierarchical CSV format:
+    // - Epic rows: ID followed by "Epic" (e.g. "123,Epic,...")
+    // - Feature rows: empty ID field, start with ",Feature,..."
+    // - User Story rows: empty ID field, start with ",User Story,..."
+    const epicCount = lines.filter(line => /^[^,]+,Epic,/.test(line)).length;
+    const featureCount = lines.filter(line => line.startsWith(',Feature,')).length;
+    const storyCount = lines.filter(line => line.startsWith(',User Story,')).length;
     
     expect(epicCount).toBe(1);
     expect(featureCount).toBe(6);
