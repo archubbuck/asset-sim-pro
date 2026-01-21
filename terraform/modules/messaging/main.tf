@@ -6,9 +6,10 @@ data "azurerm_client_config" "current" {}
 # - Event Hubs Capture for cold path data archival (ADR-010)
 # - Storage Account for archived market data with lifecycle management
 # - Key Vault for secrets management
-# - SignalR Service for real-time client communication (Serverless mode with MessagePack)
+# - SignalR Service for real-time client communication (Serverless mode, MessagePack protocol per ADR-009)
 # - Private endpoints for all services (Zero Trust network access)
 # - Public network access disabled for security
+# Note: MessagePack protocol is configured in the application code, not in infrastructure
 
 resource "azurerm_eventhub_namespace" "eh_ns" {
   name                          = "ehns-assetsim-${var.environment}"
