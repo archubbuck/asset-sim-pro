@@ -37,3 +37,8 @@ output "private_dns_zone_blob_id" {
   description = "ID of the Blob Storage private DNS zone"
   value       = azurerm_private_dns_zone.blob.id
 }
+
+output "private_dns_zone_signalr_id" {
+  description = "ID of the SignalR private DNS zone"
+  value       = azurerm_private_dns_zone.signalr.id
+}

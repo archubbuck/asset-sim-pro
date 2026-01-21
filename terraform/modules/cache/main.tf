@@ -1,3 +1,11 @@
+# Cache Module - ARCHITECTURE.md L499-L523
+# Implements secure Redis cache infrastructure with:
+# - Azure Redis Cache with Standard SKU (1 GB capacity)
+# - TLS 1.2 minimum version for secure connections
+# - Non-SSL port disabled for security
+# - Private endpoint for Zero Trust network access
+# - Public network access disabled for security
+
 resource "azurerm_redis_cache" "redis" {
   name                          = "redis-assetsim-${var.environment}"
   location                      = var.location

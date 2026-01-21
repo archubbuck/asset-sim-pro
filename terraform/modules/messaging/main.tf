@@ -1,5 +1,15 @@
 data "azurerm_client_config" "current" {}
 
+# Messaging Module - ARCHITECTURE.md L527-L552
+# Implements secure messaging infrastructure with:
+# - Event Hub namespace and hub for market tick streaming
+# - Event Hubs Capture for cold path data archival (ADR-010)
+# - Storage Account for archived market data with lifecycle management
+# - Key Vault for secrets management
+# - SignalR Service for real-time client communication (Serverless mode with MessagePack)
+# - Private endpoints for all services (Zero Trust network access)
+# - Public network access disabled for security
+
 resource "azurerm_eventhub_namespace" "eh_ns" {
   name                          = "ehns-assetsim-${var.environment}"
   location                      = var.location
@@ -172,6 +182,56 @@ resource "azurerm_private_endpoint" "keyvault_pe" {
   private_dns_zone_group {
     name                 = "keyvault-dns-zone-group"
     private_dns_zone_ids = [var.private_dns_zone_keyvault_id]
+  }
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
+}
+
+# SignalR Service (ARCHITECTURE.md L544-L554)
+resource "azurerm_signalr_service" "sig" {
+  name                          = "sig-assetsim-${var.environment}"
+  location                      = var.location
+  resource_group_name           = var.resource_group_name
+  
+  sku {
+    name     = "Standard_S1"
+    capacity = 1
+  }
+  
+  service_mode                  = "Serverless"
+  public_network_access_enabled = false
+
+  # MessagePack protocol requirement from ADR-009
+  cors {
+    allowed_origins = ["*"]
+  }
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
+}
+
+# Private endpoint for SignalR Service
+resource "azurerm_private_endpoint" "signalr_pe" {
+  name                = "pe-signalr"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.subnet_id
+
+  private_service_connection {
+    name                           = "psc-signalr"
+    private_connection_resource_id = azurerm_signalr_service.sig.id
+    subresource_names              = ["signalr"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "signalr-dns-zone-group"
+    private_dns_zone_ids = [var.private_dns_zone_signalr_id]
   }
 
   tags = {

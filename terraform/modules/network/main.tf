@@ -1,3 +1,11 @@
+# Network Module - ARCHITECTURE.md L371-L439
+# Implements Zero Trust network architecture with:
+# - Virtual Network (VNet) with appropriate CIDR block
+# - Integration subnet for outbound compute traffic (delegated to Microsoft.Web/serverFarms)
+# - Endpoints subnet for inbound private endpoint traffic
+# - Private DNS zones for Azure services (SQL, Redis, EventHub, KeyVault, Blob, SignalR)
+# - VNet links for DNS resolution
+
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-assetsim-${var.environment}"
   location            = var.location
@@ -85,6 +93,16 @@ resource "azurerm_private_dns_zone" "blob" {
   }
 }
 
+resource "azurerm_private_dns_zone" "signalr" {
+  name                = "privatelink.service.signalr.net"
+  resource_group_name = var.resource_group_name
+
+  tags = {
+    Service     = "AssetSim"
+    Environment = var.environment
+  }
+}
+
 # DNS Zone Links
 resource "azurerm_private_dns_zone_virtual_network_link" "sql" {
   name                  = "link-sql"
@@ -118,5 +136,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
   name                  = "link-blob"
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.blob.name
+  virtual_network_id    = azurerm_virtual_network.vnet.id
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "signalr" {
+  name                  = "link-signalr"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.signalr.name
   virtual_network_id    = azurerm_virtual_network.vnet.id
 }
