@@ -8,6 +8,10 @@ yarn-error.log*
 dist/
 build/
 *.js.map
+# Exclude generated JS files in shared libraries
+libs/**/src/**/*.js
+!libs/**/src/**/*.spec.js
+!libs/**/src/**/*.test.js
 
 # Environment variables
 .env

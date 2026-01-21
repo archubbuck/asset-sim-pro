@@ -4,6 +4,15 @@
  * 
  * Standardized error response format for AssetSim Pro API
  * Implements ADR-018: Standardized Error Handling
+ * 
+ * NOTE: This file duplicates types from libs/shared/finance-models.
+ * This duplication is necessary because the backend's TypeScript compiler
+ * cannot resolve path aliases outside of its rootDir during the build process.
+ * The shared library version is used by the frontend via path aliases.
+ * 
+ * When updating error types, ensure both files are updated:
+ * - apps/backend/src/types/problem-details.ts (this file)
+ * - libs/shared/finance-models/src/lib/finance-models.ts
  */
 export interface ProblemDetails {
   /**
