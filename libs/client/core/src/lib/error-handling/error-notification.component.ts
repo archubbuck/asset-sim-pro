@@ -1,53 +1,54 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DialogModule } from '@progress/kendo-angular-dialog';
-import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { ErrorNotificationService } from '../services/error-notification.service';
 
 /**
  * Error Notification Component
  * 
- * Displays error notifications using Kendo UI Dialog component
+ * Displays error notifications using custom styling
  * Implements ADR-018: Standardized Error Handling
- * Uses Kendo UI as per ADR-006
  */
 @Component({
   selector: 'app-error-notification',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule],
+  imports: [CommonModule],
   template: `
-    @for (error of errorService.errors(); track error.id) {
-      <kendo-dialog
-        [title]="error.title"
-        (close)="errorService.dismissError(error.id)"
-        [minWidth]="250"
-        [width]="400"
-        class="error-dialog">
-        <div class="error-content">
+    <div class="error-notifications-container">
+      @for (error of errorService.errors(); track error.id) {
+        <div class="error-notification" role="alert">
+          <div class="error-header">
+            <h4 class="error-title">{{ error.title }}</h4>
+            <button 
+              class="error-close" 
+              (click)="errorService.dismissError(error.id)"
+              aria-label="Close notification">
+              ×
+            </button>
+          </div>
           <p class="error-message">{{ error.message }}</p>
           <small class="error-time">{{ formatTime(error.timestamp) }}</small>
         </div>
-        <kendo-dialog-actions>
-          <button kendoButton (click)="errorService.dismissError(error.id)">
-            Dismiss
-          </button>
-        </kendo-dialog-actions>
-      </kendo-dialog>
-    }
+      }
+    </div>
   `,
   styles: [`
-    :host {
+    .error-notifications-container {
       position: fixed;
       top: 20px;
       right: 20px;
       z-index: 10000;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
+      max-width: 420px;
     }
 
-    .error-dialog {
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    .error-notification {
+      background: #fff;
+      border-left: 4px solid #dc3545;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 16px;
       animation: slideIn 0.3s ease-out;
     }
 
@@ -62,19 +63,53 @@ import { ErrorNotificationService } from '../services/error-notification.service
       }
     }
 
-    .error-content {
-      padding: 8px 0;
+    .error-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .error-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #dc3545;
+      flex: 1;
+    }
+
+    .error-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      line-height: 1;
+      color: #999;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 12px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .error-close:hover {
+      background: #f5f5f5;
+      color: #333;
     }
 
     .error-message {
-      margin: 0 0 12px 0;
+      margin: 0 0 8px 0;
       font-size: 14px;
       line-height: 1.5;
       color: #333;
     }
 
     .error-time {
-      color: rgba(0, 0, 0, 0.5);
+      color: #999;
       font-size: 12px;
     }
   `],
