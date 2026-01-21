@@ -1,20 +1,8 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
+import { ProblemDetails } from '@assetsim/shared/error-models';
 import { ErrorNotificationService } from './error-notification.service';
-
-/**
- * RFC 7807 Problem Details interface
- * Matches the backend error response format
- */
-export interface ProblemDetails {
-  type: string;
-  title: string;
-  status: number;
-  detail: string;
-  instance?: string;
-  [key: string]: unknown;
-}
 
 /**
  * HTTP Error Interceptor

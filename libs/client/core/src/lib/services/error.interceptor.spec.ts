@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { errorInterceptor, ProblemDetails } from './error.interceptor';
+import { errorInterceptor } from './error.interceptor';
+import { ProblemDetails } from '@assetsim/shared/error-models';
 import { ErrorNotificationService } from './error-notification.service';
 
 describe('errorInterceptor', () => {
