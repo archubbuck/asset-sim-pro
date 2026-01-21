@@ -21,6 +21,9 @@
       "@assetsim/shared/error-models": [
         "libs/shared/error-models/src/index.ts"
       ],
+      "@assetsim/client/core": [
+        "libs/client/core/src/index.ts"
+      ],
       "@assetsim/client/features/trading": [
         "libs/client/features/trading/src/index.ts"
       ]
