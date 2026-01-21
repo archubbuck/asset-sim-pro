@@ -51,6 +51,6 @@ export async function exportWorkItems(
 app.http('exportWorkItems', {
   methods: ['GET'],
   route: 'v1/work-items/export',
-  authLevel: 'anonymous',
+  authLevel: 'function',
   handler: exportWorkItems,
 });

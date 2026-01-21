@@ -178,7 +178,7 @@ A sample CSV file is available at `apps/backend/sample-work-items.csv` for refer
 - **Location**: `apps/backend/src/functions/exportWorkItems.ts`
 - **Data Source**: `apps/backend/src/data/assetsim-work-items.ts`
 - **Utilities**: `apps/backend/src/types/work-item.ts`
-- **Tests**: 28 passing tests with 83.8% coverage
+- **Tests**: 29 passing tests with 83.8% coverage
 
 ### Running Tests
 

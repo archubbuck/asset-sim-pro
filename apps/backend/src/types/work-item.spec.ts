@@ -106,7 +106,7 @@ describe('work-item utilities', () => {
       };
 
       const row = workItemToCsvRow(workItem, false);
-      expect(row).toBe('1,Epic,Test Epic,New,1,,,,');
+      expect(row).toBe('1,Epic,Test Epic,New,1,,,');
     });
 
     it('should properly escape commas in values', () => {

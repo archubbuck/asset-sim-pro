@@ -19,13 +19,6 @@ export const WorkItemSchema = z.object({
 
 export type WorkItem = z.infer<typeof WorkItemSchema>;
 
-// CSV Export response
-export interface WorkItemCSVExportResponse {
-  filename: string;
-  content: string;
-  rowCount: number;
-}
-
 // CSV column headers for Azure DevOps hierarchical import
 export const CSV_HEADERS = [
   'ID',
