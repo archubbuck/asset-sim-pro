@@ -117,7 +117,12 @@ export async function tickerGenerator(
           // 4. Apply Regime Physics with volatility multiplier
           // ADR-006: Use Decimal.js for all financial calculations
           const basePriceDecimal = new Decimal(basePrice);
-          const volatility = new Decimal(0.01).times(volatilityMultiplier); // 1% base volatility scaled by regime
+          // Base volatility of 1% per tick (1 second interval)
+          // This translates to ~283% annualized volatility at base regime (sqrt(31536000 seconds) * 0.01)
+          // Scaled by volatilityMultiplier for different regime conditions:
+          // - Normal regime (1.0): ~283% annualized
+          // - Crisis regime (4.5): ~1274% annualized
+          const volatility = new Decimal(0.01).times(volatilityMultiplier);
           const randomFactor = new Decimal(Math.random() - 0.5); // -0.5 to 0.5
           const change = basePriceDecimal.times(volatility).times(randomFactor);
           
@@ -187,6 +192,6 @@ export async function tickerGenerator(
 
 // Timer trigger: runs every 1 second (per ADR-016 specification)
 app.timer('tickerGenerator', {
-  schedule: '0 */1 * * * *', // Every 1 second (CRON format: seconds minutes hours days months weekdays)
+  schedule: '*/1 * * * * *', // Every 1 second (CRON format: seconds minutes hours days months weekdays)
   handler: tickerGenerator,
 });
