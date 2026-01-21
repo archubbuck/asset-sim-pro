@@ -1,5 +1,4 @@
 import { app, InvocationContext, Timer } from '@azure/functions';
-import * as sql from 'mssql';
 import Decimal from 'decimal.js';
 import { PriceUpdateEventSchema } from '../types/market-engine';
 import { getConnectionPool } from '../lib/database';
