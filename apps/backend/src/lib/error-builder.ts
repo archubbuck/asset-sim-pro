@@ -1,5 +1,5 @@
 import { HttpResponseInit } from '@azure/functions';
-import { ProblemDetails, ErrorTypes } from '@assetsim/shared/finance-models';
+import { ProblemDetails, ErrorTypes } from '../types/problem-details';
 
 /**
  * Error Response Builder for RFC 7807 Problem Details

@@ -9,7 +9,7 @@ import {
   buildServiceUnavailableError,
   buildInternalError,
 } from './error-builder';
-import { ErrorTypes } from '@assetsim/shared/finance-models';
+import { ErrorTypes } from '../types/problem-details';
 
 describe('Error Builder', () => {
   describe('buildErrorResponse', () => {
