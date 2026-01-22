@@ -41,6 +41,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       let errorMessage = 'An unexpected error occurred';
       if (error.error && typeof error.error === 'object' && 'message' in error.error) {
         errorMessage = error.error.message;
+      } else if (error.message) {
+        // Fallback to the top-level HttpErrorResponse message if available
+        errorMessage = error.message;
       }
       
       errorNotificationService.showError(
