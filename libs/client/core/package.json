@@ -1,7 +1,6 @@
 {
   "name": "@assetsim/client/core",
   "version": "1.0.0",
-  "type": "module",
   "peerDependencies": {
     "@angular/common": "^21.1.0",
     "@angular/core": "^21.1.0"
