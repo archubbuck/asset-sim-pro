@@ -38,8 +38,11 @@ export class AzureAuthService implements IAuthService {
       if (response.clientPrincipal) {
         this.logger.logEvent('SessionRestored', { userId: response.clientPrincipal.userId });
       }
-    } catch (e) {
-      this.logger.logTrace('User not logged in - Anonymous session');
+    } catch (error) {
+      // User is not authenticated or /.auth/me endpoint is not available (local development)
+      this.logger.logTrace('User not logged in - Anonymous session', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       this.#user.set(null);
     }
   }
@@ -47,17 +50,22 @@ export class AzureAuthService implements IAuthService {
   /**
    * Redirect to Azure AD login
    * Uses Azure Static Web Apps built-in authentication
+   * Note: The post_login_redirect_uri is set to /dashboard as per ADR-020
+   * This can be customized via environment variables if needed
    */
   public login(): void {
-    window.location.href = '/.auth/login/aad?post_login_redirect_uri=/dashboard';
+    const redirectUri = process.env['POST_LOGIN_REDIRECT_URI'] || '/dashboard';
+    window.location.href = `/.auth/login/aad?post_login_redirect_uri=${redirectUri}`;
   }
 
   /**
    * Logout user and redirect to home page
    * Clears Azure Static Web Apps session
+   * Note: The post_logout_redirect_uri can be customized via environment variables
    */
   public logout(): void {
-    window.location.href = '/.auth/logout?post_logout_redirect_uri=/';
+    const redirectUri = process.env['POST_LOGOUT_REDIRECT_URI'] || '/';
+    window.location.href = `/.auth/logout?post_logout_redirect_uri=${redirectUri}`;
   }
 
   /**

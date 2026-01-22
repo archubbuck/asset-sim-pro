@@ -37,10 +37,14 @@ export abstract class AuthService implements IAuthService {
  */
 export function authServiceFactory(): IAuthService {
   // Check if we're in local development
+  // Supports: localhost, 127.0.0.1, 0.0.0.0, and IPv6 localhost (::1)
   const useMockAuth = process.env['USE_MOCK_AUTH'] === 'true' || 
                       (typeof window !== 'undefined' && 
                        (window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'));
+                        window.location.hostname === '127.0.0.1' ||
+                        window.location.hostname === '0.0.0.0' ||
+                        window.location.hostname === '::1' ||
+                        window.location.hostname === '[::1]'));
 
   if (useMockAuth) {
     console.log('[AuthFactory] Using MockAuthService for local development');

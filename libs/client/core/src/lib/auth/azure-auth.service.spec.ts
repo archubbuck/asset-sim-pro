@@ -101,7 +101,9 @@ describe('AzureAuthService', () => {
 
       expect(service.user()).toBeNull();
       expect(service.isAuthenticated()).toBe(false);
-      expect(mockLogger.logTrace).toHaveBeenCalledWith('User not logged in - Anonymous session');
+      expect(mockLogger.logTrace).toHaveBeenCalledWith('User not logged in - Anonymous session', {
+        error: 'Network error'
+      });
     });
   });
 
