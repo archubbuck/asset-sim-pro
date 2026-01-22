@@ -53,13 +53,8 @@ export function authServiceFactory(): IAuthService {
     const http = inject(HttpClient);
     const logger = inject(LoggerService);
     
-    // Create service instance with injected dependencies
-    const service = new AzureAuthService();
-    // Manually wire dependencies since we're not using @Injectable for the instance
-    (service as any).http = http;
-    (service as any).logger = logger;
-    
-    return service;
+    // Create service instance with constructor injection
+    return new AzureAuthService(http, logger);
   }
 }
 

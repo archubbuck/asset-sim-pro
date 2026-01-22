@@ -4,7 +4,7 @@
  * Real implementation of authentication using Azure Static Web Apps and Entra ID
  * Following ADR-020: Azure Authentication
  */
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse, ClientPrincipal } from '@assetsim/shared/finance-models';
@@ -13,21 +13,6 @@ import { IAuthService } from './auth.interface';
 
 @Injectable()
 export class AzureAuthService implements IAuthService {
-  // Dependencies can be injected via constructor or set by factory
-  // Using public properties to allow factory to set them
-  public http!: HttpClient;
-  public logger!: LoggerService;
-
-  constructor() {
-    // Try to inject dependencies if in Angular injection context
-    try {
-      this.http = inject(HttpClient);
-      this.logger = inject(LoggerService);
-    } catch {
-      // Dependencies will be set by factory if not in injection context
-    }
-  }
-
   // State
   #user = signal<ClientPrincipal | null>(null);
 
@@ -35,6 +20,11 @@ export class AzureAuthService implements IAuthService {
   public readonly user = this.#user.asReadonly();
   public readonly isAuthenticated = computed(() => !!this.#user());
   public readonly roles = computed(() => this.#user()?.userRoles ?? []);
+
+  constructor(
+    private readonly http: HttpClient,
+    private readonly logger: LoggerService
+  ) {}
 
   /**
    * Check session by calling Azure Static Web Apps /.auth/me endpoint
