@@ -3,17 +3,26 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { MockAuthService } from './mock-auth.service';
+import { LoggerService } from '../logger/logger.service';
 import { ExchangeRole } from '@assetsim/shared/finance-models';
 
 describe('MockAuthService', () => {
   let service: MockAuthService;
+  let mockLogger: jest.Mocked<LoggerService>;
 
   beforeEach(() => {
-    // Clear console spies
-    jest.spyOn(console, 'log').mockImplementation();
+    // Create mock LoggerService
+    mockLogger = {
+      logTrace: jest.fn(),
+      logEvent: jest.fn(),
+      logException: jest.fn()
+    } as unknown as jest.Mocked<LoggerService>;
 
     TestBed.configureTestingModule({
-      providers: [MockAuthService]
+      providers: [
+        MockAuthService,
+        { provide: LoggerService, useValue: mockLogger }
+      ]
     });
 
     service = TestBed.inject(MockAuthService);
@@ -53,12 +62,10 @@ describe('MockAuthService', () => {
 
   describe('checkSession', () => {
     it('should resolve immediately with mock user', async () => {
-      const consoleSpy = jest.spyOn(console, 'log');
-      
       await service.checkSession();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[MockAuthService] Using mock authenticated user for local development'
+      expect(mockLogger.logTrace).toHaveBeenCalledWith(
+        'MockAuthService: Using mock authenticated user for local development'
       );
       expect(service.isAuthenticated()).toBe(true);
     });
@@ -72,13 +79,11 @@ describe('MockAuthService', () => {
   });
 
   describe('login', () => {
-    it('should log to console instead of redirecting', () => {
-      const consoleSpy = jest.spyOn(console, 'log');
-
+    it('should log to trace instead of redirecting', () => {
       service.login();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[MockAuthService] Mock login called - user already authenticated in local mode'
+      expect(mockLogger.logTrace).toHaveBeenCalledWith(
+        'MockAuthService: Mock login called - user already authenticated in local mode'
       );
     });
 
@@ -103,13 +108,11 @@ describe('MockAuthService', () => {
       expect(service.roles()).toEqual([]);
     });
 
-    it('should log to console', () => {
-      const consoleSpy = jest.spyOn(console, 'log');
-
+    it('should log to trace', () => {
       service.logout();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[MockAuthService] Mock logout called - clearing mock user'
+      expect(mockLogger.logTrace).toHaveBeenCalledWith(
+        'MockAuthService: Mock logout called - clearing mock user'
       );
     });
   });

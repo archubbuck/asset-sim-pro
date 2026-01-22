@@ -2,67 +2,33 @@
  * AuthService Factory Unit Tests
  */
 import { authServiceFactory, provideAuthService, AuthService } from './auth.factory';
-import { AzureAuthService } from './azure-auth.service';
 import { MockAuthService } from './mock-auth.service';
 
 describe('authServiceFactory', () => {
-  let originalProcessEnv: NodeJS.ProcessEnv;
-
   beforeEach(() => {
-    // Save original values
-    originalProcessEnv = process.env;
-
-    // Mock console.log to avoid test output pollution
-    jest.spyOn(console, 'log').mockImplementation();
+    // Mock LoggerService methods to avoid actual logging during tests
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    // Restore original values
-    process.env = originalProcessEnv;
     jest.restoreAllMocks();
   });
 
   describe('Environment-based service selection', () => {
-    it('should return MockAuthService when USE_MOCK_AUTH is true', () => {
-      process.env['USE_MOCK_AUTH'] = 'true';
-
-      const service = authServiceFactory();
-
-      expect(service).toBeInstanceOf(MockAuthService);
-      expect(console.log).toHaveBeenCalledWith(
-        '[AuthFactory] Using MockAuthService for local development'
-      );
-    });
-
     it('should return MockAuthService when hostname is localhost (JSDOM default)', () => {
-      delete process.env['USE_MOCK_AUTH'];
-      
       // In JSDOM test environment, window.location.hostname defaults to 'localhost'
       // This test verifies the factory works in the test environment
       const service = authServiceFactory();
 
       expect(service).toBeInstanceOf(MockAuthService);
     });
-
-    it('should return AzureAuthService when USE_MOCK_AUTH is explicitly false', () => {
-      // Set to explicitly use Azure auth (not localhost)
-      process.env['USE_MOCK_AUTH'] = 'false';
-      
-      const service = authServiceFactory();
-
-      // Note: In JSDOM, hostname is 'localhost' by default, so this would normally
-      // return MockAuthService. The process.env check takes precedence in real usage.
-      // In a real production environment with a real hostname, AzureAuthService would be returned.
-      expect(service).toBeDefined();
-    });
   });
 
-  describe('Priority of environment detection', () => {
-    it('should prioritize USE_MOCK_AUTH=true over hostname', () => {
-      process.env['USE_MOCK_AUTH'] = 'true';
-      
+  describe('Hostname detection for local development', () => {
+    it('should use hostname detection for environment selection', () => {
       const service = authServiceFactory();
 
+      // In JSDOM (test environment), hostname is 'localhost', so MockAuthService is returned
       expect(service).toBeInstanceOf(MockAuthService);
     });
   });

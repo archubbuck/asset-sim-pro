@@ -4,6 +4,4 @@ export * from './lib/error-handling/error-notification.component';
 export * from './lib/logger/logger.service';
 export * from './lib/auth/auth.interface';
 export * from './lib/auth/auth.factory';
-export * from './lib/auth/azure-auth.service';
-export * from './lib/auth/mock-auth.service';
 export type { ProblemDetails } from '@assetsim/shared/error-models';

@@ -13,8 +13,8 @@ import { MockAuthService } from './mock-auth.service';
 import { LoggerService } from '../logger/logger.service';
 
 /**
- * InjectionToken for AuthService
- * Use this token when injecting the authentication service
+ * Abstract class for AuthService used as a DI token
+ * Use this abstract class as the DI token when injecting the authentication service
  */
 export abstract class AuthService implements IAuthService {
   abstract readonly user: IAuthService['user'];
@@ -29,33 +29,33 @@ export abstract class AuthService implements IAuthService {
 /**
  * Factory function to create appropriate auth service
  * 
- * Determines whether to use real Azure AD or mock authentication based on:
- * 1. Environment variable USE_MOCK_AUTH (for build-time configuration)
- * 2. Hostname detection (localhost = mock, otherwise = real)
+ * Determines whether to use real Azure AD or mock authentication based on
+ * hostname detection (localhost and loopback addresses use mock auth,
+ * otherwise Azure AD is used).
  * 
  * @returns AzureAuthService or MockAuthService instance
  */
 export function authServiceFactory(): IAuthService {
-  // Check if we're in local development
+  const logger = inject(LoggerService);
+  
+  // Check if we're in local development based on hostname
   // Supports: localhost, 127.0.0.1, 0.0.0.0, and IPv6 localhost (::1)
-  const useMockAuth = process.env['USE_MOCK_AUTH'] === 'true' || 
-                      (typeof window !== 'undefined' && 
-                       (window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' ||
-                        window.location.hostname === '0.0.0.0' ||
-                        window.location.hostname === '::1' ||
-                        window.location.hostname === '[::1]'));
+  const useMockAuth =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0' ||
+      window.location.hostname === '::1');
 
   if (useMockAuth) {
-    console.log('[AuthFactory] Using MockAuthService for local development');
+    logger.logTrace('AuthFactory: Using MockAuthService for local development');
     // MockAuthService has no dependencies, can be instantiated directly
     return new MockAuthService();
   } else {
-    console.log('[AuthFactory] Using AzureAuthService for production');
+    logger.logTrace('AuthFactory: Using AzureAuthService for production');
     // AzureAuthService needs HttpClient and LoggerService from Angular DI
     // Use inject() to get dependencies from the current injection context
     const http = inject(HttpClient);
-    const logger = inject(LoggerService);
     
     // Create service instance with constructor injection
     return new AzureAuthService(http, logger);

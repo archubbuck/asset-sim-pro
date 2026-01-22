@@ -5,12 +5,15 @@
  * Following ADR-020: Azure Authentication (Factory Pattern)
  * Following ADR-003: Local Development Strategy
  */
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { ClientPrincipal, ExchangeRole } from '@assetsim/shared/finance-models';
 import { IAuthService } from './auth.interface';
+import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class MockAuthService implements IAuthService {
+  private logger = inject(LoggerService);
+  
   // State - Pre-authenticated mock user for local development
   #user = signal<ClientPrincipal | null>({
     userId: '00000000-0000-0000-0000-000000000001',
@@ -30,23 +33,23 @@ export class MockAuthService implements IAuthService {
    */
   public async checkSession(): Promise<void> {
     // Already authenticated with mock user
-    console.log('[MockAuthService] Using mock authenticated user for local development');
+    this.logger.logTrace('MockAuthService: Using mock authenticated user for local development');
     return Promise.resolve();
   }
 
   /**
-   * Mock login - logs to console only
+   * Mock login - logs to trace only
    * No redirect occurs in local development
    */
   public login(): void {
-    console.log('[MockAuthService] Mock login called - user already authenticated in local mode');
+    this.logger.logTrace('MockAuthService: Mock login called - user already authenticated in local mode');
   }
 
   /**
    * Mock logout - clears mock user
    */
   public logout(): void {
-    console.log('[MockAuthService] Mock logout called - clearing mock user');
+    this.logger.logTrace('MockAuthService: Mock logout called - clearing mock user');
     this.#user.set(null);
   }
 

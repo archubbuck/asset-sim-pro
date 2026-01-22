@@ -39,9 +39,16 @@ export class AzureAuthService implements IAuthService {
         this.logger.logEvent('SessionRestored', { userId: response.clientPrincipal.userId });
       }
     } catch (error) {
-      // User is not authenticated or /.auth/me endpoint is not available (local development)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Security event for failed session check (required by ADR-020)
+      this.logger.logEvent('SessionCheckFailed', {
+        reason: 'User not logged in or /.auth/me unavailable',
+        error: errorMessage
+      });
+
       this.logger.logTrace('User not logged in - Anonymous session', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        error: errorMessage 
       });
       this.#user.set(null);
     }
@@ -51,20 +58,21 @@ export class AzureAuthService implements IAuthService {
    * Redirect to Azure AD login
    * Uses Azure Static Web Apps built-in authentication
    * Note: The post_login_redirect_uri is set to /dashboard as per ADR-020
-   * This can be customized via environment variables if needed
+   * This can be customized via Angular environment configuration at build time if needed
    */
   public login(): void {
-    const redirectUri = process.env['POST_LOGIN_REDIRECT_URI'] || '/dashboard';
+    const redirectUri = '/dashboard';
     window.location.href = `/.auth/login/aad?post_login_redirect_uri=${redirectUri}`;
   }
 
   /**
    * Logout user and redirect to home page
    * Clears Azure Static Web Apps session
-   * Note: The post_logout_redirect_uri can be customized via environment variables
+   * Note: The post_logout_redirect_uri is currently set to the application root ('/').
+   *       To customize at runtime, prefer Angular environment config or a runtime config endpoint.
    */
   public logout(): void {
-    const redirectUri = process.env['POST_LOGOUT_REDIRECT_URI'] || '/';
+    const redirectUri = '/';
     window.location.href = `/.auth/logout?post_logout_redirect_uri=${redirectUri}`;
   }
 

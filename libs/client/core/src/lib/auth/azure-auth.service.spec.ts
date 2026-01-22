@@ -101,6 +101,10 @@ describe('AzureAuthService', () => {
 
       expect(service.user()).toBeNull();
       expect(service.isAuthenticated()).toBe(false);
+      expect(mockLogger.logEvent).toHaveBeenCalledWith('SessionCheckFailed', {
+        reason: 'User not logged in or /.auth/me unavailable',
+        error: 'Network error'
+      });
       expect(mockLogger.logTrace).toHaveBeenCalledWith('User not logged in - Anonymous session', {
         error: 'Network error'
       });
