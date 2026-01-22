@@ -49,8 +49,8 @@ export function authServiceFactory(): IAuthService {
 
   if (useMockAuth) {
     logger.logTrace('AuthFactory: Using MockAuthService for local development');
-    // MockAuthService has no dependencies, can be instantiated directly
-    return new MockAuthService();
+    // MockAuthService needs LoggerService from Angular DI
+    return new MockAuthService(logger);
   } else {
     logger.logTrace('AuthFactory: Using AzureAuthService for production');
     // AzureAuthService needs HttpClient and LoggerService from Angular DI

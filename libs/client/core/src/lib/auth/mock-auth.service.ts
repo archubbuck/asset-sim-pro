@@ -5,15 +5,13 @@
  * Following ADR-020: Azure Authentication (Factory Pattern)
  * Following ADR-003: Local Development Strategy
  */
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { ClientPrincipal, ExchangeRole } from '@assetsim/shared/finance-models';
 import { IAuthService } from './auth.interface';
 import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class MockAuthService implements IAuthService {
-  private logger = inject(LoggerService);
-  
   // State - Pre-authenticated mock user for local development
   #user = signal<ClientPrincipal | null>({
     userId: '00000000-0000-0000-0000-000000000001',
@@ -26,6 +24,8 @@ export class MockAuthService implements IAuthService {
   public readonly user = this.#user.asReadonly();
   public readonly isAuthenticated = computed(() => !!this.#user());
   public readonly roles = computed(() => this.#user()?.userRoles ?? []);
+
+  constructor(private readonly logger: LoggerService) {}
 
   /**
    * Mock session check - immediately resolves with mock user
