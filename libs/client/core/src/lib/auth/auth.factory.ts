@@ -5,10 +5,12 @@
  * Uses environment detection to switch between real Azure AD and mock auth
  * Following ADR-020: Azure Authentication (Factory Pattern for Local Development)
  */
-import { Provider } from '@angular/core';
+import { Provider, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { IAuthService } from './auth.interface';
 import { AzureAuthService } from './azure-auth.service';
 import { MockAuthService } from './mock-auth.service';
+import { LoggerService } from '../logger/logger.service';
 
 /**
  * InjectionToken for AuthService
@@ -42,10 +44,22 @@ export function authServiceFactory(): IAuthService {
 
   if (useMockAuth) {
     console.log('[AuthFactory] Using MockAuthService for local development');
+    // MockAuthService has no dependencies, can be instantiated directly
     return new MockAuthService();
   } else {
     console.log('[AuthFactory] Using AzureAuthService for production');
-    return new AzureAuthService();
+    // AzureAuthService needs HttpClient and LoggerService from Angular DI
+    // Use inject() to get dependencies from the current injection context
+    const http = inject(HttpClient);
+    const logger = inject(LoggerService);
+    
+    // Create service instance with injected dependencies
+    const service = new AzureAuthService();
+    // Manually wire dependencies since we're not using @Injectable for the instance
+    (service as any).http = http;
+    (service as any).logger = logger;
+    
+    return service;
   }
 }
 

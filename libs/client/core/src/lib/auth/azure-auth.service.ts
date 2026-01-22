@@ -13,8 +13,20 @@ import { IAuthService } from './auth.interface';
 
 @Injectable()
 export class AzureAuthService implements IAuthService {
-  private http = inject(HttpClient);
-  private logger = inject(LoggerService);
+  // Dependencies can be injected via constructor or set by factory
+  // Using public properties to allow factory to set them
+  public http!: HttpClient;
+  public logger!: LoggerService;
+
+  constructor() {
+    // Try to inject dependencies if in Angular injection context
+    try {
+      this.http = inject(HttpClient);
+      this.logger = inject(LoggerService);
+    } catch {
+      // Dependencies will be set by factory if not in injection context
+    }
+  }
 
   // State
   #user = signal<ClientPrincipal | null>(null);
