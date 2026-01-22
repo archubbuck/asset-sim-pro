@@ -26,10 +26,6 @@ describe('authServiceFactory', () => {
     });
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   describe('Environment-based service selection', () => {
     it('should return MockAuthService when hostname is localhost (JSDOM default)', () => {
       // In JSDOM test environment, window.location.hostname defaults to 'localhost'

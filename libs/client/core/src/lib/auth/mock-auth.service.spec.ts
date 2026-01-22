@@ -28,10 +28,6 @@ describe('MockAuthService', () => {
     service = TestBed.inject(MockAuthService);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   describe('Initialization', () => {
     it('should be created', () => {
       expect(service).toBeTruthy();
