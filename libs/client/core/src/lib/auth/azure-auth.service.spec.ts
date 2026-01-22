@@ -94,7 +94,7 @@ describe('AzureAuthService', () => {
       expect(mockLogger.logEvent).not.toHaveBeenCalled();
     });
 
-    it('should handle HTTP errors gracefully', async () => {
+    it('should handle HTTP errors gracefully and log security event', async () => {
       mockHttpClient.get.mockReturnValue(throwError(() => new Error('Network error')));
 
       await service.checkSession();
@@ -102,11 +102,39 @@ describe('AzureAuthService', () => {
       expect(service.user()).toBeNull();
       expect(service.isAuthenticated()).toBe(false);
       expect(mockLogger.logEvent).toHaveBeenCalledWith('SessionCheckFailed', {
-        reason: 'User not logged in or /.auth/me unavailable',
+        reason: 'Unexpected error during session check',
         error: 'Network error'
       });
       expect(mockLogger.logTrace).toHaveBeenCalledWith('User not logged in - Anonymous session', {
         error: 'Network error'
+      });
+    });
+
+    it('should not log SessionCheckFailed event for 401 errors', async () => {
+      const mockError = { status: 401, message: 'Unauthorized' };
+      mockHttpClient.get.mockReturnValue(throwError(() => mockError));
+
+      await service.checkSession();
+
+      expect(service.user()).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
+      expect(mockLogger.logEvent).not.toHaveBeenCalled();
+      expect(mockLogger.logTrace).toHaveBeenCalledWith('User not logged in - Anonymous session', {
+        error: '[object Object]'
+      });
+    });
+
+    it('should not log SessionCheckFailed event for 404 errors', async () => {
+      const mockError = { status: 404, message: 'Not Found' };
+      mockHttpClient.get.mockReturnValue(throwError(() => mockError));
+
+      await service.checkSession();
+
+      expect(service.user()).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
+      expect(mockLogger.logEvent).not.toHaveBeenCalled();
+      expect(mockLogger.logTrace).toHaveBeenCalledWith('User not logged in - Anonymous session', {
+        error: '[object Object]'
       });
     });
   });
