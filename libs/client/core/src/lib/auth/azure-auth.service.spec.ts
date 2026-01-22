@@ -141,27 +141,59 @@ describe('AzureAuthService', () => {
 
   describe('login', () => {
     it('should redirect to Azure AD login with correct URI', () => {
-      // Spy on window.location.href setter
-      const hrefSpy = jest.spyOn(window.location, 'href', 'set');
+      const originalLocation = window.location;
+      const mockLocation: Partial<Location> = {
+        ...originalLocation,
+        href: originalLocation.href
+      };
 
-      service.login();
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: mockLocation
+      });
 
-      expect(hrefSpy).toHaveBeenCalledWith('/.auth/login/aad?post_login_redirect_uri=/dashboard');
-      
-      hrefSpy.mockRestore();
+      try {
+        service.login();
+        expect(window.location.href).toBe('/.auth/login/aad?post_login_redirect_uri=/dashboard');
+      } finally {
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          value: originalLocation
+        });
+      }
     });
   });
 
   describe('logout', () => {
     it('should redirect to Azure logout with correct URI', () => {
-      // Spy on window.location.href setter
-      const hrefSpy = jest.spyOn(window.location, 'href', 'set');
+      const originalLocation = window.location;
+      const mockLocation: Partial<Location> = {
+        ...originalLocation,
+        href: originalLocation.href
+      };
 
-      service.logout();
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: mockLocation
+      });
 
-      expect(hrefSpy).toHaveBeenCalledWith('/.auth/logout?post_logout_redirect_uri=/');
-      
-      hrefSpy.mockRestore();
+      try {
+        service.logout();
+        expect(window.location.href).toBe('/.auth/logout?post_logout_redirect_uri=/');
+      } finally {
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          value: originalLocation
+        });
+      }
     });
   });
 
