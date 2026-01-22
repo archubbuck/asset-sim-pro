@@ -36,8 +36,17 @@ export interface ClientPrincipal {
   identityProvider: string;
 
   /**
-   * Array of role names assigned to user
-   * These map to ExchangeRole enum values
+   * Array of application role names assigned to the user.
+   * 
+   * These are NOT raw Azure Entra ID (Azure AD) roles or group IDs. The
+   * authentication pipeline (see ADR-020) is responsible for translating
+   * Azure AD roles/groups into application roles and normalizing them to
+   * match the string values of the {@link ExchangeRole} enum.
+   * 
+   * In other words, each entry in this array should be a string equal to one
+   * of the ExchangeRole values (e.g. "RiskManager", "PortfolioManager",
+   * "Analyst"), allowing downstream code to treat these as ExchangeRole
+   * names while keeping the transport type as string[].
    */
   userRoles: string[];
 }

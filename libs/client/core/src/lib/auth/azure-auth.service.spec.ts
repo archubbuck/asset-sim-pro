@@ -112,22 +112,28 @@ describe('AzureAuthService', () => {
   });
 
   describe('login', () => {
-    it('should have a login method', () => {
-      // Login triggers a full page redirect to Azure AD
-      // This cannot be meaningfully tested in a unit test environment
-      // Integration tests should verify the actual redirect behavior
-      expect(service.login).toBeDefined();
-      expect(typeof service.login).toBe('function');
+    it('should redirect to Azure AD login with correct URI', () => {
+      // Spy on window.location.href setter
+      const hrefSpy = jest.spyOn(window.location, 'href', 'set');
+
+      service.login();
+
+      expect(hrefSpy).toHaveBeenCalledWith('/.auth/login/aad?post_login_redirect_uri=/dashboard');
+      
+      hrefSpy.mockRestore();
     });
   });
 
   describe('logout', () => {
-    it('should have a logout method', () => {
-      // Logout triggers a full page redirect 
-      // This cannot be meaningfully tested in a unit test environment
-      // Integration tests should verify the actual redirect behavior
-      expect(service.logout).toBeDefined();
-      expect(typeof service.logout).toBe('function');
+    it('should redirect to Azure logout with correct URI', () => {
+      // Spy on window.location.href setter
+      const hrefSpy = jest.spyOn(window.location, 'href', 'set');
+
+      service.logout();
+
+      expect(hrefSpy).toHaveBeenCalledWith('/.auth/logout?post_logout_redirect_uri=/');
+      
+      hrefSpy.mockRestore();
     });
   });
 

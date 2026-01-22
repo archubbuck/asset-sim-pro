@@ -41,11 +41,18 @@ export class AzureAuthService implements IAuthService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      // Security event for failed session check (required by ADR-020)
-      this.logger.logEvent('SessionCheckFailed', {
-        reason: 'User not logged in or /.auth/me unavailable',
-        error: errorMessage
-      });
+      // Check if this is a normal "not authenticated" case (401/404) vs actual error
+      const isNormalUnauthenticated = 
+        error && typeof error === 'object' && 'status' in error && 
+        (error.status === 401 || error.status === 404);
+
+      if (!isNormalUnauthenticated) {
+        // Log security event only for actual errors, not normal unauthenticated state
+        this.logger.logEvent('SessionCheckFailed', {
+          reason: 'Unexpected error during session check',
+          error: errorMessage
+        });
+      }
 
       this.logger.logTrace('User not logged in - Anonymous session', { 
         error: errorMessage 
