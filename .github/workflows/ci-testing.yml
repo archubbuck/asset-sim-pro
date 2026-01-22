@@ -126,7 +126,10 @@ jobs:
           fi
 
       - name: Build Application
-        run: npm run build
+        run: npm run build -- --verbose
+        timeout-minutes: 15
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Start Application Server
         run: |
