@@ -46,7 +46,7 @@ export class LoggerService {
    * @param name - Event name
    * @param properties - Optional custom properties to attach to the event
    */
-  public logEvent(name: string, properties?: Record<string, any>): void {
+  public logEvent(name: string, properties?: Record<string, unknown>): void {
     if (this.isEnabled) {
       this.appInsights.trackEvent({ name }, properties);
     }
@@ -57,7 +57,7 @@ export class LoggerService {
    * @param message - Trace message
    * @param properties - Optional custom properties to attach to the trace
    */
-  public logTrace(message: string, properties?: Record<string, any>): void {
+  public logTrace(message: string, properties?: Record<string, unknown>): void {
     if (this.isEnabled) {
       this.appInsights.trackTrace({ message }, properties);
     }

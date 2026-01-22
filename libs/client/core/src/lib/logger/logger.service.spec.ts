@@ -22,7 +22,7 @@ describe('LoggerService', () => {
       trackEvent: jest.fn(),
       trackTrace: jest.fn(),
       trackException: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<ApplicationInsights>;
 
     // Mock the ApplicationInsights constructor
     (ApplicationInsights as jest.MockedClass<typeof ApplicationInsights>).mockImplementation(
