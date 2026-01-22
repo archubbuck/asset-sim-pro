@@ -62,7 +62,7 @@ describe('errorInterceptor', () => {
         expect(error.status).toBe(500);
         expect(errorNotificationService.showError).toHaveBeenCalledWith(
           'Error 500',
-          'An unexpected error occurred'
+          'Http failure response for /api/test: 500 Internal Server Error'
         );
         done();
       },

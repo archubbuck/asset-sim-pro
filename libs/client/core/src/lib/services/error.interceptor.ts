@@ -37,7 +37,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       // Handle non-RFC 7807 errors (fallback)
-      const errorMessage = error.error?.message || error.message || 'An unexpected error occurred';
+      // Only use error.error.message if error.error is an object with a message property
+      let errorMessage = 'An unexpected error occurred';
+      if (error.error && typeof error.error === 'object' && 'message' in error.error) {
+        errorMessage = error.error.message;
+      } else if (error.message) {
+        // Fallback to the top-level HttpErrorResponse message if available
+        errorMessage = error.message;
+      }
       
       errorNotificationService.showError(
         `Error ${error.status}`,
