@@ -6,7 +6,7 @@ import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { appRoutes } from './app.routes';
-import { errorInterceptor } from '@assetsim/client/core';
+import { errorInterceptor, provideAuthService } from '@assetsim/client/core';
 
 /**
  * Application Configuration for AssetSim Pro
@@ -18,6 +18,9 @@ import { errorInterceptor } from '@assetsim/client/core';
  * 
  * Following ADR-018:
  * - RFC 7807 error handling with HTTP interceptor
+ * 
+ * Following ADR-020:
+ * - Azure AD authentication with factory pattern for local development
  */
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -35,5 +38,9 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([errorInterceptor])
     ),
+    
+    // Authentication service with factory pattern (ADR-020)
+    // Automatically uses MockAuthService for localhost, AzureAuthService for production
+    provideAuthService(),
   ],
 };
