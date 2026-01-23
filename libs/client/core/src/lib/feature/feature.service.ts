@@ -89,7 +89,9 @@ export class FeatureService {
 
       return data;
     } catch (error) {
-      this.logger.logException(error instanceof Error ? error : new Error('Failed to load features'));
+      this.logger.logException(
+        error instanceof Error ? error : new Error('Failed to load exchange rules from /api/v1/exchange/rules')
+      );
       throw error;
     }
   }
