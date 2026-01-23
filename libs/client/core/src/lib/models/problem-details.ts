@@ -7,6 +7,10 @@
  * 
  * Note: This is a local copy to avoid cross-library dependencies during ng-packagr compilation.
  * The canonical definition is in @assetsim/shared/error-models
+ * 
+ * TODO: Consolidate with @assetsim/shared/error-models when ng-packagr cross-library 
+ * dependency resolution is improved or when migrating to a different build system.
+ * Last synchronized: 2026-01-23 (commit 7651b7f)
  */
 
 /**
