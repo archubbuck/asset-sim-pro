@@ -20,8 +20,7 @@ export class LoggerService {
   constructor() {
     // APP_INSIGHTS_CONNECTION_STRING is injected via build-time env replacement
     // In strict environments, this is retrieved from a runtime config.json fetch
-    // Use empty string as default for library builds
-    const connectionString = (typeof process !== 'undefined' && process.env) ? (process.env['APP_INSIGHTS_CONNECTION_STRING'] || '') : '';
+    const connectionString = process.env['APP_INSIGHTS_CONNECTION_STRING'] || '';
 
     this.appInsights = new ApplicationInsights({
       config: {
