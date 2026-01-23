@@ -26,6 +26,9 @@
       ],
       "@assetsim/client/features/trading": [
         "libs/client/features/trading/src/index.ts"
+      ],
+      "@assetsim/client/features/dashboard": [
+        "libs/client/features/dashboard/src/index.ts"
       ]
     }
   },
