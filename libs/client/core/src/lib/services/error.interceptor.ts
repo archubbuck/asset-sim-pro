@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { ProblemDetails } from '@assetsim/shared/error-models';
+import { ProblemDetails } from '../models/problem-details';
 import { ErrorNotificationService } from './error-notification.service';
 
 /**

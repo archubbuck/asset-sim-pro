@@ -1,5 +1,24 @@
-import { Injectable } from '@angular/core';
+import { Injectable, InjectionToken, Optional, Inject } from '@angular/core';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+
+/**
+ * Configuration interface for Logger Service
+ */
+export interface LoggerConfig {
+  connectionString?: string;
+}
+
+/**
+ * Injection token for Logger configuration
+ * 
+ * Usage in application:
+ * ```typescript
+ * providers: [
+ *   { provide: LOGGER_CONFIG, useValue: { connectionString: environment.appInsightsConnectionString } }
+ * ]
+ * ```
+ */
+export const LOGGER_CONFIG = new InjectionToken<LoggerConfig>('LOGGER_CONFIG');
 
 /**
  * Logger Service
@@ -11,16 +30,17 @@ import { ApplicationInsights } from '@microsoft/applicationinsights-web';
  * - Page view tracking (enableAutoRouteTracking)
  * - CORS correlation for frontend-backend trace linking
  * - Conditional logging based on connection string availability
+ * - Configuration via dependency injection for library compatibility
  */
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
   private appInsights: ApplicationInsights;
   private isEnabled = false;
 
-  constructor() {
-    // APP_INSIGHTS_CONNECTION_STRING is injected via build-time env replacement
-    // In strict environments, this is retrieved from a runtime config.json fetch
-    const connectionString = process.env['APP_INSIGHTS_CONNECTION_STRING'] || '';
+  constructor(@Optional() @Inject(LOGGER_CONFIG) config?: LoggerConfig) {
+    // Connection string is provided via dependency injection
+    // This allows the library to be used in any Angular application
+    const connectionString = config?.connectionString || '';
 
     this.appInsights = new ApplicationInsights({
       config: {
