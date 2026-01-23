@@ -6,3 +6,4 @@ export * from './lib/auth/auth.interface';
 export * from './lib/auth/auth.factory';
 export * from './lib/models/problem-details';
 export * from './lib/feature/feature.service';
+export * from './lib/layout/app-shell.component';
