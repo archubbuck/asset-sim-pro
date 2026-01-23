@@ -70,7 +70,7 @@
 **Contents:**
 - Complete Phase 5 implementation status by ADR
 - Backend-frontend cohesion analysis (6 integration points)
-- Test coverage breakdown (68 passing, 12 failing)
+- Test coverage breakdown (68 passing, 9 failing)
 - Critical gaps with code examples
 - Detailed recommendations with implementations
 - Sprint-by-sprint completion roadmap

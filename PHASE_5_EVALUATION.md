@@ -42,7 +42,7 @@ Phase 5 implements the Angular frontend with four reference implementation ADRs:
 | **ADR-021** | FeatureService | ✅ Complete | `libs/client/core/src/lib/feature/feature.service.ts` |
 | | Test Coverage | ✅ Complete | `feature.service.spec.ts` - 8 tests passing |
 | **ADR-022** | AppShellComponent | ✅ Complete | `libs/client/core/src/lib/layout/app-shell.component.ts` |
-| | Test Coverage | ❌ Failing | Animation provider issues (12 tests failing) |
+| | Test Coverage | ❌ Failing | Animation provider issues (9 tests failing) |
 
 ---
 
@@ -359,7 +359,7 @@ TestBed.configureTestingModule({
    - Recommendation: Create `RoleGuard` in `libs/client/core`
 
 5. **Component Test Failures**
-   - 12 tests failing in `app-shell.component.spec.ts`
+   - 9 tests failing: 8 in `app-shell.component.spec.ts`, 1 in `app.spec.ts`
    - Issue: Missing `provideAnimations()` in test setup
    - Fix: Add animation provider to test configurations
 
@@ -468,6 +468,8 @@ export class SignalRService {
  * 
  * Returns feature flags and configuration for the user's exchange
  * Implements ADR-021: Feature Flag Engine
+ * 
+ * Security: Validates that user has access to the requested exchange via ExchangeRoles
  */
 export async function getExchangeRules(
   request: HttpRequest,
@@ -476,8 +478,27 @@ export async function getExchangeRules(
   const user = requireAuthentication(request);
   const exchangeId = request.query.get('exchangeId');
   
-  // Fetch configuration from database
+  if (!exchangeId) {
+    return createValidationErrorResponse({ message: 'exchangeId is required' });
+  }
+  
+  // Validate that user has access to this exchange
   const pool = await getConnectionPool();
+  
+  // Check if user is assigned to this exchange via ExchangeRoles
+  const roleCheck = await pool.request()
+    .input('userId', sql.UniqueIdentifier, user.userId)
+    .input('exchangeId', sql.UniqueIdentifier, exchangeId)
+    .query(`
+      SELECT 1 FROM [Trade].[ExchangeRoles]
+      WHERE UserId = @userId AND ExchangeId = @exchangeId
+    `);
+  
+  if (roleCheck.recordset.length === 0) {
+    return createForbiddenResponse('User does not have access to this exchange');
+  }
+  
+  // Fetch configuration from database (now with validated access)
   const result = await pool.request()
     .input('exchangeId', sql.UniqueIdentifier, exchangeId)
     .query(`
@@ -618,22 +639,22 @@ describe('AppShellComponent', () => {
 ### Recommendations for Phase 5 Completion
 
 **Immediate Actions (Sprint 1):**
-1. ✅ Fix animation provider in component tests
-2. ✅ Create API client library in `libs/shared/api-client`
-3. ✅ Implement `getExchangeRules` backend endpoint
-4. ✅ Integrate SignalR client service
+1. Fix animation provider in component tests
+2. Create API client library in `libs/shared/api-client`
+3. Implement `getExchangeRules` backend endpoint
+4. Integrate SignalR client service
 
 **Short Term (Sprint 2):**
-5. ✅ Implement route guards for RBAC
-6. ✅ Add E2E tests for critical paths
-7. ✅ Document environment configuration
-8. ✅ Generate TypeScript client from OpenAPI spec
+5. Implement route guards for RBAC
+6. Add E2E tests for critical paths
+7. Document environment configuration
+8. Generate TypeScript client from OpenAPI spec
 
 **Medium Term (Phase 6):**
-9. ✅ Build trading UI components (order entry, blotter)
-10. ✅ Implement Kendo financial charts
-11. ✅ Add portfolio dashboard
-12. ✅ Create admin console for Risk Managers
+9. Build trading UI components (order entry, blotter)
+10. Implement Kendo financial charts
+11. Add portfolio dashboard
+12. Create admin console for Risk Managers
 
 ---
 
