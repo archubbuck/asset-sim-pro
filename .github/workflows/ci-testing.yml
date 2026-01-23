@@ -125,8 +125,11 @@ jobs:
             exit 1
           fi
 
-      - name: Build Application
-        run: npm run build
+      - name: Build Client Application
+        run: npx nx build client --verbose
+        timeout-minutes: 15
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Start Application Server
         run: |
