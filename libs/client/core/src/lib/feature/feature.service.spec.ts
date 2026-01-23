@@ -199,7 +199,7 @@ describe('FeatureService', () => {
         configuration: mockFeatureResponse.configuration
       };
 
-      const loadPromise = service.loadFeatures();
+      service.loadFeatures();
       const req = httpMock.expectOne('/api/v1/exchange/rules');
       req.flush(specialResponse);
 
@@ -212,10 +212,6 @@ describe('FeatureService', () => {
   describe('Reactive Signal Updates', () => {
     it('should trigger computed signal updates when state changes', async () => {
       // Initial state
-      let flagsUpdateCount = 0;
-      let configUpdateCount = 0;
-
-      // Track updates using effect simulation
       const initialFlags = service.flags();
       const initialConfig = service.config();
       
@@ -240,8 +236,8 @@ describe('FeatureService', () => {
 
     it('should allow multiple loads and state updates', async () => {
       // First load
-      let loadPromise = service.loadFeatures();
-      let req = httpMock.expectOne('/api/v1/exchange/rules');
+      const loadPromise = service.loadFeatures();
+      const req = httpMock.expectOne('/api/v1/exchange/rules');
       req.flush(mockFeatureResponse);
       await loadPromise;
 
@@ -256,10 +252,10 @@ describe('FeatureService', () => {
         }
       };
 
-      loadPromise = service.loadFeatures();
-      req = httpMock.expectOne('/api/v1/exchange/rules');
-      req.flush(updatedResponse);
-      await loadPromise;
+      const secondLoadPromise = service.loadFeatures();
+      const secondReq = httpMock.expectOne('/api/v1/exchange/rules');
+      secondReq.flush(updatedResponse);
+      await secondLoadPromise;
 
       expect(service.config().volatilityIndex).toBe(2.0);
       expect(service.isEnabled('new-feature')).toBe(true);
@@ -286,7 +282,9 @@ describe('FeatureService', () => {
     it('should handle null/undefined flag values correctly', async () => {
       const nullFlagsResponse: FeatureFlagResponse = {
         flags: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           'null-flag': null as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           'undefined-flag': undefined as any
         },
         configuration: mockFeatureResponse.configuration
