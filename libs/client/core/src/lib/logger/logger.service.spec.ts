@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { LoggerService } from './logger.service';
+import { LoggerService, LOGGER_CONFIG } from './logger.service';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
 // Mock Application Insights
@@ -12,9 +12,6 @@ describe('LoggerService', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
-
-    // Reset process.env
-    delete process.env['APP_INSIGHTS_CONNECTION_STRING'];
 
     // Create mock ApplicationInsights instance
     mockAppInsights = {
@@ -69,9 +66,16 @@ describe('LoggerService', () => {
 
   describe('Initialization with connection string', () => {
     beforeEach(() => {
-      process.env['APP_INSIGHTS_CONNECTION_STRING'] = 'InstrumentationKey=test-key;IngestionEndpoint=https://test.applicationinsights.azure.com/';
-      
-      TestBed.configureTestingModule({});
+      TestBed.configureTestingModule({
+        providers: [
+          {
+            provide: LOGGER_CONFIG,
+            useValue: {
+              connectionString: 'InstrumentationKey=test-key;IngestionEndpoint=https://test.applicationinsights.azure.com/'
+            }
+          }
+        ]
+      });
       service = TestBed.inject(LoggerService);
     });
 
@@ -162,8 +166,6 @@ describe('LoggerService', () => {
 
   describe('Initialization error handling', () => {
     beforeEach(() => {
-      process.env['APP_INSIGHTS_CONNECTION_STRING'] = 'InstrumentationKey=test-key;IngestionEndpoint=https://test.applicationinsights.azure.com/';
-      
       // Mock loadAppInsights to throw an error
       mockAppInsights.loadAppInsights.mockImplementation(() => {
         throw new Error('Failed to load Application Insights');
@@ -173,7 +175,16 @@ describe('LoggerService', () => {
     it('should handle initialization errors gracefully', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       
-      TestBed.configureTestingModule({});
+      TestBed.configureTestingModule({
+        providers: [
+          {
+            provide: LOGGER_CONFIG,
+            useValue: {
+              connectionString: 'InstrumentationKey=test-key;IngestionEndpoint=https://test.applicationinsights.azure.com/'
+            }
+          }
+        ]
+      });
       service = TestBed.inject(LoggerService);
       
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -187,7 +198,16 @@ describe('LoggerService', () => {
     it('should not log when initialization fails', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       
-      TestBed.configureTestingModule({});
+      TestBed.configureTestingModule({
+        providers: [
+          {
+            provide: LOGGER_CONFIG,
+            useValue: {
+              connectionString: 'InstrumentationKey=test-key;IngestionEndpoint=https://test.applicationinsights.azure.com/'
+            }
+          }
+        ]
+      });
       service = TestBed.inject(LoggerService);
       
       service.logEvent('TestEvent');
