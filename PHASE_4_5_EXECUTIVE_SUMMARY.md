@@ -28,7 +28,8 @@ All 4 backend ADRs fully implemented, tested, and documented. Backend is product
 
 ### Metrics
 - **Test Coverage:** 89.52% statements | 92.24% branches | 91.11% functions
-- **Tests Passing:** 83 tests | 13 skipped (require live Azure) | 2 failed (dependency issues)
+- **Tests (Phase 5 integration focus):** 83 tests | 13 skipped (require live Azure) | 2 failed (dependency issues)
+- **Note:** Broader Phase 3-4 backend evaluation documented 105 tests passed; this 83-test subset focuses on Phase 5 integration points
 - **Backend Functions:** 7 Azure Functions
 - **Backend Libraries:** 7 shared libraries
 - **Database Tables:** 10 tables with multi-tenant isolation
@@ -335,8 +336,8 @@ None identified. All technical challenges have known solutions.
 - Client Core: `libs/client/core/src/`
 
 **Test Reports:**
-- Backend: 83 passing, 89.52% coverage
-- Frontend: 68 passing, 12 failing (animation provider)
+- Backend: 83 passing (Phase 5 integration focus; see PHASE_3_4_EVALUATION.md for full 105-test suite), 89.52% coverage
+- Frontend: 68 passing, 9 failing (animation provider)
 
 ---
 

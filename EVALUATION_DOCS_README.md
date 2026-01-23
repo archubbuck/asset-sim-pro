@@ -213,7 +213,8 @@
 ### Phase 4 (Backend)
 - **Completion:** 100%
 - **Test Coverage:** 89.52% statements | 92.24% branches | 91.11% functions
-- **Tests:** 83 passing | 13 skipped | 2 failed (dependency issues)
+- **Tests (Phase 5 integration focus):** 83 passing | 13 skipped | 2 failed (dependency issues)
+- **Note:** Full Phase 3-4 backend evaluation shows 105 tests passed; this 83-test subset is Phase 5-focused
 - **Functions:** 7 Azure Functions
 - **Libraries:** 7 shared libraries
 - **Tables:** 10 with RLS policies
@@ -221,7 +222,7 @@
 ### Phase 5 (Frontend)
 - **Completion:** 65%
 - **Test Coverage:** 88% passing (68 tests)
-- **Tests:** 68 passing | 9 failing (animation provider)
+- **Tests:** 68 passing | 9 failing (animation provider: 8 in app-shell, 1 in app)
 - **Services:** 7 core services
 - **Components:** 1 (AppShellComponent)
 - **Libraries:** 2 (`@assetsim/client/core`, `@assetsim/shared/finance-models`)

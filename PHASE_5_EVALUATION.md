@@ -14,17 +14,18 @@ This document provides a comprehensive evaluation of **Phase 5 (Frontend Impleme
 ### Overall Status
 - **Phase 5:** 🔄 **IN PROGRESS** - Core infrastructure implemented, integration work needed
 - **Backend-Frontend Cohesion:** ⚠️ **PARTIAL** - Shared models exist, but integration layer incomplete
-- **Total Components Evaluated:** 3 ADRs (ADR-019, ADR-020, ADR-021), 7 frontend libraries, 8 client app files
-- **Test Status:** 68 tests passing, 12 tests failing (animation provider issues)
+- **Total Components Evaluated:** 4 ADRs (ADR-019, ADR-020, ADR-021, ADR-022), 7 frontend libraries, 8 client app files
+- **Test Status:** 68 tests passing, 9 tests failing (animation provider issues)
 
 ---
 
 ## Phase 5: Frontend Implementation Overview
 
-Phase 5 implements the Angular frontend with three reference implementation ADRs:
+Phase 5 implements the Angular frontend with four reference implementation ADRs:
 - **ADR-019:** Enterprise Logging (Application Insights integration)
 - **ADR-020:** Azure Authentication (Entra ID with Static Web Apps)
 - **ADR-021:** Feature Flag Engine (Exchange-scoped configuration)
+- **ADR-022:** Trading UI Components (AppShell layout)
 
 ### 5.1 Implementation Status by ADR
 
@@ -166,7 +167,9 @@ export class ExchangeApiService {
   }
   
   getExchangeRules(exchangeId: string): Observable<FeatureFlagResponse> {
-    return this.http.get<FeatureFlagResponse>(`/api/v1/exchange/rules`);
+    return this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules', {
+      params: { exchangeId }
+    });
   }
 }
 ```
@@ -193,7 +196,7 @@ export class ExchangeApiService {
 ```typescript
 // Proposed: libs/client/core/src/lib/signalr/signalr.service.ts
 import * as signalR from '@microsoft/signalr';
-import { msgpack5 } from 'msgpack5';
+import { MessagePackHubProtocol } from '@microsoft/signalr-protocol-msgpack';
 
 @Injectable({ providedIn: 'root' })
 export class SignalRService {
@@ -202,7 +205,7 @@ export class SignalRService {
   async connect(exchangeId: string): Promise<void> {
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl('/api')
-      .withHubProtocol(new signalR.protocols.msgpack.MessagePackHubProtocol())
+      .withHubProtocol(new MessagePackHubProtocol())
       .build();
     
     await this.connection.start();
@@ -253,7 +256,9 @@ this.appInsights = new ApplicationInsights({
 
 ### Backend Tests ✅ STRONG
 
-**Test Results:** 83 passed | 13 skipped | 2 failed (dependency issues)
+**Test Results (Phase 5 integration focus):** 83 passed | 13 skipped | 2 failed (dependency issues)
+
+**Note:** These 83 tests represent the backend tests directly relevant to Phase 5 frontend integration work. The broader Phase 3-4 backend evaluation documented in `PHASE_3_4_EVALUATION.md` reflects 105 tests passed with all core backend functionality verified.
 
 | Module | Tests Passing | Coverage | Status |
 |--------|---------------|----------|--------|
@@ -417,6 +422,7 @@ libs/shared/api-client/
 // libs/client/core/src/lib/signalr/signalr.service.ts
 import { Injectable, signal } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
+import { MessagePackHubProtocol } from '@microsoft/signalr-protocol-msgpack';
 
 @Injectable({ providedIn: 'root' })
 export class SignalRService {
@@ -427,7 +433,7 @@ export class SignalRService {
   async connect(exchangeId: string): Promise<void> {
     this.#connection = new signalR.HubConnectionBuilder()
       .withUrl('/api')
-      .withHubProtocol(new signalR.protocols.msgpack.MessagePackHubProtocol())
+      .withHubProtocol(new MessagePackHubProtocol())
       .withAutomaticReconnect()
       .build();
     
