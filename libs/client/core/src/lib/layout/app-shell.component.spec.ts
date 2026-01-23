@@ -1,9 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { AppShellComponent } from './app-shell.component';
 import { AuthService } from '../auth/auth.factory';
 import { LoggerService } from '../logger/logger.service';
 import { signal } from '@angular/core';
+import { Component } from '@angular/core';
+
+// Dummy component for routing
+@Component({ selector: 'dummy', template: '', standalone: true })
+class DummyComponent {}
 
 describe('AppShellComponent', () => {
   let component: AppShellComponent;
@@ -37,6 +42,11 @@ describe('AppShellComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AppShellComponent],
       providers: [
+        provideRouter([
+          { path: 'dashboard', component: DummyComponent },
+          { path: 'portfolio', component: DummyComponent },
+          { path: 'trade', component: DummyComponent }
+        ]),
         { provide: Router, useValue: mockRouter },
         { provide: AuthService, useValue: mockAuthService },
         { provide: LoggerService, useValue: mockLogger }
@@ -64,7 +74,17 @@ describe('AppShellComponent', () => {
   });
 
   it('should return default initials if user is not authenticated', () => {
-    mockAuthService.user = signal(null);
+    const mockAuthServiceNoUser = {
+      user: signal(null),
+      isAuthenticated: signal(false),
+      roles: signal([]),
+      checkSession: jest.fn(),
+      login: jest.fn(),
+      logout: jest.fn(),
+      hasRole: jest.fn()
+    } as unknown as jest.Mocked<AuthService>;
+
+    TestBed.overrideProvider(AuthService, { useValue: mockAuthServiceNoUser });
     fixture = TestBed.createComponent(AppShellComponent);
     component = fixture.componentInstance;
     
