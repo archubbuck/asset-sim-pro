@@ -9,7 +9,7 @@
  * - Market Depth widget for L2 order book visualization
  * - Risk Matrix widget for portfolio VaR display
  * - News Terminal widget for financial news feed
- * - Responsive grid layout with Tailwind CSS
+ * - Responsive grid layout
  * - Signal-based reactive state management
  */
 import { Component, inject, signal } from '@angular/core';
@@ -25,11 +25,28 @@ import { FeatureService } from '@assetsim/client/core';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="p-4 bg-slate-700 rounded shadow">
-      <h3 class="text-lg font-semibold mb-2">L2 Market Depth</h3>
-      <p class="text-sm text-gray-300">Real-time order book visualization</p>
+    <div class="widget">
+      <h3 class="widget-title">L2 Market Depth</h3>
+      <p class="widget-content">Real-time order book visualization</p>
     </div>
-  `
+  `,
+  styles: [`
+    .widget {
+      padding: 1rem;
+      background-color: #334155;
+      border-radius: 0.25rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+    .widget-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .widget-content {
+      font-size: 0.875rem;
+      color: #d1d5db;
+    }
+  `]
 })
 export class MarketDepthComponent {}
 
@@ -42,12 +59,38 @@ export class MarketDepthComponent {}
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="p-4 bg-slate-700 rounded shadow">
-      <h3 class="text-lg font-semibold mb-2">Risk Matrix</h3>
-      <p class="text-sm text-gray-300">Portfolio VaR: <span class="text-yellow-400 font-mono">1.2%</span></p>
-      <p class="text-xs text-gray-400 mt-2">Value at Risk (95% confidence)</p>
+    <div class="widget">
+      <h3 class="widget-title">Risk Matrix</h3>
+      <p class="widget-content">Portfolio VaR: <span class="var-value">1.2%</span></p>
+      <p class="widget-subtitle">Value at Risk (95% confidence)</p>
     </div>
-  `
+  `,
+  styles: [`
+    .widget {
+      padding: 1rem;
+      background-color: #334155;
+      border-radius: 0.25rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+    .widget-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .widget-content {
+      font-size: 0.875rem;
+      color: #d1d5db;
+    }
+    .var-value {
+      color: #fbbf24;
+      font-family: monospace;
+    }
+    .widget-subtitle {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 0.5rem;
+    }
+  `]
 })
 export class RiskMatrixComponent {}
 
@@ -60,12 +103,34 @@ export class RiskMatrixComponent {}
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="p-4 bg-slate-700 rounded shadow">
-      <h3 class="text-lg font-semibold mb-2">News Terminal</h3>
-      <p class="text-sm text-gray-300">Bloomberg Feed: Fed Rate Decision</p>
-      <p class="text-xs text-gray-400 mt-2">Latest financial news and updates</p>
+    <div class="widget">
+      <h3 class="widget-title">News Terminal</h3>
+      <p class="widget-content">Bloomberg Feed: Fed Rate Decision</p>
+      <p class="widget-subtitle">Latest financial news and updates</p>
     </div>
-  `
+  `,
+  styles: [`
+    .widget {
+      padding: 1rem;
+      background-color: #334155;
+      border-radius: 0.25rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+    .widget-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .widget-content {
+      font-size: 0.875rem;
+      color: #d1d5db;
+    }
+    .widget-subtitle {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 0.5rem;
+    }
+  `]
 })
 export class NewsTerminalComponent {}
 
@@ -78,19 +143,58 @@ export class NewsTerminalComponent {}
   standalone: true,
   imports: [CommonModule, MarketDepthComponent, RiskMatrixComponent, NewsTerminalComponent],
   template: `
-    <h2 class="text-xl mb-4 font-bold text-slate-300">Trading Desk: {{ deskName() }}</h2>
+    <h2 class="dashboard-title">Trading Desk: {{ deskName() }}</h2>
       
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="dashboard-grid">
       @for (widgetId of layout(); track widgetId) {
         @switch (widgetId) {
-          @case ('market-depth') { <app-market-depth class="col-span-1" /> }
-          @case ('risk-matrix') { <app-risk-matrix class="col-span-1 md:col-span-2" /> }
-          @case ('news-terminal') { <app-news-terminal class="col-span-1" /> }
-          @default { <div class="p-4 border border-dashed border-slate-600">Widget: {{widgetId}}</div> }
+          @case ('market-depth') { <app-market-depth class="grid-item" /> }
+          @case ('risk-matrix') { <app-risk-matrix class="grid-item-wide" /> }
+          @case ('news-terminal') { <app-news-terminal class="grid-item" /> }
+          @default { <div class="placeholder-widget">Widget: {{widgetId}}</div> }
         }
       }
     </div>
-  `
+  `,
+  styles: [`
+    .dashboard-title {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: bold;
+      color: #cbd5e1;
+    }
+    
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .grid-item-wide {
+        grid-column: span 2;
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      .grid-item-wide {
+        grid-column: span 2;
+      }
+    }
+    
+    .placeholder-widget {
+      padding: 1rem;
+      border: 2px dashed #475569;
+    }
+  `]
 })
 export class DashboardComponent {
   private featureService = inject(FeatureService);

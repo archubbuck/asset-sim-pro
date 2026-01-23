@@ -17,6 +17,7 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../auth/auth.factory';
 import { LoggerService } from '../logger/logger.service';
 import { LayoutModule, DrawerItem, DrawerSelectEvent } from '@progress/kendo-angular-layout';
+import { NavigationModule } from '@progress/kendo-angular-navigation';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { menuIcon } from '@progress/kendo-svg-icons';
@@ -24,17 +25,17 @@ import { menuIcon } from '@progress/kendo-svg-icons';
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterModule, LayoutModule, ButtonsModule, IndicatorsModule],
+  imports: [CommonModule, RouterModule, LayoutModule, NavigationModule, ButtonsModule, IndicatorsModule],
   template: `
-    <kendo-appbar position="top" class="bg-slate-900 text-white border-b border-slate-700">
+    <kendo-appbar position="top" class="app-bar">
       <kendo-appbar-section>
         <button kendoButton fillMode="flat" [svgIcon]="icons.menu" (click)="drawer.toggle()"></button>
-        <span class="text-xl font-bold ml-4 text-blue-400">AssetSim Pro</span>
+        <span class="app-title">AssetSim Pro</span>
       </kendo-appbar-section>
       <kendo-appbar-spacer></kendo-appbar-spacer>
       <kendo-appbar-section>
-        <span class="mx-3 text-xs uppercase text-gray-400">Buying Power</span>
-        <span class="mx-3 text-sm font-mono text-green-400">{{ buyingPower() | currency:'USD':'symbol':'1.0-0' }}</span>
+        <span class="buying-power-label">Buying Power</span>
+        <span class="buying-power-value">{{ buyingPower() | currency:'USD':'symbol':'1.0-0' }}</span>
         <kendo-avatar [initials]="userInitials()" shape="circle" themeColor="primary"></kendo-avatar>
       </kendo-appbar-section>
     </kendo-appbar>
@@ -43,7 +44,7 @@ import { menuIcon } from '@progress/kendo-svg-icons';
       <kendo-drawer #drawer mode="push" [items]="navItems" [expanded]="true" [mini]="true" (select)="onSelect($event)">
       </kendo-drawer>
       <kendo-drawer-content>
-        <div class="p-6 bg-slate-800 h-full text-white"><router-outlet></router-outlet></div>
+        <div class="drawer-content"><router-outlet></router-outlet></div>
       </kendo-drawer-content>
     </kendo-drawer-container>
   `,
@@ -54,12 +55,43 @@ import { menuIcon } from '@progress/kendo-svg-icons';
       overflow: hidden;
     }
 
-    kendo-drawer-container {
-      height: calc(100vh - 56px); /* Subtract AppBar height */
+    .app-bar {
+      background-color: #0f172a;
+      color: white;
+      border-bottom: 1px solid #334155;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     }
 
-    kendo-appbar {
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    .app-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-left: 1rem;
+      color: #3b82f6;
+    }
+
+    .buying-power-label {
+      margin: 0 0.75rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    .buying-power-value {
+      margin: 0 0.75rem;
+      font-size: 0.875rem;
+      font-family: monospace;
+      color: #4ade80;
+    }
+
+    kendo-drawer-container {
+      height: calc(100vh - 56px);
+    }
+
+    .drawer-content {
+      padding: 1.5rem;
+      background-color: #1e293b;
+      height: 100%;
+      color: white;
     }
   `]
 })
@@ -73,15 +105,15 @@ export class AppShellComponent {
   public userInitials = computed(() => this.auth.user()?.userDetails.substring(0, 2).toUpperCase() || 'US');
 
   public navItems: DrawerItem[] = [
-    { text: 'Terminal', icon: 'k-i-grid', path: '/dashboard', selected: true },
-    { text: 'Fund Performance', icon: 'k-i-dollar', path: '/portfolio' },
-    { text: 'Execution', icon: 'k-i-chart-line-markers', path: '/trade' }
+    { text: 'Terminal', icon: 'k-i-grid', id: '/dashboard', selected: true },
+    { text: 'Fund Performance', icon: 'k-i-dollar', id: '/portfolio' },
+    { text: 'Execution', icon: 'k-i-chart-line-markers', id: '/trade' }
   ];
 
   public onSelect(ev: DrawerSelectEvent): void {
-    if (ev.item.path) {
-      this.logger.logEvent('Navigation', { target: ev.item.path });
-      this.router.navigate([ev.item.path]);
+    if (ev.item.id) {
+      this.logger.logEvent('Navigation', { target: ev.item.id });
+      this.router.navigate([ev.item.id]);
     }
   }
 }

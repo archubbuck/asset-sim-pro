@@ -81,7 +81,7 @@ describe('AppShellComponent', () => {
 
   it('should navigate and log event on drawer item selection', () => {
     const mockEvent = {
-      item: { text: 'Terminal', path: '/dashboard' }
+      item: { text: 'Terminal', id: '/dashboard' }
     } as any;
 
     component.onSelect(mockEvent);
@@ -90,7 +90,7 @@ describe('AppShellComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
-  it('should not navigate if item has no path', () => {
+  it('should not navigate if item has no id', () => {
     const mockEvent = {
       item: { text: 'No Path' }
     } as any;
