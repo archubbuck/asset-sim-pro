@@ -5,3 +5,4 @@ export * from './lib/logger/logger.service';
 export * from './lib/auth/auth.interface';
 export * from './lib/auth/auth.factory';
 export * from './lib/models/problem-details';
+export * from './lib/feature/feature.service';
