@@ -20,6 +20,27 @@ const ExchangeRulesQuerySchema = z.object({
 });
 
 /**
+ * Database record types for type-safe query results
+ */
+interface RoleRecord {
+  Role: string;
+}
+
+interface ConfigRecord {
+  VolatilityIndex: number;
+  StartingCash: number;
+  Commission: number;
+  AllowMargin: boolean;
+  MaxPortfolioSize: number;
+  DashboardLayout: string;
+}
+
+interface FlagRecord {
+  FeatureName: string;
+  IsEnabled: boolean;
+}
+
+/**
  * GET /api/v1/exchange/rules
  * 
  * Retrieves feature flags and exchange configuration for the specified exchange
@@ -77,7 +98,7 @@ export async function getExchangeRules(
     const roleCheck = await pool.request()
       .input('exchangeId', sql.UniqueIdentifier, validExchangeId)
       .input('userId', sql.UniqueIdentifier, user.userId)
-      .query(`
+      .query<RoleRecord>(`
         SELECT Role 
         FROM [Trade].[ExchangeRoles]
         WHERE ExchangeId = @exchangeId AND UserId = @userId
@@ -90,7 +111,7 @@ export async function getExchangeRules(
       );
     }
 
-    context.log(`User ${user.userId} has role(s) in exchange ${validExchangeId}: ${roleCheck.recordset.map((r: any) => r.Role).join(', ')}`);
+    context.log(`User ${user.userId} has role(s) in exchange ${validExchangeId}: ${roleCheck.recordset.map((r: RoleRecord) => r.Role).join(', ')}`);
 
     // 4. Try to get configuration from cache first (ADR-008)
     let cachedConfig = await getExchangeConfig(validExchangeId);
@@ -102,7 +123,7 @@ export async function getExchangeRules(
     // 5. Query Exchange Configuration from database
     const configResult = await pool.request()
       .input('exchangeId', sql.UniqueIdentifier, validExchangeId)
-      .query(`
+      .query<ConfigRecord>(`
         SELECT 
           ec.VolatilityIndex,
           ec.StartingCash,
@@ -126,7 +147,7 @@ export async function getExchangeRules(
     // 6. Query Feature Flags from database
     const flagsResult = await pool.request()
       .input('exchangeId', sql.UniqueIdentifier, validExchangeId)
-      .query(`
+      .query<FlagRecord>(`
         SELECT FeatureName, IsEnabled
         FROM [Trade].[ExchangeFeatureFlags]
         WHERE ExchangeId = @exchangeId
@@ -134,7 +155,7 @@ export async function getExchangeRules(
 
     // Transform feature flags array to key-value pairs
     const flags: ExchangeFeatureFlags = {};
-    flagsResult.recordset.forEach((flag: any) => {
+    flagsResult.recordset.forEach((flag: FlagRecord) => {
       flags[flag.FeatureName] = flag.IsEnabled;
     });
 
