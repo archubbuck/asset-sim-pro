@@ -1,5 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
+import Decimal from 'decimal.js';
 import { z } from 'zod';
 import { FeatureFlagResponse, ExchangeConfig, ExchangeFeatureFlags } from '@assetsim/shared/finance-models';
 import { getConnectionPool } from '../lib/database';
@@ -114,37 +115,67 @@ export async function getExchangeRules(
     context.log(`User ${user.userId} has role(s) in exchange ${validExchangeId}: ${roleCheck.recordset.map((r: RoleRecord) => r.Role).join(', ')}`);
 
     // 4. Try to get configuration from cache first (ADR-008)
-    let cachedConfig = await getExchangeConfig(validExchangeId);
+    const cachedConfig = await getExchangeConfig(validExchangeId);
+    
+    let dbConfig: ConfigRecord;
     
     if (cachedConfig) {
       context.log(`Cache hit for exchange ${validExchangeId} configuration`);
+      
+      // Use cached configuration, avoiding database query
+      dbConfig = {
+        VolatilityIndex: cachedConfig.volatilityIndex || 1.0,
+        StartingCash: cachedConfig.startingCash || 10000000.00,
+        Commission: cachedConfig.commission || 5.00,
+        AllowMargin: cachedConfig.allowMargin !== undefined ? cachedConfig.allowMargin : true,
+        MaxPortfolioSize: cachedConfig.maxPortfolioSize || 50,
+        DashboardLayout: cachedConfig.dashboardLayout || '[]',
+      };
+    } else {
+      context.log(`Cache miss for exchange ${validExchangeId} configuration, querying database`);
+      
+      // 5. Query Exchange Configuration from database
+      const configResult = await pool.request()
+        .input('exchangeId', sql.UniqueIdentifier, validExchangeId)
+        .query<ConfigRecord>(`
+          SELECT 
+            ec.VolatilityIndex,
+            ec.StartingCash,
+            ec.Commission,
+            ec.AllowMargin,
+            ec.MaxPortfolioSize,
+            ec.DashboardLayout
+          FROM [Trade].[ExchangeConfigurations] ec
+          INNER JOIN [Trade].[Exchanges] e ON ec.ExchangeId = e.ExchangeId
+          WHERE ec.ExchangeId = @exchangeId
+        `);
+
+      if (configResult.recordset.length === 0) {
+        return createNotFoundResponse(
+          'Exchange not found or configuration not initialized'
+        );
+      }
+
+      dbConfig = configResult.recordset[0];
+      
+      // Cache the configuration for future requests (5 minutes TTL)
+      try {
+        await cacheExchangeConfig(validExchangeId, {
+          volatilityIndex: dbConfig.VolatilityIndex,
+          startingCash: dbConfig.StartingCash,
+          commission: dbConfig.Commission,
+          allowMargin: dbConfig.AllowMargin,
+          maxPortfolioSize: dbConfig.MaxPortfolioSize,
+          dashboardLayout: dbConfig.DashboardLayout,
+        });
+        context.log(`Configuration cached for exchange ${validExchangeId}`);
+      } catch (cacheError) {
+        // Log but don't fail the request if caching fails
+        context.warn(`Failed to cache exchange config: ${cacheError}`);
+      }
     }
 
-    // 5. Query Exchange Configuration from database
-    const configResult = await pool.request()
-      .input('exchangeId', sql.UniqueIdentifier, validExchangeId)
-      .query<ConfigRecord>(`
-        SELECT 
-          ec.VolatilityIndex,
-          ec.StartingCash,
-          ec.Commission,
-          ec.AllowMargin,
-          ec.MaxPortfolioSize,
-          ec.DashboardLayout
-        FROM [Trade].[ExchangeConfigurations] ec
-        INNER JOIN [Trade].[Exchanges] e ON ec.ExchangeId = e.ExchangeId
-        WHERE ec.ExchangeId = @exchangeId
-      `);
-
-    if (configResult.recordset.length === 0) {
-      return createNotFoundResponse(
-        'Exchange not found or configuration not initialized'
-      );
-    }
-
-    const dbConfig = configResult.recordset[0];
-
-    // 6. Query Feature Flags from database
+    // 6. Query Feature Flags from database (not cached separately)
     const flagsResult = await pool.request()
       .input('exchangeId', sql.UniqueIdentifier, validExchangeId)
       .query<FlagRecord>(`
@@ -168,32 +199,16 @@ export async function getExchangeRules(
       dashboardLayout = ['market-status', 'holdings-blotter'];
     }
 
-    // 8. Build ExchangeConfig response
+    // 8. Build ExchangeConfig response using Decimal.js for financial precision (ADR-006)
     const configuration: ExchangeConfig = {
-      initialAum: parseFloat(dbConfig.StartingCash),
-      commissionBps: parseFloat(dbConfig.Commission),
+      initialAum: new Decimal(dbConfig.StartingCash).toNumber(),
+      commissionBps: new Decimal(dbConfig.Commission).toNumber(),
       allowMargin: dbConfig.AllowMargin,
-      volatilityIndex: parseFloat(dbConfig.VolatilityIndex),
+      volatilityIndex: new Decimal(dbConfig.VolatilityIndex).toNumber(),
       dashboardLayout,
     };
 
-    // 9. Cache the configuration for future requests (5 minutes TTL)
-    try {
-      await cacheExchangeConfig(validExchangeId, {
-        volatilityIndex: configuration.volatilityIndex,
-        startingCash: configuration.initialAum,
-        commission: configuration.commissionBps,
-        allowMargin: configuration.allowMargin,
-        maxPortfolioSize: dbConfig.MaxPortfolioSize,
-        dashboardLayout: dbConfig.DashboardLayout,
-      });
-      context.log(`Configuration cached for exchange ${validExchangeId}`);
-    } catch (cacheError) {
-      // Log but don't fail the request if caching fails
-      context.warn(`Failed to cache exchange config: ${cacheError}`);
-    }
-
-    // 10. Build and return FeatureFlagResponse
+    // 9. Build and return FeatureFlagResponse
     const response: FeatureFlagResponse = {
       flags,
       configuration,

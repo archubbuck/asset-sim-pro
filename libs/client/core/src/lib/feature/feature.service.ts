@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom, tap } from 'rxjs';
 import { FeatureFlagResponse } from '@assetsim/shared/finance-models';
 import { LoggerService } from '../logger/logger.service';
@@ -77,8 +77,10 @@ export class FeatureService {
    */
   public async loadFeatures(exchangeId: string): Promise<FeatureFlagResponse> {
     try {
+      const params = new HttpParams().set('exchangeId', exchangeId);
+      
       const data = await firstValueFrom(
-        this.http.get<FeatureFlagResponse>(`/api/v1/exchange/rules?exchangeId=${exchangeId}`).pipe(
+        this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules', { params }).pipe(
           tap(response => {
             this.#state.set(response);
             this.logger.logEvent('ExchangeRulesLoaded', {
