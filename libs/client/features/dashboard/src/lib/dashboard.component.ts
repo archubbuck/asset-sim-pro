@@ -12,7 +12,7 @@
  * - Responsive grid layout
  * - Signal-based reactive state management
  */
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FeatureService } from '@assetsim/client/core';
 
@@ -199,5 +199,5 @@ export class NewsTerminalComponent {}
 export class DashboardComponent {
   private featureService = inject(FeatureService);
   public deskName = signal("Alpha Strategy Fund I");
-  public layout = signal(this.featureService.config().dashboardLayout);
+  public layout = computed(() => this.featureService.config().dashboardLayout);
 }

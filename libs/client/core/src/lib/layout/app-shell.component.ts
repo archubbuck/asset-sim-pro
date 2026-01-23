@@ -102,7 +102,10 @@ export class AppShellComponent {
   public icons = { menu: menuIcon };
     
   public buyingPower = signal(10000000);
-  public userInitials = computed(() => this.auth.user()?.userDetails.substring(0, 2).toUpperCase() || 'US');
+  public userInitials = computed(() => {
+    const userDetails = this.auth.user()?.userDetails;
+    return userDetails && userDetails.length >= 2 ? userDetails.substring(0, 2).toUpperCase() : 'US';
+  });
 
   public navItems: DrawerItem[] = [
     { text: 'Terminal', icon: 'k-i-grid', id: '/dashboard', selected: true },
