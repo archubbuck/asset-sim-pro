@@ -138,6 +138,7 @@ describe('FeatureService', () => {
       req.flush('API Error', { status: 500, statusText: 'Internal Server Error' });
 
       await expect(loadPromise).rejects.toBeDefined();
+      expect(mockLogger.logException).toHaveBeenCalled();
     });
 
     it('should handle network errors', async () => {
@@ -147,6 +148,7 @@ describe('FeatureService', () => {
       req.error(new ProgressEvent('Network error'));
 
       await expect(loadPromise).rejects.toBeDefined();
+      expect(mockLogger.logException).toHaveBeenCalled();
     });
 
     it('should update state atomically on successful load', async () => {

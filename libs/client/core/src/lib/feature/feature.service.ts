@@ -74,17 +74,24 @@ export class FeatureService {
    * @returns Promise resolving to the loaded FeatureFlagResponse
    * @throws Error if API call fails
    */
-  public loadFeatures(): Promise<FeatureFlagResponse> {
-    return firstValueFrom(
-      this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules').pipe(
-        tap(data => {
-          this.#state.set(data);
-          this.logger.logEvent('ExchangeRulesLoaded', {
-            volatility: data.configuration.volatilityIndex
-          });
-        })
-      )
-    );
+  public async loadFeatures(): Promise<FeatureFlagResponse> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules').pipe(
+          tap(response => {
+            this.#state.set(response);
+            this.logger.logEvent('ExchangeRulesLoaded', {
+              volatility: response.configuration.volatilityIndex
+            });
+          })
+        )
+      );
+
+      return data;
+    } catch (error) {
+      this.logger.logException(error instanceof Error ? error : new Error('Failed to load features'));
+      throw error;
+    }
   }
 
   /**
