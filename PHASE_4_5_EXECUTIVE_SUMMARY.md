@@ -85,7 +85,7 @@ Core frontend infrastructure is complete with strong backend integration. Fronte
 - **Effort:** 1 day
 
 **4. Component Test Failures**
-- **Problem:** 12 tests failing due to missing animation provider in test setup
+- **Problem:** 9 tests failing due to missing animation provider in test setup (8 in app-shell.component.spec.ts, 1 in app.spec.ts)
 - **Impact:** CI/CD blocked
 - **Solution:** Add `provideAnimations()` to test configurations
 - **Effort:** 1 day
@@ -98,7 +98,7 @@ Core frontend infrastructure is complete with strong backend integration. Fronte
 
 ### Metrics
 - **Tests Passing:** 68 tests
-- **Tests Failing:** 12 tests (animation provider)
+- **Tests Failing:** 9 tests (animation provider)
 - **Frontend Libraries:** 2 (`@assetsim/client/core`, `@assetsim/shared/finance-models`)
 - **Components:** 1 (AppShellComponent)
 - **Services:** 7 (Logger, Auth, Feature, Error Interceptor, Error Notification, etc.)

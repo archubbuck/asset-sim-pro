@@ -274,7 +274,7 @@ this.appInsights = new ApplicationInsights({
 
 ### Frontend Tests ⚠️ NEEDS WORK
 
-**Test Results:** 68 passed | 12 failed (animation provider issues)
+**Test Results:** 68 passed | 9 failed (animation provider issues)
 
 | Library | Tests Passing | Tests Failing | Status |
 |---------|---------------|---------------|--------|
@@ -286,12 +286,12 @@ this.appInsights = new ApplicationInsights({
 | `error.interceptor.spec.ts` | 10 | 0 | ✅ Pass |
 | `error-notification.service.spec.ts` | 8 | 0 | ✅ Pass |
 | `problem-details.spec.ts` | 8 | 0 | ✅ Pass |
-| `app-shell.component.spec.ts` | 0 | 12 | ❌ Fail |
-| **Client App Tests** | 0 | 1 | ❌ Fail (TypeScript error) |
+| `app-shell.component.spec.ts` | 0 | 8 | ❌ Fail |
+| `app.spec.ts` (client app) | 0 | 1 | ❌ Fail (TypeScript error) |
 
 **Issues:**
-1. **Animation Provider Missing:** `app-shell.component.spec.ts` fails because tests don't provide `provideAnimations()`
-2. **Protected Property Access:** `app.spec.ts` fails accessing protected `title()` method
+1. **Animation Provider Missing:** `app-shell.component.spec.ts` (8 tests) fails because tests don't provide `provideAnimations()`
+2. **Protected Property Access:** `app.spec.ts` (1 test) fails accessing protected `title()` method
 3. **Integration Tests:** No end-to-end tests for API integration
 
 **Fixes Required:**

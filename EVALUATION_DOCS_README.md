@@ -220,8 +220,8 @@
 
 ### Phase 5 (Frontend)
 - **Completion:** 65%
-- **Test Coverage:** 85% passing (68 tests)
-- **Tests:** 68 passing | 12 failing (animation provider)
+- **Test Coverage:** 88% passing (68 tests)
+- **Tests:** 68 passing | 9 failing (animation provider)
 - **Services:** 7 core services
 - **Components:** 1 (AppShellComponent)
 - **Libraries:** 2 (`@assetsim/client/core`, `@assetsim/shared/finance-models`)
@@ -268,15 +268,14 @@
 
 ## Document Metadata
 
-| Document | Size | Lines | Last Updated |
-|----------|------|-------|--------------|
-| PHASE_4_5_EXECUTIVE_SUMMARY.md | 13KB | 361 | Jan 23, 2026 |
-| EVALUATION_SUMMARY.md | 14KB | 335 | Jan 23, 2026 |
-| PHASE_5_EVALUATION.md | 22KB | 750 | Jan 23, 2026 |
-| BACKEND_FRONTEND_INTEGRATION.md | 18KB | 548 | Jan 23, 2026 |
-| PHASE_3_4_EVALUATION.md | 17KB | 441 | Jan 21, 2026 |
-| PHASE_1_2_EVALUATION.md | 43KB | 1247 | Jan 21, 2026 |
-| **Total** | **127KB** | **3682** | - |
+| Document | Description | Last Updated |
+|----------|-------------|--------------|
+| PHASE_4_5_EXECUTIVE_SUMMARY.md | Executive overview of Phase 4 & 5 status | Jan 23, 2026 |
+| EVALUATION_SUMMARY.md | Cross-phase evaluation status and key decisions | Jan 23, 2026 |
+| PHASE_5_EVALUATION.md | Detailed Phase 5 implementation and verification | Jan 23, 2026 |
+| BACKEND_FRONTEND_INTEGRATION.md | Backend–frontend integration design and gaps | Jan 23, 2026 |
+| PHASE_3_4_EVALUATION.md | Phase 3 & 4 verification details | Jan 21, 2026 |
+| PHASE_1_2_EVALUATION.md | Phase 1 & 2 verification details | Jan 21, 2026 |
 
 ---
 

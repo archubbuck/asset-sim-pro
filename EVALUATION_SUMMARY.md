@@ -267,7 +267,7 @@ The AssetSim Pro platform successfully implements:
 | **AzureAuthService** (ADR-020) | ✅ Complete | 6 passing | ✅ Complete |
 | **MockAuthService** (ADR-020) | ✅ Complete | 6 passing | ✅ Complete |
 | **FeatureService** (ADR-021) | ✅ Complete | 8 passing | ✅ Complete |
-| **AppShellComponent** (ADR-022) | ✅ Complete | 0/12 passing | ⚠️ Test issues |
+| **AppShellComponent** (ADR-022) | ✅ Complete | 0/8 passing | ⚠️ Test issues |
 | **Error Interceptor** | ✅ Complete | 10 passing | ✅ Complete |
 | **Error Notification** | ✅ Complete | 8 passing | ✅ Complete |
 
@@ -297,7 +297,7 @@ The AssetSim Pro platform successfully implements:
    - **Recommendation:** Create `getExchangeRules.ts` function
 
 4. **⚠️ Component Test Failures**
-   - 12 tests failing due to missing animation provider in test setup
+   - 9 tests failing due to missing animation provider (8 in app-shell.component.spec.ts, 1 in app.spec.ts)
    - **Fix:** Add `provideAnimations()` to test configurations
 
 5. **❌ No Trading UI Components**
@@ -309,7 +309,7 @@ The AssetSim Pro platform successfully implements:
 | Test Suite | Passing | Failing | Status |
 |------------|---------|---------|--------|
 | **Backend Tests** | 83 | 2 (dependency issues) | ✅ Good |
-| **Frontend Core Tests** | 68 | 12 (animation provider) | ⚠️ Needs Fix |
+| **Frontend Core Tests** | 68 | 9 (animation provider) | ⚠️ Needs Fix |
 | **E2E Tests** | 0 | 0 (not implemented) | ❌ Missing |
 
 ### Phase 5 Completion Roadmap
