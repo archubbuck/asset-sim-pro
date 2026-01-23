@@ -4,4 +4,4 @@ export * from './lib/error-handling/error-notification.component';
 export * from './lib/logger/logger.service';
 export * from './lib/auth/auth.interface';
 export * from './lib/auth/auth.factory';
-export type { ProblemDetails } from '@assetsim/shared/error-models';
+export * from './lib/models/problem-details';
