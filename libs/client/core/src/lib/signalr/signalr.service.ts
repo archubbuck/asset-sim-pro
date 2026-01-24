@@ -3,6 +3,8 @@ import * as signalR from '@microsoft/signalr';
 import { MessagePackHubProtocol } from '@microsoft/signalr-protocol-msgpack';
 import { PriceUpdateEvent } from '@assetsim/shared/finance-models';
 import { LoggerService } from '../logger/logger.service';
+import { Subject, throttleTime } from 'rxjs';
+import Decimal from 'decimal.js';
 
 /**
  * Configuration interface for SignalR Service
@@ -83,14 +85,18 @@ export class SignalRService {
   
   // Signals for reactive state
   #connectionState = signal<ConnectionState>(ConnectionState.Disconnected);
+  #isConnected = signal<boolean>(false);
   #latestPrices = signal<Map<string, PriceUpdateEvent>>(new Map());
   #currentExchangeId = signal<string | null>(null);
   
   // Read-only signals for consumers
   public readonly connectionState = this.#connectionState.asReadonly();
-  public readonly isConnected = signal<boolean>(false);
+  public readonly isConnected = this.#isConnected.asReadonly();
   public readonly latestPrices = this.#latestPrices.asReadonly();
   public readonly currentExchangeId = this.#currentExchangeId.asReadonly();
+
+  // RxJS subject for throttling high-frequency price updates (ADR-006)
+  private priceUpdateSubject = new Subject<PriceUpdateEvent>();
 
   // Emulation interval for local development
   private emulationInterval: ReturnType<typeof setInterval> | null = null;
@@ -98,6 +104,21 @@ export class SignalRService {
 
   constructor(@Optional() @Inject(SIGNALR_CONFIG) config?: SignalRConfig) {
     this.config = config || { enableProduction: false };
+    
+    // Setup throttled price update handler (ADR-006: 250ms throttle for market data)
+    this.priceUpdateSubject
+      .pipe(throttleTime(250))
+      .subscribe(data => {
+        const prices = new Map(this.#latestPrices());
+        prices.set(data.symbol, data);
+        this.#latestPrices.set(prices);
+        
+        this.logger.logTrace('Price update received', { 
+          symbol: data.symbol, 
+          price: data.price,
+          change: data.change
+        });
+      });
     
     // Auto-cleanup on component destruction
     this.destroyRef.onDestroy(() => {
@@ -164,20 +185,24 @@ export class SignalRService {
       // Start connection
       await this.connection.start();
       
-      // Join exchange-specific group
-      await this.connection.invoke('JoinGroup', `ticker:${exchangeId}`);
+      // NOTE: Azure Web PubSub requires server-side group management
+      // Group subscription should be handled via an HTTP endpoint that calls
+      // addToTickerGroup from signalr-broadcast.ts
+      // For now, connection is established but group subscription needs backend endpoint
+      // TODO: Create Azure Function endpoint /api/signalr/join/{exchangeId}
       
       this.#connectionState.set(ConnectionState.Connected);
-      this.isConnected.set(true);
+      this.#isConnected.set(true);
       
       this.logger.logEvent('SignalRConnected', { 
         exchangeId, 
         mode: 'production',
-        hubUrl 
+        hubUrl,
+        note: 'Group subscription requires backend HTTP endpoint'
       });
     } catch (error) {
       this.#connectionState.set(ConnectionState.Failed);
-      this.isConnected.set(false);
+      this.#isConnected.set(false);
       
       const err = error as Error;
       this.logger.logException(err, 3); // Error severity
@@ -193,25 +218,28 @@ export class SignalRService {
 
     this.connection.onreconnecting(() => {
       this.#connectionState.set(ConnectionState.Reconnecting);
-      this.isConnected.set(false);
+      this.#isConnected.set(false);
       this.logger.logTrace('SignalR reconnecting...');
     });
 
     this.connection.onreconnected((connectionId) => {
       this.#connectionState.set(ConnectionState.Connected);
-      this.isConnected.set(true);
+      this.#isConnected.set(true);
       this.logger.logEvent('SignalRReconnected', { connectionId });
       
-      // Re-join group after reconnection
+      // NOTE: After reconnection, group re-subscription needs backend HTTP call
+      // Cannot use client-side invoke with Azure Web PubSub
       const exchangeId = this.#currentExchangeId();
-      if (exchangeId && this.connection) {
-        void this.connection.invoke('JoinGroup', `ticker:${exchangeId}`);
+      if (exchangeId) {
+        this.logger.logTrace('Reconnected - group resubscription requires backend endpoint', {
+          exchangeId
+        });
       }
     });
 
     this.connection.onclose((error) => {
       this.#connectionState.set(ConnectionState.Disconnected);
-      this.isConnected.set(false);
+      this.#isConnected.set(false);
       
       if (error) {
         this.logger.logException(error as Error, 2); // Warning severity
@@ -223,21 +251,19 @@ export class SignalRService {
 
   /**
    * Setup price update message handler
+   * 
+   * NOTE: Azure Web PubSub sends raw MessagePack-encoded binary data,
+   * not standard SignalR protocol messages with target/arguments structure.
+   * The MessagePackHubProtocol handles decoding automatically.
    */
   private setupPriceUpdateHandler(): void {
     if (!this.connection) return;
 
+    // Azure Web PubSub with MessagePack protocol automatically decodes messages
+    // and triggers the appropriate event handler
     this.connection.on('PriceUpdate', (data: PriceUpdateEvent) => {
-      // Update the prices map with new data
-      const prices = new Map(this.#latestPrices());
-      prices.set(data.symbol, data);
-      this.#latestPrices.set(prices);
-      
-      this.logger.logTrace('Price update received', { 
-        symbol: data.symbol, 
-        price: data.price,
-        change: data.change
-      });
+      // Send to throttled subject (ADR-006: 250ms throttle for market data)
+      this.priceUpdateSubject.next(data);
     });
   }
 
@@ -264,7 +290,7 @@ export class SignalRService {
     this.#latestPrices.set(prices);
     
     this.#connectionState.set(ConnectionState.Connected);
-    this.isConnected.set(true);
+    this.#isConnected.set(true);
 
     // Generate updates every 1 second
     this.emulationInterval = setInterval(() => {
@@ -275,15 +301,17 @@ export class SignalRService {
         if (!currentPrice) return;
 
         // Random price movement: -2% to +2%
+        // ADR-006: Use Decimal.js for all financial calculations
         const changePercent = (Math.random() - 0.5) * 4; // -2 to +2
-        const change = currentPrice.price * (changePercent / 100);
-        const newPrice = currentPrice.price + change;
+        const priceDecimal = new Decimal(currentPrice.price);
+        const changeDecimal = priceDecimal.times(changePercent).dividedBy(100);
+        const newPriceDecimal = priceDecimal.plus(changeDecimal);
 
         const update: PriceUpdateEvent = {
           exchangeId,
           symbol,
-          price: newPrice,
-          change,
+          price: newPriceDecimal.toNumber(),
+          change: changeDecimal.toNumber(),
           changePercent,
           volume: currentPrice.volume + Math.floor(Math.random() * 10000),
           timestamp: new Date().toISOString(),
@@ -318,7 +346,7 @@ export class SignalRService {
     }
 
     this.#connectionState.set(ConnectionState.Disconnected);
-    this.isConnected.set(false);
+    this.#isConnected.set(false);
     this.#currentExchangeId.set(null);
     this.#latestPrices.set(new Map());
     

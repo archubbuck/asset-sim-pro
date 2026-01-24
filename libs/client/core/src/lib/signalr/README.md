@@ -134,7 +134,7 @@ export class ConnectionIndicatorComponent {
 ### Accessing Specific Symbol Prices
 
 ```typescript
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input, computed } from '@angular/core';
 import { SignalRService } from '@assetsim/client/core';
 
 @Component({
@@ -266,13 +266,16 @@ The frontend SignalR service integrates with the backend implementation:
 - Broadcasts via Azure Web PubSub
 - Uses MessagePack encoding
 - Groups: `ticker:{ExchangeId}`
-- Message: `{ target: 'PriceUpdate', arguments: [priceUpdate] }`
+- Message: Raw MessagePack-encoded `PriceUpdateEvent` payload
 
 **Frontend** (this service):
-- Subscribes to groups via `JoinGroup` invoke
-- Listens for `PriceUpdate` messages
-- Decodes MessagePack automatically
+- Connects to Azure Web PubSub hub
+- Group subscription requires backend HTTP endpoint (calls `addToTickerGroup` server-side)
+- Processes decoded `PriceUpdateEvent` payloads
+- RxJS throttling (250ms) prevents UI flooding (ADR-006)
 - Updates reactive signals
+
+**Note**: Azure Web PubSub requires server-side group management. A backend HTTP endpoint (e.g., `/api/signalr/join/{exchangeId}`) should call `addToTickerGroup` from `signalr-broadcast.ts` to add the connection to the appropriate group.
 
 ### Data Flow
 

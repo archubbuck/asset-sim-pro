@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SignalRService, ConnectionState } from '@assetsim/client/core';
+import { LoggerService } from '@assetsim/client/core';
 
 /**
  * Market Ticker Component
@@ -178,6 +179,7 @@ import { SignalRService, ConnectionState } from '@assetsim/client/core';
 })
 export class MarketTickerExampleComponent implements OnInit {
   protected signalR = inject(SignalRService);
+  private logger = inject(LoggerService);
 
   // In a real app, this would come from auth service or route params
   private exchangeId = 'demo-exchange-id';
@@ -186,7 +188,7 @@ export class MarketTickerExampleComponent implements OnInit {
     try {
       await this.signalR.connect(this.exchangeId);
     } catch (error) {
-      console.error('Failed to connect to market data:', error);
+      this.logger.logException(error as Error, 3); // Error severity
       // In a real app, show user-friendly error message
     }
   }
@@ -218,7 +220,7 @@ export class MarketTickerExampleComponent implements OnInit {
     try {
       await this.signalR.connect(this.exchangeId);
     } catch (error) {
-      console.error('Failed to reconnect:', error);
+      this.logger.logException(error as Error, 3); // Error severity
     }
   }
 }

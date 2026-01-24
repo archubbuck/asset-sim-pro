@@ -186,16 +186,17 @@ describe('SignalRService', () => {
       await service.connect(exchangeId);
 
       expect(mockConnection.start).toHaveBeenCalled();
-      expect(mockConnection.invoke).toHaveBeenCalledWith('JoinGroup', `ticker:${exchangeId}`);
+      // NOTE: JoinGroup no longer invoked - Azure Web PubSub requires server-side group management
+      expect(mockConnection.invoke).not.toHaveBeenCalled();
       expect(service.connectionState()).toBe(ConnectionState.Connected);
       expect(service.isConnected()).toBe(true);
       expect(mockLoggerService.logEvent).toHaveBeenCalledWith(
         'SignalRConnected',
-        {
+        expect.objectContaining({
           exchangeId,
           mode: 'production',
           hubUrl: '/api'
-        }
+        })
       );
     });
 
@@ -305,8 +306,12 @@ describe('SignalRService', () => {
       expect(service.connectionState()).toBe(ConnectionState.Connected);
       expect(service.isConnected()).toBe(true);
       
-      // Should rejoin the group
-      expect(mockConnection.invoke).toHaveBeenCalledWith('JoinGroup', `ticker:${exchangeId}`);
+      // NOTE: Group rejoin no longer happens via invoke - requires backend HTTP endpoint
+      expect(mockConnection.invoke).not.toHaveBeenCalled();
+      expect(mockLoggerService.logTrace).toHaveBeenCalledWith(
+        'Reconnected - group resubscription requires backend endpoint',
+        { exchangeId }
+      );
       
       expect(mockLoggerService.logEvent).toHaveBeenCalledWith(
         'SignalRReconnected',
