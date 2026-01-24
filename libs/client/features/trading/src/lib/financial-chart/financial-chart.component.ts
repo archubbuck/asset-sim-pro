@@ -265,15 +265,16 @@ interface OHLCData {
       margin-bottom: 0.25rem;
     }
 
-    :host ::ng-deep .k-chart {
+    /* Kendo Chart styling overrides */
+    :host .k-chart {
       color: #cbd5e1;
     }
 
-    :host ::ng-deep .k-chart-title {
+    :host .k-chart-title {
       color: #cbd5e1;
     }
 
-    :host ::ng-deep .k-chart-axis-labels {
+    :host .k-chart-axis-labels {
       color: #9ca3af;
     }
   `]

@@ -10,9 +10,9 @@ declare global {
   var $localize: any;
 }
 
-if (typeof global.$localize === 'undefined') {
-  global.$localize = (strings: TemplateStringsArray, ...values: readonly any[]) => {
-    return strings.reduce((acc, str, i) => acc + str + (values[i] || ''), '');
+if (typeof (globalThis as any).$localize === 'undefined') {
+  (globalThis as any).$localize = (strings: TemplateStringsArray, ...values: readonly any[]) => {
+    return strings.reduce((acc, str, i) => acc + str + (values[i] ?? ''), '');
   };
 }
 

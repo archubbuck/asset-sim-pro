@@ -300,9 +300,9 @@ export class OrderEntryComponent {
   });
 
   /**
-   * Update form field
+   * Update form field with type safety
    */
-  updateForm(field: keyof OrderForm, value: any): void {
+  updateForm<K extends keyof OrderForm>(field: K, value: OrderForm[K]): void {
     this.orderForm.update(form => ({ ...form, [field]: value }));
   }
 
@@ -339,6 +339,10 @@ export class OrderEntryComponent {
       this.statusMessage.set(`Order ${response.orderId} placed successfully!`);
       
       // Reset form after successful submission with proper cleanup
+      // Clear any existing timeout before scheduling a new one
+      if (this.resetTimeoutId !== null) {
+        clearTimeout(this.resetTimeoutId);
+      }
       this.resetTimeoutId = window.setTimeout(() => {
         this.resetForm();
         this.resetTimeoutId = null;
@@ -355,6 +359,12 @@ export class OrderEntryComponent {
    * Reset the form to default values
    */
   resetForm(): void {
+    // Clear any pending timeout
+    if (this.resetTimeoutId !== null) {
+      clearTimeout(this.resetTimeoutId);
+      this.resetTimeoutId = null;
+    }
+    
     this.orderForm.set({
       symbol: 'AAPL',
       side: 'BUY',

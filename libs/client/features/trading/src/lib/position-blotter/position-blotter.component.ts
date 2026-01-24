@@ -70,7 +70,7 @@ import { firstValueFrom } from 'rxjs';
           
           <kendo-grid-column field="orderId" title="Order ID" [width]="200">
             <ng-template kendoGridCellTemplate let-dataItem>
-              <span class="monospace">{{ dataItem.orderId.substring(0, 8) }}...</span>
+              <span class="monospace">{{ (dataItem.orderId ?? '').slice(0, 8) }}...</span>
             </ng-template>
           </kendo-grid-column>
           
@@ -249,12 +249,13 @@ import { firstValueFrom } from 'rxjs';
       color: #9ca3af;
     }
 
-    :host ::ng-deep .k-grid {
+    /* Kendo Grid styling overrides */
+    :host .k-grid {
       background-color: #1e293b;
       color: #cbd5e1;
     }
 
-    :host ::ng-deep .k-grid-header {
+    :host .k-grid-header {
       background-color: #0f172a;
     }
 
@@ -304,8 +305,8 @@ export class PositionBlotterComponent implements OnInit {
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.loadOrders();
+  async ngOnInit(): Promise<void> {
+    await this.loadOrders();
   }
 
   /**
