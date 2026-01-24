@@ -73,10 +73,12 @@ describe('FeatureService', () => {
   });
 
   describe('loadFeatures()', () => {
-    it('should fetch features from API endpoint', async () => {
-      const loadPromise = service.loadFeatures();
+    const mockExchangeId = '12345678-1234-1234-1234-123456789012';
 
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+    it('should fetch features from API endpoint with exchangeId query parameter', async () => {
+      const loadPromise = service.loadFeatures(mockExchangeId);
+
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       expect(req.request.method).toBe('GET');
       
       req.flush(mockFeatureResponse);
@@ -86,9 +88,9 @@ describe('FeatureService', () => {
     });
 
     it('should update flags signal after successful load', async () => {
-      const loadPromise = service.loadFeatures();
+      const loadPromise = service.loadFeatures(mockExchangeId);
 
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(mockFeatureResponse);
       
       await loadPromise;
@@ -101,9 +103,9 @@ describe('FeatureService', () => {
     });
 
     it('should update config signal after successful load', async () => {
-      const loadPromise = service.loadFeatures();
+      const loadPromise = service.loadFeatures(mockExchangeId);
 
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(mockFeatureResponse);
       
       await loadPromise;
@@ -117,24 +119,24 @@ describe('FeatureService', () => {
       expect(config.dashboardLayout).toEqual(['portfolio', 'risk-metrics', 'orders']);
     });
 
-    it('should log ExchangeRulesLoaded event with volatility', async () => {
-      const loadPromise = service.loadFeatures();
+    it('should log ExchangeRulesLoaded event with exchangeId and volatility', async () => {
+      const loadPromise = service.loadFeatures(mockExchangeId);
 
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(mockFeatureResponse);
       
       await loadPromise;
 
       expect(mockLogger.logEvent).toHaveBeenCalledWith(
         'ExchangeRulesLoaded',
-        { volatility: 1.5 }
+        { exchangeId: mockExchangeId, volatility: 1.5 }
       );
     });
 
     it('should handle API errors gracefully', async () => {
-      const loadPromise = service.loadFeatures();
+      const loadPromise = service.loadFeatures(mockExchangeId);
 
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush('API Error', { status: 500, statusText: 'Internal Server Error' });
 
       await expect(loadPromise).rejects.toBeDefined();
@@ -142,9 +144,9 @@ describe('FeatureService', () => {
     });
 
     it('should handle network errors', async () => {
-      const loadPromise = service.loadFeatures();
+      const loadPromise = service.loadFeatures(mockExchangeId);
 
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.error(new ProgressEvent('Network error'));
 
       await expect(loadPromise).rejects.toBeDefined();
@@ -152,9 +154,9 @@ describe('FeatureService', () => {
     });
 
     it('should update state atomically on successful load', async () => {
-      const loadPromise = service.loadFeatures();
+      const loadPromise = service.loadFeatures(mockExchangeId);
 
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(mockFeatureResponse);
       
       await loadPromise;
@@ -166,9 +168,11 @@ describe('FeatureService', () => {
   });
 
   describe('isEnabled()', () => {
+    const mockExchangeId = '12345678-1234-1234-1234-123456789012';
+
     beforeEach(async () => {
-      const loadPromise = service.loadFeatures();
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const loadPromise = service.loadFeatures(mockExchangeId);
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(mockFeatureResponse);
       await loadPromise;
     });
@@ -191,6 +195,7 @@ describe('FeatureService', () => {
     });
 
     it('should handle special characters in feature keys', () => {
+      const mockExchangeId = '12345678-1234-1234-1234-123456789012';
       // Load features with special characters
       const specialResponse: FeatureFlagResponse = {
         flags: {
@@ -201,8 +206,8 @@ describe('FeatureService', () => {
         configuration: mockFeatureResponse.configuration
       };
 
-      service.loadFeatures();
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      service.loadFeatures(mockExchangeId);
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(specialResponse);
 
       expect(service.isEnabled('feature-with-dashes')).toBe(true);
@@ -212,6 +217,8 @@ describe('FeatureService', () => {
   });
 
   describe('Reactive Signal Updates', () => {
+    const mockExchangeId = '12345678-1234-1234-1234-123456789012';
+
     it('should trigger computed signal updates when state changes', async () => {
       // Initial state
       const initialFlags = service.flags();
@@ -221,8 +228,8 @@ describe('FeatureService', () => {
       expect(initialConfig.initialAum).toBe(10000000);
 
       // Load new features
-      const loadPromise = service.loadFeatures();
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const loadPromise = service.loadFeatures(mockExchangeId);
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(mockFeatureResponse);
       await loadPromise;
 
@@ -238,8 +245,8 @@ describe('FeatureService', () => {
 
     it('should allow multiple loads and state updates', async () => {
       // First load
-      const loadPromise = service.loadFeatures();
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const loadPromise = service.loadFeatures(mockExchangeId);
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(mockFeatureResponse);
       await loadPromise;
 
@@ -254,8 +261,8 @@ describe('FeatureService', () => {
         }
       };
 
-      const secondLoadPromise = service.loadFeatures();
-      const secondReq = httpMock.expectOne('/api/v1/exchange/rules');
+      const secondLoadPromise = service.loadFeatures(mockExchangeId);
+      const secondReq = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       secondReq.flush(updatedResponse);
       await secondLoadPromise;
 
@@ -266,14 +273,16 @@ describe('FeatureService', () => {
   });
 
   describe('Edge Cases', () => {
+    const mockExchangeId = '12345678-1234-1234-1234-123456789012';
+
     it('should handle empty flags object', async () => {
       const emptyFlagsResponse: FeatureFlagResponse = {
         flags: {},
         configuration: mockFeatureResponse.configuration
       };
 
-      const loadPromise = service.loadFeatures();
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const loadPromise = service.loadFeatures(mockExchangeId);
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(emptyFlagsResponse);
       await loadPromise;
 
@@ -292,8 +301,8 @@ describe('FeatureService', () => {
         configuration: mockFeatureResponse.configuration
       };
 
-      const loadPromise = service.loadFeatures();
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const loadPromise = service.loadFeatures(mockExchangeId);
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(nullFlagsResponse);
       await loadPromise;
 
@@ -314,8 +323,8 @@ describe('FeatureService', () => {
         }
       };
 
-      const loadPromise = service.loadFeatures();
-      const req = httpMock.expectOne('/api/v1/exchange/rules');
+      const loadPromise = service.loadFeatures(mockExchangeId);
+      const req = httpMock.expectOne(`/api/v1/exchange/rules?exchangeId=${mockExchangeId}`);
       req.flush(largeValuesResponse);
       await loadPromise;
 

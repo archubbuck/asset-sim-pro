@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom, tap } from 'rxjs';
 import { FeatureFlagResponse } from '@assetsim/shared/finance-models';
 import { LoggerService } from '../logger/logger.service';
@@ -22,7 +22,7 @@ import { LoggerService } from '../logger/logger.service';
  * const featureService = inject(FeatureService);
  * 
  * // Load features from API
- * await featureService.loadFeatures();
+ * await featureService.loadFeatures('12345678-1234-1234-1234-123456789012');
  * 
  * // Check if feature is enabled
  * if (featureService.isEnabled('advanced-charts')) {
@@ -71,16 +71,20 @@ export class FeatureService {
    * Fetches feature flags and exchange configuration from /api/v1/exchange/rules
    * Updates internal state and logs the event
    * 
+   * @param exchangeId - UUID of the exchange to load rules for
    * @returns Promise resolving to the loaded FeatureFlagResponse
    * @throws Error if API call fails
    */
-  public async loadFeatures(): Promise<FeatureFlagResponse> {
+  public async loadFeatures(exchangeId: string): Promise<FeatureFlagResponse> {
     try {
+      const params = new HttpParams().set('exchangeId', exchangeId);
+      
       const data = await firstValueFrom(
-        this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules').pipe(
+        this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules', { params }).pipe(
           tap(response => {
             this.#state.set(response);
             this.logger.logEvent('ExchangeRulesLoaded', {
+              exchangeId,
               volatility: response.configuration.volatilityIndex
             });
           })
@@ -90,7 +94,7 @@ export class FeatureService {
       return data;
     } catch (error) {
       this.logger.logException(
-        error instanceof Error ? error : new Error('Failed to load exchange rules from /api/v1/exchange/rules')
+        error instanceof Error ? error : new Error(`Failed to load exchange rules from /api/v1/exchange/rules for exchange ${exchangeId}`)
       );
       throw error;
     }
