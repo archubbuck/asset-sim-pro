@@ -305,6 +305,7 @@ export class PositionBlotterComponent implements OnInit {
   // State
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
+  isStubMode = signal(false); // Track if we're using stub data
 
   async ngOnInit(): Promise<void> {
     await this.loadOrders();
@@ -328,12 +329,14 @@ export class PositionBlotterComponent implements OnInit {
 
       const orders = await firstValueFrom(this.orderApiService.listOrders(query));
       this.orders.set(orders || []);
+      this.isStubMode.set(false); // Real data loaded
       this.updateGridView();
     } catch (error) {
       this.errorMessage.set(`Failed to load orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
       
       // Fallback to stub data for demonstration
       this.loadStubData();
+      this.isStubMode.set(true); // Using stub data
       // Clear the blocking error so the grid can render stub data
       this.errorMessage.set(null);
     } finally {
@@ -347,9 +350,9 @@ export class PositionBlotterComponent implements OnInit {
   loadStubData(): void {
     const stubOrders: OrderResponse[] = [
       {
-        orderId: 'ord-001-12345678',
-        exchangeId: 'demo-exchange-001',
-        portfolioId: 'demo-portfolio-001',
+        orderId: '10000000-0000-0000-0000-000000000001',
+        exchangeId: '00000000-0000-0000-0000-000000000000',
+        portfolioId: '11111111-1111-1111-1111-111111111111',
         symbol: 'AAPL',
         side: 'BUY',
         orderType: 'MARKET',
@@ -361,9 +364,9 @@ export class PositionBlotterComponent implements OnInit {
         updatedAt: new Date(Date.now() - 3600000).toISOString()
       },
       {
-        orderId: 'ord-002-87654321',
-        exchangeId: 'demo-exchange-001',
-        portfolioId: 'demo-portfolio-001',
+        orderId: '10000000-0000-0000-0000-000000000002',
+        exchangeId: '00000000-0000-0000-0000-000000000000',
+        portfolioId: '11111111-1111-1111-1111-111111111111',
         symbol: 'MSFT',
         side: 'BUY',
         orderType: 'LIMIT',
@@ -376,9 +379,9 @@ export class PositionBlotterComponent implements OnInit {
         updatedAt: new Date(Date.now() - 1800000).toISOString()
       },
       {
-        orderId: 'ord-003-11223344',
-        exchangeId: 'demo-exchange-001',
-        portfolioId: 'demo-portfolio-001',
+        orderId: '10000000-0000-0000-0000-000000000003',
+        exchangeId: '00000000-0000-0000-0000-000000000000',
+        portfolioId: '11111111-1111-1111-1111-111111111111',
         symbol: 'GOOGL',
         side: 'SELL',
         orderType: 'LIMIT',
@@ -390,9 +393,9 @@ export class PositionBlotterComponent implements OnInit {
         updatedAt: new Date(Date.now() - 900000).toISOString()
       },
       {
-        orderId: 'ord-004-55667788',
-        exchangeId: 'demo-exchange-001',
-        portfolioId: 'demo-portfolio-001',
+        orderId: '10000000-0000-0000-0000-000000000004',
+        exchangeId: '00000000-0000-0000-0000-000000000000',
+        portfolioId: '11111111-1111-1111-1111-111111111111',
         symbol: 'TSLA',
         side: 'BUY',
         orderType: 'MARKET',
@@ -460,6 +463,21 @@ export class PositionBlotterComponent implements OnInit {
    * Cancel an order
    */
   async cancelOrder(order: OrderResponse): Promise<void> {
+    // If in stub mode, handle cancellation locally
+    if (this.isStubMode()) {
+      // Update the order status locally in stub mode
+      const currentOrders = this.orders();
+      const updatedOrders = currentOrders.map(o => 
+        o.orderId === order.orderId 
+          ? { ...o, status: 'CANCELLED' as OrderStatus, updatedAt: new Date().toISOString() }
+          : o
+      );
+      this.orders.set(updatedOrders);
+      this.updateGridView();
+      return;
+    }
+
+    // Real API call for non-stub mode
     try {
       await firstValueFrom(this.orderApiService.cancelOrder(order.orderId, order.exchangeId));
       

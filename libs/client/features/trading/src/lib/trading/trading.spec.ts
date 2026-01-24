@@ -60,7 +60,7 @@ describe('Trading', () => {
   it('should attempt to connect to SignalR on init', async () => {
     await component.ngOnInit();
     
-    expect(mockSignalRService.connect).toHaveBeenCalledWith('demo-exchange-001');
+    expect(mockSignalRService.connect).toHaveBeenCalledWith('00000000-0000-0000-0000-000000000000');
   });
 
   it('should handle SignalR connection failure gracefully', async () => {
