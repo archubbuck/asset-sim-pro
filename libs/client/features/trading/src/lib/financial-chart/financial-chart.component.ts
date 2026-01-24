@@ -5,19 +5,20 @@
  * Shows OHLC (Open-High-Low-Close) price data with volume bars
  * 
  * Features:
- * - Kendo StockChart for financial visualization
+ * - Kendo Chart for financial visualization
  * - Candlestick series for price movements
  * - Column series for volume data
  * - Real-time price updates from SignalR
  * - Historical data simulation
  */
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChartsModule } from '@progress/kendo-angular-charts';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { SignalRService } from '@assetsim/client/core';
+import Decimal from 'decimal.js';
 
 /**
  * OHLC data point interface
@@ -295,18 +296,32 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
 
-  // Update interval
-  private updateInterval: any;
+  constructor() {
+    // Setup real-time price updates using effect() instead of setInterval
+    // This reacts to changes in latestPrices signal from SignalR
+    effect(() => {
+      const prices = this.signalRService.latestPrices();
+      const priceData = prices.get(this.selectedSymbol);
+      
+      if (priceData) {
+        const previousPrice = this.latestPrice();
+        this.latestPrice.set(priceData.price);
+        this.priceChange.set(priceData.changePercent);
+
+        // Update chart with new candle if price changed significantly
+        if (previousPrice && Math.abs(priceData.price - previousPrice) > 0.01) {
+          this.updateChartWithNewPrice(priceData.price);
+        }
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.loadChartData();
-    this.setupRealtimeUpdates();
   }
 
   ngOnDestroy(): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-    }
+    // No cleanup needed - effect is automatically cleaned up
   }
 
   /**
@@ -335,6 +350,7 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
 
   /**
    * Generate stub OHLC data for demonstration
+   * Uses Decimal.js for precise financial calculations per ADR-006
    */
   generateStubOHLCData(symbol: string, periods: number): OHLCData[] {
     const data: OHLCData[] = [];
@@ -349,55 +365,43 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
       'AMZN': 165.00
     };
 
-    let basePrice = basePrices[symbol] || 100;
+    let basePrice = new Decimal(basePrices[symbol] || 100);
 
     for (let i = periods; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 5 * 60 * 1000); // 5-minute intervals
       
-      // Simulate price movement
-      const volatility = 0.02; // 2% volatility
-      const change = (Math.random() - 0.5) * volatility * basePrice;
-      basePrice += change;
+      // Simulate price movement with Decimal for precision
+      const volatility = new Decimal(0.02); // 2% volatility
+      const randomFactor = new Decimal(Math.random() - 0.5);
+      const change = randomFactor.times(volatility).times(basePrice);
+      basePrice = basePrice.plus(change);
 
       const open = basePrice;
-      const close = basePrice + (Math.random() - 0.5) * volatility * basePrice;
-      const high = Math.max(open, close) + Math.random() * volatility * basePrice * 0.5;
-      const low = Math.min(open, close) - Math.random() * volatility * basePrice * 0.5;
+      const closeRandom = new Decimal(Math.random() - 0.5);
+      const close = basePrice.plus(closeRandom.times(volatility).times(basePrice));
+      
+      // Calculate high/low with precision
+      const highRandom = new Decimal(Math.random()).times(volatility).times(basePrice).times(0.5);
+      const lowRandom = new Decimal(Math.random()).times(volatility).times(basePrice).times(0.5);
+      
+      const openNum = open.toNumber();
+      const closeNum = close.toNumber();
+      const high = Math.max(openNum, closeNum) + highRandom.toNumber();
+      const low = Math.min(openNum, closeNum) - lowRandom.toNumber();
+      
       const volume = Math.floor(Math.random() * 1000000) + 500000;
 
       data.push({
         date,
-        open: Math.max(0.01, open),
+        open: Math.max(0.01, openNum),
         high: Math.max(0.01, high),
         low: Math.max(0.01, low),
-        close: Math.max(0.01, close),
+        close: Math.max(0.01, closeNum),
         volume
       });
     }
 
     return data;
-  }
-
-  /**
-   * Setup real-time price updates
-   */
-  setupRealtimeUpdates(): void {
-    // Check for real-time price updates from SignalR
-    this.updateInterval = setInterval(() => {
-      const prices = this.signalRService.latestPrices();
-      const priceData = prices.get(this.selectedSymbol);
-      
-      if (priceData) {
-        const previousPrice = this.latestPrice();
-        this.latestPrice.set(priceData.price);
-        this.priceChange.set(priceData.changePercent);
-
-        // Update chart with new candle if price changed significantly
-        if (previousPrice && Math.abs(priceData.price - previousPrice) > 0.01) {
-          this.updateChartWithNewPrice(priceData.price);
-        }
-      }
-    }, 1000);
   }
 
   /**

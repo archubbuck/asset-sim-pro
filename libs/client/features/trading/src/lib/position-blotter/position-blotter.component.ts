@@ -18,6 +18,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { OrderApiService } from '@assetsim/shared/api-client';
 import { OrderResponse, OrderStatus } from '@assetsim/shared/api-client';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-position-blotter',
@@ -322,7 +323,7 @@ export class PositionBlotterComponent implements OnInit {
         offset: 0
       };
 
-      const orders = await this.orderApiService.listOrders(query).toPromise();
+      const orders = await firstValueFrom(this.orderApiService.listOrders(query));
       this.orders.set(orders || []);
       this.updateGridView();
     } catch (error) {
@@ -455,7 +456,7 @@ export class PositionBlotterComponent implements OnInit {
    */
   async cancelOrder(order: OrderResponse): Promise<void> {
     try {
-      await this.orderApiService.cancelOrder(order.orderId, order.exchangeId).toPromise();
+      await firstValueFrom(this.orderApiService.cancelOrder(order.orderId, order.exchangeId));
       
       // Refresh orders after cancellation
       this.refreshOrders();

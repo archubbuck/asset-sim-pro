@@ -58,10 +58,10 @@ describe('OrderEntryComponent', () => {
   });
 
   it('should have default form values', () => {
-    expect(component.orderForm.symbol).toBe('AAPL');
-    expect(component.orderForm.side).toBe('BUY');
-    expect(component.orderForm.orderType).toBe('MARKET');
-    expect(component.orderForm.quantity).toBe(100);
+    expect(component.orderForm().symbol).toBe('AAPL');
+    expect(component.orderForm().side).toBe('BUY');
+    expect(component.orderForm().orderType).toBe('MARKET');
+    expect(component.orderForm().quantity).toBe(100);
   });
 
   it('should display current price from SignalR', () => {
@@ -71,28 +71,32 @@ describe('OrderEntryComponent', () => {
 
   it('should validate form correctly', () => {
     // Valid MARKET order
-    component.orderForm = {
+    component.orderForm.set({
       symbol: 'AAPL',
       side: 'BUY',
       orderType: 'MARKET',
       quantity: 100
-    };
+    });
     expect(component.isFormValid()).toBe(true);
 
     // Invalid - missing symbol
-    component.orderForm.symbol = '';
+    component.orderForm.update(form => ({ ...form, symbol: '' }));
     expect(component.isFormValid()).toBe(false);
   });
 
   it('should reset form', () => {
-    component.orderForm.symbol = 'MSFT';
-    component.orderForm.quantity = 200;
+    component.orderForm.set({
+      symbol: 'MSFT',
+      side: 'BUY',
+      orderType: 'MARKET',
+      quantity: 200
+    });
     component.statusMessage.set('Test message');
 
     component.resetForm();
 
-    expect(component.orderForm.symbol).toBe('AAPL');
-    expect(component.orderForm.quantity).toBe(100);
+    expect(component.orderForm().symbol).toBe('AAPL');
+    expect(component.orderForm().quantity).toBe(100);
     expect(component.statusMessage()).toBeNull();
   });
 });

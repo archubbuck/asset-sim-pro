@@ -13,7 +13,7 @@
  */
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SignalRService } from '@assetsim/client/core';
+import { SignalRService, LoggerService } from '@assetsim/client/core';
 import { OrderEntryComponent } from '../order-entry/order-entry.component';
 import { PositionBlotterComponent } from '../position-blotter/position-blotter.component';
 import { FinancialChartComponent } from '../financial-chart/financial-chart.component';
@@ -32,6 +32,7 @@ import { FinancialChartComponent } from '../financial-chart/financial-chart.comp
 })
 export class Trading implements OnInit {
   private signalRService = inject(SignalRService);
+  private logger = inject(LoggerService);
 
   // Trading desk name
   deskName = signal('Live Trading Terminal');
@@ -47,7 +48,7 @@ export class Trading implements OnInit {
         await this.signalRService.connect('demo-exchange-001');
       }
     } catch (error) {
-      console.warn('SignalR connection failed, using stub data:', error);
+      this.logger.logException(error as Error, 3); // Error severity
     }
   }
 }

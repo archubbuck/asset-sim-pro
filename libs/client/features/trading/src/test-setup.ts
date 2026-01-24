@@ -1,13 +1,18 @@
 import { setupZonelessTestEnv } from 'jest-preset-angular/setup-env/zoneless';
 
-// Add $localize polyfill for Kendo UI
-(global as any).$localize = (strings: TemplateStringsArray, ...values: any[]) => {
-  return strings[0] + values.map((v, i) => v + (strings[i + 1] || '')).join('');
-};
-
 setupZonelessTestEnv({
   errorOnUnknownElements: true,
   errorOnUnknownProperties: true,
 });
 
+// Polyfill for $localize required by Kendo Angular components
+declare global {
+  var $localize: any;
+}
+
+if (typeof global.$localize === 'undefined') {
+  global.$localize = (strings: TemplateStringsArray, ...values: readonly any[]) => {
+    return strings.reduce((acc, str, i) => acc + str + (values[i] || ''), '');
+  };
+}
 

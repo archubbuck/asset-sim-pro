@@ -19,6 +19,7 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { OrderApiService } from '@assetsim/shared/api-client';
 import { SignalRService } from '@assetsim/client/core';
+import { firstValueFrom } from 'rxjs';
 import { 
   OrderSide, 
   OrderType, 
@@ -57,7 +58,8 @@ interface OrderForm {
         <div class="form-group">
           <kendo-label text="Symbol">
             <kendo-textbox
-              [(ngModel)]="orderForm.symbol"
+              [value]="orderForm().symbol"
+              (valueChange)="updateForm('symbol', $event)"
               placeholder="e.g., AAPL"
               [style.width.%]="100">
             </kendo-textbox>
@@ -73,7 +75,8 @@ interface OrderForm {
         <div class="form-group">
           <kendo-label text="Side">
             <kendo-dropdownlist
-              [(ngModel)]="orderForm.side"
+              [value]="orderForm().side"
+              (valueChange)="updateForm('side', $event)"
               [data]="orderSides"
               [style.width.%]="100">
             </kendo-dropdownlist>
@@ -84,7 +87,8 @@ interface OrderForm {
         <div class="form-group">
           <kendo-label text="Order Type">
             <kendo-dropdownlist
-              [(ngModel)]="orderForm.orderType"
+              [value]="orderForm().orderType"
+              (valueChange)="updateForm('orderType', $event)"
               [data]="orderTypes"
               [style.width.%]="100">
             </kendo-dropdownlist>
@@ -95,7 +99,8 @@ interface OrderForm {
         <div class="form-group">
           <kendo-label text="Quantity">
             <kendo-numerictextbox
-              [(ngModel)]="orderForm.quantity"
+              [value]="orderForm().quantity"
+              (valueChange)="updateForm('quantity', $event)"
               [min]="1"
               [format]="'n0'"
               [style.width.%]="100">
@@ -104,11 +109,12 @@ interface OrderForm {
         </div>
 
         <!-- Limit Price (for LIMIT and STOP_LIMIT orders) -->
-        @if (orderForm.orderType === 'LIMIT' || orderForm.orderType === 'STOP_LIMIT') {
+        @if (orderForm().orderType === 'LIMIT' || orderForm().orderType === 'STOP_LIMIT') {
           <div class="form-group">
             <kendo-label text="Limit Price">
               <kendo-numerictextbox
-                [(ngModel)]="orderForm.price"
+                [value]="orderForm().price || 0"
+                (valueChange)="updateForm('price', $event)"
                 [min]="0.01"
                 [format]="'c2'"
                 [style.width.%]="100">
@@ -118,11 +124,12 @@ interface OrderForm {
         }
 
         <!-- Stop Price (for STOP and STOP_LIMIT orders) -->
-        @if (orderForm.orderType === 'STOP' || orderForm.orderType === 'STOP_LIMIT') {
+        @if (orderForm().orderType === 'STOP' || orderForm().orderType === 'STOP_LIMIT') {
           <div class="form-group">
             <kendo-label text="Stop Price">
               <kendo-numerictextbox
-                [(ngModel)]="orderForm.stopPrice"
+                [value]="orderForm().stopPrice || 0"
+                (valueChange)="updateForm('stopPrice', $event)"
                 [min]="0.01"
                 [format]="'c2'"
                 [style.width.%]="100">
@@ -230,15 +237,15 @@ export class OrderEntryComponent {
   private orderApiService = inject(OrderApiService);
   private signalRService = inject(SignalRService);
 
-  // Form data
-  orderForm: OrderForm = {
+  // Form data as a signal for reactivity
+  orderForm = signal<OrderForm>({
     symbol: 'AAPL',
     side: 'BUY',
     orderType: 'MARKET',
     quantity: 100,
     price: undefined,
     stopPrice: undefined
-  };
+  });
 
   // Dropdown options
   orderSides: OrderSide[] = ['BUY', 'SELL'];
@@ -252,7 +259,7 @@ export class OrderEntryComponent {
   // Computed current price for the selected symbol
   currentPrice = computed(() => {
     const prices = this.signalRService.latestPrices();
-    const symbolUpper = this.orderForm.symbol.toUpperCase();
+    const symbolUpper = this.orderForm().symbol.toUpperCase();
     const priceData = prices.get(symbolUpper);
     return priceData?.price ?? null;
   });
@@ -261,7 +268,7 @@ export class OrderEntryComponent {
    * Validate the order form
    */
   isFormValid = computed(() => {
-    const form = this.orderForm;
+    const form = this.orderForm();
     
     // Basic validation
     if (!form.symbol || form.quantity < 1) {
@@ -282,6 +289,13 @@ export class OrderEntryComponent {
   });
 
   /**
+   * Update form field
+   */
+  updateForm(field: keyof OrderForm, value: any): void {
+    this.orderForm.update(form => ({ ...form, [field]: value }));
+  }
+
+  /**
    * Submit the order to the API
    */
   async submitOrder(): Promise<void> {
@@ -294,23 +308,24 @@ export class OrderEntryComponent {
     this.statusType.set(null);
 
     try {
+      const form = this.orderForm();
       // Note: In a real implementation, exchangeId and portfolioId would come from user context
       // For stub purposes, we use hardcoded values
       const request: CreateOrderRequest = {
         exchangeId: 'demo-exchange-001',
         portfolioId: 'demo-portfolio-001',
-        symbol: this.orderForm.symbol.toUpperCase(),
-        side: this.orderForm.side,
-        orderType: this.orderForm.orderType,
-        quantity: this.orderForm.quantity,
-        price: this.orderForm.price,
-        stopPrice: this.orderForm.stopPrice
+        symbol: form.symbol.toUpperCase(),
+        side: form.side,
+        orderType: form.orderType,
+        quantity: form.quantity,
+        price: form.price,
+        stopPrice: form.stopPrice
       };
 
-      const response = await this.orderApiService.createOrder(request).toPromise();
+      const response = await firstValueFrom(this.orderApiService.createOrder(request));
       
       this.statusType.set('success');
-      this.statusMessage.set(`Order ${response?.orderId} placed successfully!`);
+      this.statusMessage.set(`Order ${response.orderId} placed successfully!`);
       
       // Reset form after successful submission
       setTimeout(() => this.resetForm(), 2000);
@@ -326,14 +341,14 @@ export class OrderEntryComponent {
    * Reset the form to default values
    */
   resetForm(): void {
-    this.orderForm = {
+    this.orderForm.set({
       symbol: 'AAPL',
       side: 'BUY',
       orderType: 'MARKET',
       quantity: 100,
       price: undefined,
       stopPrice: undefined
-    };
+    });
     this.statusMessage.set(null);
     this.statusType.set(null);
   }
