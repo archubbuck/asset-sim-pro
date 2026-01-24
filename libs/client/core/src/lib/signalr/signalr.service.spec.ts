@@ -161,6 +161,28 @@ describe('SignalRService', () => {
       expect(service.currentExchangeId()).toBe('exchange-2');
       expect(service.isConnected()).toBe(true);
     });
+
+    it('should continue receiving price updates after reconnection', async () => {
+      // First connection
+      await service.connect('exchange-1');
+      expect(service.latestPrices().size).toBeGreaterThan(0);
+      const initialPriceCount = service.latestPrices().size;
+
+      // Disconnect
+      await service.disconnect();
+      expect(service.isConnected()).toBe(false);
+
+      // Reconnect - should work because Subject is not completed
+      await service.connect('exchange-2');
+      expect(service.isConnected()).toBe(true);
+      
+      // Wait for emulation to generate prices
+      jest.advanceTimersByTime(1100);
+      
+      // Should have prices from the new connection
+      expect(service.latestPrices().size).toBeGreaterThan(0);
+      expect(service.currentExchangeId()).toBe('exchange-2');
+    });
   });
 
   describe('Production Mode', () => {

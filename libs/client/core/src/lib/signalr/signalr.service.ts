@@ -355,8 +355,8 @@ export class SignalRService {
     this.#currentExchangeId.set(null);
     this.#latestPrices.set(new Map());
     
-    // Complete price update stream to allow subscribers to clean up
-    this.priceUpdateSubject.complete();
+    // Note: Don't complete priceUpdateSubject here to allow reconnection
+    // The subscription is already managed by takeUntilDestroyed()
     
     this.logger.logEvent('SignalRDisconnected');
   }
