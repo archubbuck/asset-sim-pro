@@ -287,12 +287,12 @@ export class OrderEntryComponent {
     }
 
     // Validate limit price for LIMIT orders
-    if ((form.orderType === 'LIMIT' || form.orderType === 'STOP_LIMIT') && !form.price) {
+    if ((form.orderType === 'LIMIT' || form.orderType === 'STOP_LIMIT') && form.price == null) {
       return false;
     }
 
     // Validate stop price for STOP orders
-    if ((form.orderType === 'STOP' || form.orderType === 'STOP_LIMIT') && !form.stopPrice) {
+    if ((form.orderType === 'STOP' || form.orderType === 'STOP_LIMIT') && form.stopPrice == null) {
       return false;
     }
 

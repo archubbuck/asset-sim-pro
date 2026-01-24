@@ -103,7 +103,7 @@ import { firstValueFrom } from 'rxjs';
           
           <kendo-grid-column field="price" title="Price" [width]="100">
             <ng-template kendoGridCellTemplate let-dataItem>
-              @if (dataItem.price) {
+              @if (dataItem.price != null) {
                 {{ dataItem.price | currency }}
               } @else {
                 <span class="text-muted">Market</span>
@@ -113,7 +113,7 @@ import { firstValueFrom } from 'rxjs';
           
           <kendo-grid-column field="averagePrice" title="Avg Price" [width]="100">
             <ng-template kendoGridCellTemplate let-dataItem>
-              @if (dataItem.averagePrice) {
+              @if (dataItem.averagePrice != null) {
                 {{ dataItem.averagePrice | currency }}
               } @else {
                 <span class="text-muted">-</span>

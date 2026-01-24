@@ -383,23 +383,23 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
       const closeRandom = new Decimal(Math.random() - 0.5);
       const close = basePrice.plus(closeRandom.times(volatility).times(basePrice));
       
-      // Calculate high/low with precision
+      // Calculate high/low with precision using Decimal
       const highRandom = new Decimal(Math.random()).times(volatility).times(basePrice).times(0.5);
       const lowRandom = new Decimal(Math.random()).times(volatility).times(basePrice).times(0.5);
       
-      const openNum = open.toNumber();
-      const closeNum = close.toNumber();
-      const high = Math.max(openNum, closeNum) + highRandom.toNumber();
-      const low = Math.min(openNum, closeNum) - lowRandom.toNumber();
+      const highBase = Decimal.max(open, close);
+      const lowBase = Decimal.min(open, close);
+      const high = highBase.plus(highRandom);
+      const low = lowBase.minus(lowRandom);
       
       const volume = Math.floor(Math.random() * 1000000) + 500000;
 
       data.push({
         date,
-        open: Math.max(0.01, openNum),
-        high: Math.max(0.01, high),
-        low: Math.max(0.01, low),
-        close: Math.max(0.01, closeNum),
+        open: Decimal.max(new Decimal(0.01), open).toNumber(),
+        high: Decimal.max(new Decimal(0.01), high).toNumber(),
+        low: Decimal.max(new Decimal(0.01), low).toNumber(),
+        close: Decimal.max(new Decimal(0.01), close).toNumber(),
         volume
       });
     }
