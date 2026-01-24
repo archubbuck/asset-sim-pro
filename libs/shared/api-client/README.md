@@ -195,8 +195,8 @@ The library follows these architectural patterns:
 ## References
 
 - [BACKEND_FRONTEND_INTEGRATION.md](../../../BACKEND_FRONTEND_INTEGRATION.md) - Integration architecture
-- [ADR-006](../../../ADR_006.md) - Financial UI Components (custom instructions)
-- [ADR-007](../../../ADR_007.md) - Transaction API with HTTP Triggers
-- [ADR-020](../../../ADR_020.md) - Azure Authentication
-- [ADR-021](../../../ADR_021.md) - Feature Flag Engine
+- [ADR-006](../../../ARCHITECTURE.md#adr-006-ai-assisted-development) - AI-Assisted Development
+- [ADR-007](../../../ARCHITECTURE.md#adr-007-serverless-compute-swa--dedicated-functions) - Serverless Compute (SWA & Dedicated Functions)
+- [ADR-020](../../../ARCHITECTURE.md#adr-020-reference-implementation---azure-authentication) - Azure Authentication
+- [ADR-021](../../../ARCHITECTURE.md#adr-021-reference-implementation---feature-flag-engine) - Feature Flag Engine
 
