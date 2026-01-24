@@ -143,8 +143,8 @@ describe('OrderApiService', () => {
         {
           orderId: '323e4567-e89b-12d3-a456-426614174000',
           exchangeId: query.exchangeId,
-          portfolioId: query.portfolioId ?? '',
-          symbol: query.symbol ?? '',
+          portfolioId: '223e4567-e89b-12d3-a456-426614174000',
+          symbol: 'AAPL',
           side: 'BUY',
           orderType: 'LIMIT',
           quantity: 100,
