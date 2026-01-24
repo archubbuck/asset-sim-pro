@@ -113,7 +113,7 @@ interface OrderForm {
           <div class="form-group">
             <kendo-label text="Limit Price">
               <kendo-numerictextbox
-                [value]="orderForm().price ?? null"
+                [value]="(orderForm().price !== undefined ? orderForm().price : null)!"
                 (valueChange)="updateForm('price', $event)"
                 [min]="0.01"
                 [format]="'c2'"
@@ -128,7 +128,7 @@ interface OrderForm {
           <div class="form-group">
             <kendo-label text="Stop Price">
               <kendo-numerictextbox
-                [value]="orderForm().stopPrice ?? null"
+                [value]="(orderForm().stopPrice !== undefined ? orderForm().stopPrice : null)!"
                 (valueChange)="updateForm('stopPrice', $event)"
                 [min]="0.01"
                 [format]="'c2'"
@@ -303,7 +303,12 @@ export class OrderEntryComponent {
    * Update form field with type safety
    */
   updateForm<K extends keyof OrderForm>(field: K, value: OrderForm[K]): void {
-    this.orderForm.update(form => ({ ...form, [field]: value }));
+    // Normalize null to undefined for numeric fields (Kendo NumericTextBox emits null when cleared)
+    let normalizedValue = value;
+    if (value === null && (field === 'quantity' || field === 'price' || field === 'stopPrice')) {
+      normalizedValue = undefined as OrderForm[K];
+    }
+    this.orderForm.update(form => ({ ...form, [field]: normalizedValue }));
   }
 
   /**
@@ -328,9 +333,10 @@ export class OrderEntryComponent {
         symbol: form.symbol.toUpperCase(),
         side: form.side,
         orderType: form.orderType,
-        quantity: form.quantity,
-        price: form.price,
-        stopPrice: form.stopPrice
+        quantity: form.quantity ?? 0, // Ensure quantity is always a number
+        // Only include price/stopPrice when defined (backend schema: z.number().positive().optional())
+        ...(form.price !== undefined && { price: form.price }),
+        ...(form.stopPrice !== undefined && { stopPrice: form.stopPrice })
       };
 
       const response = await firstValueFrom(this.orderApiService.createOrder(request));

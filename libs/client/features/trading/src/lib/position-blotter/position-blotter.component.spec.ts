@@ -105,6 +105,39 @@ describe('PositionBlotterComponent', () => {
     expect(component.gridView.data.length).toBe(1);
     expect(component.gridView.data[0].status).toBe('PENDING');
   });
+
+  it('should cancel order locally in stub mode', async () => {
+    // Set stub mode
+    component.isStubMode.set(true);
+    component.orders.set(mockOrders);
+    
+    const orderToCancel = mockOrders[1]; // PENDING order
+    
+    await component.cancelOrder(orderToCancel);
+    
+    // Should NOT call API
+    expect(mockOrderApiService.cancelOrder).not.toHaveBeenCalled();
+    
+    // Should update status locally
+    const updatedOrder = component.orders().find(o => o.orderId === orderToCancel.orderId);
+    expect(updatedOrder?.status).toBe('CANCELLED');
+  });
+
+  it('should cancel order via API in real mode', async () => {
+    // Set real mode
+    component.isStubMode.set(false);
+    component.orders.set(mockOrders);
+    
+    const orderToCancel = mockOrders[1]; // PENDING order
+    
+    await component.cancelOrder(orderToCancel);
+    
+    // Should call API
+    expect(mockOrderApiService.cancelOrder).toHaveBeenCalledWith(
+      orderToCancel.orderId,
+      orderToCancel.exchangeId
+    );
+  });
 });
 
 
