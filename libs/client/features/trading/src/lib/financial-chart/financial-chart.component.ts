@@ -13,6 +13,7 @@
  */
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ChartsModule } from '@progress/kendo-angular-charts';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -35,6 +36,7 @@ interface OHLCData {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ChartsModule,
     DropDownsModule,
     ButtonsModule

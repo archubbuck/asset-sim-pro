@@ -12,6 +12,7 @@
  */
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { GridModule, GridDataResult, PageChangeEvent } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -23,6 +24,7 @@ import { OrderResponse, OrderStatus } from '@assetsim/shared/api-client';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     GridModule,
     ButtonsModule,
     DropDownsModule
