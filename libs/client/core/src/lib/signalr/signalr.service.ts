@@ -4,6 +4,7 @@ import { MessagePackHubProtocol } from '@microsoft/signalr-protocol-msgpack';
 import { PriceUpdateEvent } from '@assetsim/shared/finance-models';
 import { LoggerService } from '../logger/logger.service';
 import { Subject, throttleTime } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import Decimal from 'decimal.js';
 
 /**
@@ -60,11 +61,11 @@ export enum ConnectionState {
  * @Component({
  *   selector: 'app-trading-terminal',
  *   template: `
- *     <div *ngIf="signalR.isConnected()">
+ *     @if (signalR.isConnected()) {
  *       @for (price of signalR.latestPrices() | keyvalue; track price.key) {
  *         <div>{{ price.value.symbol }}: {{ price.value.price | currency }}</div>
  *       }
- *     </div>
+ *     }
  *   `
  * })
  * export class TradingTerminalComponent {
@@ -106,8 +107,12 @@ export class SignalRService {
     this.config = config || { enableProduction: false };
     
     // Setup throttled price update handler (ADR-006: 250ms throttle for market data)
+    // Use takeUntilDestroyed to prevent memory leaks
     this.priceUpdateSubject
-      .pipe(throttleTime(250))
+      .pipe(
+        throttleTime(250),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe(data => {
         const prices = new Map(this.#latestPrices());
         prices.set(data.symbol, data);
@@ -349,6 +354,9 @@ export class SignalRService {
     this.#isConnected.set(false);
     this.#currentExchangeId.set(null);
     this.#latestPrices.set(new Map());
+    
+    // Complete price update stream to allow subscribers to clean up
+    this.priceUpdateSubject.complete();
     
     this.logger.logEvent('SignalRDisconnected');
   }

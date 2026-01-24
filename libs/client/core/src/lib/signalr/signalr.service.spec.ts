@@ -165,6 +165,7 @@ describe('SignalRService', () => {
 
   describe('Production Mode', () => {
     beforeEach(() => {
+      jest.useFakeTimers();
       TestBed.configureTestingModule({
         providers: [
           { provide: LoggerService, useValue: mockLoggerService },
@@ -178,6 +179,11 @@ describe('SignalRService', () => {
         ]
       });
       service = TestBed.inject(SignalRService);
+    });
+
+    afterEach(() => {
+      jest.clearAllTimers();
+      jest.useRealTimers();
     });
 
     it('should connect to production SignalR', async () => {
@@ -234,6 +240,10 @@ describe('SignalRService', () => {
       expect(priceUpdateHandler).toBeDefined();
       priceUpdateHandler!(mockPriceUpdate);
 
+      // Advance timers to allow throttling to process
+      jest.runAllTimers();
+      
+      // Price should now be available after throttle window
       const prices = service.latestPrices();
       expect(prices.has('AAPL')).toBe(true);
       expect(prices.get('AAPL')).toEqual(mockPriceUpdate);

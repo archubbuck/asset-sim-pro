@@ -105,6 +105,7 @@ export class PriceTickerComponent {
 ```typescript
 import { Component, effect, inject } from '@angular/core';
 import { SignalRService, ConnectionState } from '@assetsim/client/core';
+import { LoggerService } from '@assetsim/client/core';
 
 @Component({
   selector: 'app-connection-indicator',
@@ -116,15 +117,16 @@ import { SignalRService, ConnectionState } from '@assetsim/client/core';
 })
 export class ConnectionIndicatorComponent {
   protected signalR = inject(SignalRService);
+  private logger = inject(LoggerService);
   
   constructor() {
     // React to connection state changes
     effect(() => {
       const state = this.signalR.connectionState();
       if (state === ConnectionState.Reconnecting) {
-        console.warn('Connection lost, attempting to reconnect...');
+        this.logger.logTrace('Connection lost, attempting to reconnect...');
       } else if (state === ConnectionState.Connected) {
-        console.log('Successfully connected to SignalR');
+        this.logger.logEvent('SignalRConnectionEstablished');
       }
     });
   }
@@ -232,7 +234,7 @@ The service automatically reconnects with exponential backoff:
 4. **Attempt 4**: 30 seconds
 5. **Attempt 5+**: 60 seconds
 
-After reconnection, the service automatically rejoins the exchange group.
+After reconnection, group resubscription requires calling a backend HTTP endpoint (e.g., `/api/signalr/join/{exchangeId}`) as Azure Web PubSub requires server-side group management.
 
 ## Testing
 
@@ -324,11 +326,13 @@ protected symbolPrices = computed(() => {
 ### 3. Handle Connection Failures
 
 ```typescript
+import { LoggerService } from '@assetsim/client/core';
+
 async connectWithRetry() {
   try {
     await this.signalR.connect(this.exchangeId);
   } catch (error) {
-    console.error('Failed to connect to SignalR:', error);
+    this.logger.logException(error as Error, 3); // Error severity
     // Show user notification or retry logic
   }
 }
