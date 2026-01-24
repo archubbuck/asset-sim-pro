@@ -281,8 +281,8 @@ export class OrderEntryComponent {
   isFormValid = computed(() => {
     const form = this.orderForm();
     
-    // Basic validation
-    if (!form.symbol || form.quantity < 1) {
+    // Basic validation - explicit checks for null/undefined
+    if (!form.symbol || form.quantity == null || form.quantity < 1) {
       return false;
     }
 
@@ -301,12 +301,17 @@ export class OrderEntryComponent {
 
   /**
    * Update form field with type safety
+   * 
+   * Kendo NumericTextBox may emit `null` when cleared, so we accept `null`
+   * and normalize it to `undefined` for optional numeric fields.
    */
-  updateForm<K extends keyof OrderForm>(field: K, value: OrderForm[K]): void {
+  updateForm<K extends keyof OrderForm>(field: K, value: OrderForm[K] | null): void {
     // Normalize null to undefined for numeric fields (Kendo NumericTextBox emits null when cleared)
-    let normalizedValue = value;
+    let normalizedValue: OrderForm[K];
     if (value === null && (field === 'quantity' || field === 'price' || field === 'stopPrice')) {
       normalizedValue = undefined as OrderForm[K];
+    } else {
+      normalizedValue = value as OrderForm[K];
     }
     this.orderForm.update(form => ({ ...form, [field]: normalizedValue }));
   }
@@ -333,7 +338,7 @@ export class OrderEntryComponent {
         symbol: form.symbol.toUpperCase(),
         side: form.side,
         orderType: form.orderType,
-        quantity: form.quantity ?? 0, // Ensure quantity is always a number
+        quantity: form.quantity!, // Validation ensures quantity is defined and >= 1
         // Only include price/stopPrice when defined (backend schema: z.number().positive().optional())
         ...(form.price !== undefined && { price: form.price }),
         ...(form.stopPrice !== undefined && { stopPrice: form.stopPrice })
