@@ -331,6 +331,8 @@ export class PositionBlotterComponent implements OnInit {
       
       // Fallback to stub data for demonstration
       this.loadStubData();
+      // Clear the blocking error so the grid can render stub data
+      this.errorMessage.set(null);
     } finally {
       this.isLoading.set(false);
     }

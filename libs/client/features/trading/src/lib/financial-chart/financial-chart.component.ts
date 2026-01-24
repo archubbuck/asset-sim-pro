@@ -48,9 +48,9 @@ interface OHLCData {
         <h3 class="widget-title">Financial Chart</h3>
         <div class="widget-controls">
           <kendo-dropdownlist
-            [(ngModel)]="selectedSymbol"
+            [value]="selectedSymbol()"
+            (valueChange)="selectedSymbol.set($event); onSymbolChange()"
             [data]="symbolOptions"
-            (valueChange)="onSymbolChange()"
             [style.width.px]="150">
           </kendo-dropdownlist>
           <button
@@ -71,7 +71,7 @@ interface OHLCData {
         <!-- Price Chart (Candlestick) -->
         <div class="chart-container">
           <kendo-chart [style.height.px]="300">
-            <kendo-chart-title text="{{ selectedSymbol }} Price"></kendo-chart-title>
+            <kendo-chart-title text="{{ selectedSymbol() }} Price"></kendo-chart-title>
             
             <kendo-chart-series>
               <kendo-chart-series-item
@@ -103,7 +103,7 @@ interface OHLCData {
             <kendo-chart-tooltip>
               <ng-template kendoChartSeriesTooltipTemplate let-dataItem="dataItem">
                 <div class="tooltip-content">
-                  <div><strong>{{ selectedSymbol }}</strong></div>
+                  <div><strong>{{ selectedSymbol() }}</strong></div>
                   <div>Open: {{ dataItem.open | currency }}</div>
                   <div>High: {{ dataItem.high | currency }}</div>
                   <div>Low: {{ dataItem.low | currency }}</div>
@@ -281,8 +281,8 @@ interface OHLCData {
 export class FinancialChartComponent implements OnInit, OnDestroy {
   private signalRService = inject(SignalRService);
 
-  // Symbol selection
-  selectedSymbol = 'AAPL';
+  // Symbol selection - made signal for reactivity
+  selectedSymbol = signal('AAPL');
   symbolOptions = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN'];
 
   // Chart data
@@ -301,7 +301,8 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
     // This reacts to changes in latestPrices signal from SignalR
     effect(() => {
       const prices = this.signalRService.latestPrices();
-      const priceData = prices.get(this.selectedSymbol);
+      const symbol = this.selectedSymbol(); // Read signal so effect tracks it
+      const priceData = prices.get(symbol);
       
       if (priceData) {
         const previousPrice = this.latestPrice();
@@ -334,7 +335,7 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
     try {
       // Generate stub OHLC data for demonstration
       // In a real implementation, this would come from a historical data API
-      const data = this.generateStubOHLCData(this.selectedSymbol, 30);
+      const data = this.generateStubOHLCData(this.selectedSymbol(), 30);
       this.chartData.set(data);
 
       // Set initial price
@@ -444,9 +445,22 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
 
   /**
    * Handle symbol change
+   * Reloads chart data and synchronizes real-time ticker with new symbol
    */
   onSymbolChange(): void {
+    // Reload historical/chart data for the newly selected symbol
     this.loadChartData();
+
+    // Immediately synchronize the real-time ticker with the selected symbol
+    // so we don't show the previous symbol's last price until the next SignalR tick.
+    const prices = this.signalRService.latestPrices();
+    const priceData = prices.get(this.selectedSymbol());
+    
+    if (priceData) {
+      this.latestPrice.set(priceData.price);
+      this.priceChange.set(priceData.changePercent);
+      this.updateChartWithNewPrice(priceData.price);
+    }
   }
 
   /**

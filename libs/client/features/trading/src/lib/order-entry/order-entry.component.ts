@@ -10,7 +10,7 @@
  * - Integration with OrderApiService
  * - Kendo UI form controls
  */
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -236,6 +236,8 @@ interface OrderForm {
 export class OrderEntryComponent {
   private orderApiService = inject(OrderApiService);
   private signalRService = inject(SignalRService);
+  private destroyRef = inject(DestroyRef);
+  private resetTimeoutId: number | null = null;
 
   // Form data as a signal for reactivity
   orderForm = signal<OrderForm>({
@@ -246,6 +248,15 @@ export class OrderEntryComponent {
     price: undefined,
     stopPrice: undefined
   });
+
+  constructor() {
+    // Register cleanup for any pending timeouts
+    this.destroyRef.onDestroy(() => {
+      if (this.resetTimeoutId !== null) {
+        clearTimeout(this.resetTimeoutId);
+      }
+    });
+  }
 
   // Dropdown options
   orderSides: OrderSide[] = ['BUY', 'SELL'];
@@ -327,8 +338,11 @@ export class OrderEntryComponent {
       this.statusType.set('success');
       this.statusMessage.set(`Order ${response.orderId} placed successfully!`);
       
-      // Reset form after successful submission
-      setTimeout(() => this.resetForm(), 2000);
+      // Reset form after successful submission with proper cleanup
+      this.resetTimeoutId = window.setTimeout(() => {
+        this.resetForm();
+        this.resetTimeoutId = null;
+      }, 2000);
     } catch (error) {
       this.statusType.set('error');
       this.statusMessage.set(`Failed to place order: ${error instanceof Error ? error.message : 'Unknown error'}`);

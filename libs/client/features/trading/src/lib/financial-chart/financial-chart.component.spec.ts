@@ -41,7 +41,7 @@ describe('FinancialChartComponent', () => {
   });
 
   afterEach(() => {
-    // Clean up interval
+    // Ensure component cleanup
     if (component) {
       component.ngOnDestroy();
     }
@@ -52,7 +52,7 @@ describe('FinancialChartComponent', () => {
   });
 
   it('should have default symbol', () => {
-    expect(component.selectedSymbol).toBe('AAPL');
+    expect(component.selectedSymbol()).toBe('AAPL');
   });
 
   it('should generate stub OHLC data', () => {

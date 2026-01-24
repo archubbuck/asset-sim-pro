@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Trading } from './trading';
-import { SignalRService } from '@assetsim/client/core';
+import { SignalRService, LoggerService } from '@assetsim/client/core';
 import { signal } from '@angular/core';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 
@@ -13,6 +13,7 @@ describe('Trading', () => {
   let component: Trading;
   let fixture: ComponentFixture<Trading>;
   let mockSignalRService: Partial<SignalRService>;
+  let mockLoggerService: Partial<LoggerService>;
 
   beforeEach(async () => {
     // Create mock SignalR service
@@ -24,10 +25,17 @@ describe('Trading', () => {
       connect: jest.fn().mockResolvedValue(undefined)
     };
 
+    // Create mock Logger service
+    mockLoggerService = {
+      logException: jest.fn(),
+      logEvent: jest.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [Trading],
       providers: [
-        { provide: SignalRService, useValue: mockSignalRService }
+        { provide: SignalRService, useValue: mockSignalRService },
+        { provide: LoggerService, useValue: mockLoggerService }
       ],
       schemas: [NO_ERRORS_SCHEMA] // Ignore child component templates in tests
     }).compileComponents();
