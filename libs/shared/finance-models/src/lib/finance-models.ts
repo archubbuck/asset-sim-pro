@@ -64,6 +64,48 @@ export interface FeatureFlagResponse {
   configuration: ExchangeConfig;
 }
 
+/**
+ * Price Update Event
+ * Real-time price update broadcast from backend SignalR
+ * Matches backend PriceUpdateEvent from market-engine.ts
+ */
+export interface PriceUpdateEvent {
+  /**
+   * Exchange ID that generated this price update
+   */
+  exchangeId: string;
+
+  /**
+   * Trading symbol (e.g., 'AAPL', 'MSFT')
+   */
+  symbol: string;
+
+  /**
+   * Current price
+   */
+  price: number;
+
+  /**
+   * Absolute price change from previous tick
+   */
+  change: number;
+
+  /**
+   * Percentage price change from previous tick
+   */
+  changePercent: number;
+
+  /**
+   * Trading volume
+   */
+  volume: number;
+
+  /**
+   * ISO 8601 timestamp
+   */
+  timestamp: string;
+}
+
 export function financeModels(): string {
   return 'finance-models';
 }
