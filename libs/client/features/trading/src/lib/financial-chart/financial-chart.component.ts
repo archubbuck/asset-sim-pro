@@ -155,7 +155,7 @@ interface OHLCData {
         </div>
 
         <!-- Real-time Price Display -->
-        @if (latestPrice()) {
+        @if (latestPrice() !== null) {
           <div class="price-ticker">
             <span class="ticker-label">Last Price:</span>
             <span class="ticker-price" [class.up]="priceChange() > 0" [class.down]="priceChange() < 0">

@@ -5,7 +5,7 @@
  * Supports BUY/SELL, all order types (MARKET/LIMIT/STOP/STOP_LIMIT)
  * 
  * Features:
- * - Reactive form with validation
+ * - Signal-based state with template-driven form validation
  * - Real-time price display from SignalR
  * - Integration with OrderApiService
  * - Kendo UI form controls

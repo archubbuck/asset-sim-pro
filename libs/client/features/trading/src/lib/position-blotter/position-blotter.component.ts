@@ -451,7 +451,7 @@ export class PositionBlotterComponent implements OnInit {
    * Refresh orders
    */
   refreshOrders(): void {
-    this.loadOrders();
+    void this.loadOrders();
   }
 
   /**
