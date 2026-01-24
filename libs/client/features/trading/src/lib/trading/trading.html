@@ -1,1 +1,33 @@
-<p>Trading works!</p>
+<div class="trading-container">
+  <div class="trading-header">
+    <h2 class="trading-title">{{ deskName() }}</h2>
+    
+    <div class="connection-status">
+      @if (isConnected()) {
+        <span class="status-indicator connected"></span>
+        <span class="status-text">Live Data Connected</span>
+      } @else {
+        <span class="status-indicator disconnected"></span>
+        <span class="status-text">Offline (Using Stub Data)</span>
+      }
+    </div>
+  </div>
+
+  <div class="trading-grid">
+    <!-- Order Entry Widget -->
+    <div class="grid-item order-entry-widget">
+      <app-order-entry />
+    </div>
+
+    <!-- Financial Chart Widget (spans 2 columns on larger screens) -->
+    <div class="grid-item chart-widget">
+      <app-financial-chart />
+    </div>
+
+    <!-- Position Blotter Widget (spans full width) -->
+    <div class="grid-item blotter-widget">
+      <app-position-blotter />
+    </div>
+  </div>
+</div>
+
