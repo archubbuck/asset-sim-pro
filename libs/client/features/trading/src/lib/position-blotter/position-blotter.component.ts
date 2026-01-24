@@ -40,6 +40,7 @@ import { firstValueFrom } from 'rxjs';
             [data]="statusOptions"
             textField="text"
             valueField="value"
+            [valuePrimitive]="true"
             (valueChange)="onFilterChange()"
             [style.width.px]="150">
           </kendo-dropdownlist>
@@ -318,8 +319,9 @@ export class PositionBlotterComponent implements OnInit {
 
     try {
       // In a real implementation, exchangeId would come from user context
+      // Using valid UUID for demo compatibility with backend Zod validation
       const query = {
-        exchangeId: 'demo-exchange-001',
+        exchangeId: '00000000-0000-0000-0000-000000000000',
         limit: 100,
         offset: 0
       };

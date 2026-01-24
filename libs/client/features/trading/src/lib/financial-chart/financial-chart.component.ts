@@ -419,11 +419,17 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
 
     // If last candle is older than 5 minutes, create a new one
     if (now.getTime() - lastCandle.date.getTime() > 5 * 60 * 1000) {
+      // Use Decimal for high/low calculations per ADR-006
+      const closeDecimal = new Decimal(lastCandle.close);
+      const priceDecimal = new Decimal(newPrice);
+      const high = Decimal.max(closeDecimal, priceDecimal);
+      const low = Decimal.min(closeDecimal, priceDecimal);
+
       const newCandle: OHLCData = {
         date: now,
         open: lastCandle.close,
-        high: Math.max(lastCandle.close, newPrice),
-        low: Math.min(lastCandle.close, newPrice),
+        high: high.toNumber(),
+        low: low.toNumber(),
         close: newPrice,
         volume: Math.floor(Math.random() * 1000000) + 500000
       };
@@ -432,11 +438,14 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
       const updatedData = [...currentData.slice(-29), newCandle];
       this.chartData.set(updatedData);
     } else {
-      // Update the current candle
+      // Update the current candle - use Decimal for precision
+      const highDecimal = Decimal.max(new Decimal(lastCandle.high), new Decimal(newPrice));
+      const lowDecimal = Decimal.min(new Decimal(lastCandle.low), new Decimal(newPrice));
+
       const updatedLastCandle = {
         ...lastCandle,
-        high: Math.max(lastCandle.high, newPrice),
-        low: Math.min(lastCandle.low, newPrice),
+        high: highDecimal.toNumber(),
+        low: lowDecimal.toNumber(),
         close: newPrice
       };
 

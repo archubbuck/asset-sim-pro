@@ -43,9 +43,10 @@ export class Trading implements OnInit {
   async ngOnInit(): Promise<void> {
     // Connect to SignalR for real-time price updates
     // In a real implementation, exchangeId would come from user context
+    // Using valid UUID for demo compatibility with backend validation
     try {
       if (!this.signalRService.isConnected()) {
-        await this.signalRService.connect('demo-exchange-001');
+        await this.signalRService.connect('00000000-0000-0000-0000-000000000000');
       }
     } catch (error) {
       this.logger.logException(error as Error, 3); // Error severity

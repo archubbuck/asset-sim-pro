@@ -113,7 +113,7 @@ interface OrderForm {
           <div class="form-group">
             <kendo-label text="Limit Price">
               <kendo-numerictextbox
-                [value]="orderForm().price || 0"
+                [value]="orderForm().price ?? null"
                 (valueChange)="updateForm('price', $event)"
                 [min]="0.01"
                 [format]="'c2'"
@@ -128,7 +128,7 @@ interface OrderForm {
           <div class="form-group">
             <kendo-label text="Stop Price">
               <kendo-numerictextbox
-                [value]="orderForm().stopPrice || 0"
+                [value]="orderForm().stopPrice ?? null"
                 (valueChange)="updateForm('stopPrice', $event)"
                 [min]="0.01"
                 [format]="'c2'"
@@ -321,10 +321,10 @@ export class OrderEntryComponent {
     try {
       const form = this.orderForm();
       // Note: In a real implementation, exchangeId and portfolioId would come from user context
-      // For stub purposes, we use hardcoded values
+      // Using valid UUIDs for demo compatibility with backend Zod validation
       const request: CreateOrderRequest = {
-        exchangeId: 'demo-exchange-001',
-        portfolioId: 'demo-portfolio-001',
+        exchangeId: '00000000-0000-0000-0000-000000000000',
+        portfolioId: '11111111-1111-1111-1111-111111111111',
         symbol: form.symbol.toUpperCase(),
         side: form.side,
         orderType: form.orderType,
