@@ -259,21 +259,21 @@ import { firstValueFrom } from 'rxjs';
       background-color: #0f172a;
     }
 
-    :host ::ng-deep .k-grid-header .k-header {
+    :host .k-grid-header .k-header {
       background-color: #0f172a;
       color: #cbd5e1;
       border-color: #475569;
     }
 
-    :host ::ng-deep .k-grid td {
+    :host .k-grid td {
       border-color: #475569;
     }
 
-    :host ::ng-deep .k-grid tr:hover {
+    :host .k-grid tr:hover {
       background-color: #334155;
     }
 
-    :host ::ng-deep .k-pager-wrap {
+    :host .k-pager-wrap {
       background-color: #1e293b;
       color: #cbd5e1;
       border-color: #475569;

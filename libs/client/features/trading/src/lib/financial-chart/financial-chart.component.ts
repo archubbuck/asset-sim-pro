@@ -11,7 +11,7 @@
  * - Real-time price updates from SignalR
  * - Historical data simulation
  */
-import { Component, inject, signal, OnInit, OnDestroy, effect } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChartsModule } from '@progress/kendo-angular-charts';
@@ -306,7 +306,8 @@ export class FinancialChartComponent implements OnInit, OnDestroy {
       const priceData = prices.get(symbol);
       
       if (priceData) {
-        const previousPrice = this.latestPrice();
+        // Use untracked to read previous price without making it a dependency
+        const previousPrice = untracked(() => this.latestPrice());
         this.latestPrice.set(priceData.price);
         this.priceChange.set(priceData.changePercent);
 
