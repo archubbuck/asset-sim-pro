@@ -238,7 +238,7 @@ After reconnection, group resubscription requires calling a backend HTTP endpoin
 
 ## Testing
 
-The service includes comprehensive unit tests (22 tests, 90%+ coverage):
+The service includes comprehensive unit tests (23 tests, 90%+ coverage):
 
 ```bash
 # Run SignalR service tests

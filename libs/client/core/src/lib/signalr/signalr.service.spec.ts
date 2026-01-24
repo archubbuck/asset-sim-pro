@@ -165,8 +165,8 @@ describe('SignalRService', () => {
     it('should continue receiving price updates after reconnection', async () => {
       // First connection
       await service.connect('exchange-1');
-      expect(service.latestPrices().size).toBeGreaterThan(0);
       const initialPriceCount = service.latestPrices().size;
+      expect(initialPriceCount).toBeGreaterThan(0);
 
       // Disconnect
       await service.disconnect();
