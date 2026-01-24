@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom, tap } from 'rxjs';
 import { FeatureFlagResponse } from '@assetsim/shared/finance-models';
+import { FeatureFlagApiService } from '@assetsim/shared/api-client';
 import { LoggerService } from '../logger/logger.service';
 
 /**
@@ -12,7 +12,7 @@ import { LoggerService } from '../logger/logger.service';
  * 
  * Features:
  * - Signal-based state management for reactive UI updates
- * - HTTP API integration with /api/v1/exchange/rules endpoint
+ * - Typed API integration via FeatureFlagApiService
  * - Feature flag checking via isEnabled() method
  * - Exchange configuration access via config computed signal
  * - Event logging for configuration changes
@@ -36,7 +36,7 @@ import { LoggerService } from '../logger/logger.service';
  */
 @Injectable({ providedIn: 'root' })
 export class FeatureService {
-  private http = inject(HttpClient);
+  private apiService = inject(FeatureFlagApiService);
   private logger = inject(LoggerService);
 
   /**
@@ -68,7 +68,7 @@ export class FeatureService {
 
   /**
    * Load features from API endpoint
-   * Fetches feature flags and exchange configuration from /api/v1/exchange/rules
+   * Fetches feature flags and exchange configuration via FeatureFlagApiService
    * Updates internal state and logs the event
    * 
    * @param exchangeId - UUID of the exchange to load rules for
@@ -77,10 +77,8 @@ export class FeatureService {
    */
   public async loadFeatures(exchangeId: string): Promise<FeatureFlagResponse> {
     try {
-      const params = new HttpParams().set('exchangeId', exchangeId);
-      
       const data = await firstValueFrom(
-        this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules', { params }).pipe(
+        this.apiService.getExchangeRules(exchangeId).pipe(
           tap(response => {
             this.#state.set(response);
             this.logger.logEvent('ExchangeRulesLoaded', {
@@ -94,7 +92,7 @@ export class FeatureService {
       return data;
     } catch (error) {
       this.logger.logException(
-        error instanceof Error ? error : new Error(`Failed to load exchange rules from /api/v1/exchange/rules for exchange ${exchangeId}`)
+        error instanceof Error ? error : new Error(`Failed to load exchange rules for exchange ${exchangeId}`)
       );
       throw error;
     }
