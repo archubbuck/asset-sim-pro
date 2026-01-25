@@ -50,7 +50,7 @@ export class FeatureService {
       commissionBps: 5,
       allowMargin: true,
       volatilityIndex: 1.0,
-      dashboardLayout: ['market-status', 'holdings-blotter']
+      dashboardLayout: ['market-depth', 'risk-matrix', 'news-terminal']
     }
   });
 
