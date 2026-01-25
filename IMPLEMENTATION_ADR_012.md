@@ -1,8 +1,17 @@
 # ADR-012 Implementation: Manual Operations & Bootstrap Guide
 
 **Status:** Documented  
-**Date:** January 20, 2026  
+**Date:** January 25, 2026  
+**Version:** 2.0.0  
 **ADR Reference:** ARCHITECTURE.md ADR-012 (lines 249-259)
+
+## Document Purpose
+
+This document serves as the **implementation verification** for ADR-012, validating that the manual bootstrap procedures have been properly documented and integrated into the project.
+
+**Primary Documentation:** [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - The authoritative guide for bootstrap procedures  
+**Automation Documentation:** [scripts/README.md](./scripts/README.md) - Automated implementation via ADR-013  
+**Quick Start:** [GETTING_STARTED.md](./GETTING_STARTED.md) - Streamlined setup path
 
 ## Overview
 
@@ -27,9 +36,12 @@ Steps required *before* Terraform can run (Chicken and Egg scenarios).
 All required documentation has been created and integrated into the repository:
 
 #### 1. BOOTSTRAP_GUIDE.md ✅
-**File:** `/BOOTSTRAP_GUIDE.md`  
-**Lines:** 731 lines of comprehensive documentation  
+**File:** [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)  
+**Version:** 2.0.0 (Updated January 25, 2026)  
+**Lines:** 742 lines of comprehensive documentation  
 **Status:** Complete
+
+**Role:** Primary reference document for all bootstrap procedures (manual and automated)
 
 **Contents:**
 - **Phase 1: Terraform State Storage Bootstrap** (Lines 45-213)
@@ -65,41 +77,75 @@ All required documentation has been created and integrated into the repository:
   - References and External Resources (Lines 707-726)
 
 #### 2. DEPLOYMENT_GUIDE.md Updates ✅
-**File:** `/DEPLOYMENT_GUIDE.md`  
-**Status:** Updated with cross-references
+**File:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)  
+**Status:** Updated with automation and bootstrap references
 
 **Changes Made:**
-- Added prominent warning section at the top referencing BOOTSTRAP_GUIDE.md
-- Updated Prerequisites section to include bootstrap verification checklist
-- Modified Phase 1 to reference bootstrap steps instead of duplicating content
-- Added 11 cross-references to BOOTSTRAP_GUIDE.md throughout the document
-- Streamlined Terraform backend configuration section
-
-**Cross-References Added:**
-```
-Line 7:   Link to BOOTSTRAP_GUIDE.md in warning section
-Line 13:  STOP directive if bootstrap not complete
-Line 26:  Prerequisites cross-reference
-Line 29:  Self-hosted agent reference
-Line 34:  Terraform state storage checklist item
-Line 35:  Entra ID consent checklist item
-Line 36:  Azure DevOps pool checklist item
-Line 41:  Phase 1 note about bootstrap
-Line 47:  Backend configuration reference
-Line 74:  Storage account name reference
-Line 96:  Entra ID application reference
-```
+- Added automation path (Option A) and manual path (Option B) at document start
+- Updated Prerequisites section with bootstrap verification checklist
+- References to both automated scripts and manual procedures
+- Streamlined backend configuration section
+- Added 15+ cross-references to BOOTSTRAP_GUIDE.md and scripts/README.md
 
 #### 3. README.md Updates ✅
-**File:** `/README.md`  
-**Status:** Updated with navigation link
+**File:** [README.md](./README.md)  
+**Status:** Updated with quick start and navigation improvements
 
 **Changes Made:**
-- Added BOOTSTRAP_GUIDE.md to "Infrastructure & Security" documentation section
-- Positioned as the first item in infrastructure documentation (before ZERO_TRUST_IMPLEMENTATION.md)
-- Included ADR-012 reference in the description
+- Added prominent 🚀 Quick Start section linking to GETTING_STARTED.md
+- Updated Infrastructure & Security section with clear document hierarchy
+- Positioned BOOTSTRAP_GUIDE.md before other infrastructure docs
+- Added ADR references to all infrastructure documents
 
-### Why These Steps Must Be Manual
+#### 4. GETTING_STARTED.md (NEW) ✅
+**File:** [GETTING_STARTED.md](./GETTING_STARTED.md)  
+**Created:** January 25, 2026  
+**Lines:** 280+ lines  
+**Status:** Complete
+
+**Role:** Single entry point for new developers, covering both local dev and Azure deployment paths
+
+**Contents:**
+- Prerequisites for local development vs. Azure deployment
+- Local development setup (5 steps from clone to running)
+- Azure deployment path with clear sequential flow
+- Common troubleshooting and next steps
+- Document navigation map showing relationships
+
+#### 5. scripts/README.md Updates ✅
+**File:** [scripts/README.md](./scripts/README.md)  
+**Version:** 1.1.0 (Updated January 25, 2026)  
+**Status:** Enhanced with cross-references
+
+**Changes Made:**
+- Added Quick Links section at top
+- Enhanced script descriptions with manual alternative references
+- Consolidated documentation references section
+- Added version history and maintenance information
+
+## Document Relationships
+
+This implementation creates a clear documentation hierarchy:
+
+```
+GETTING_STARTED.md (Entry point for all users)
+├── Local Development Path
+│   └── README.md → detailed local setup
+│
+└── Azure Deployment Path
+    ├── BOOTSTRAP_GUIDE.md (Primary: Manual procedures + automation references)
+    │   ├── scripts/README.md (Automation implementation)
+    │   └── IMPLEMENTATION_ADR_012.md (This document: Verification)
+    │
+    └── DEPLOYMENT_GUIDE.md (Post-bootstrap Terraform deployment)
+```
+
+**Key Relationships:**
+- **GETTING_STARTED.md**: Entry point that directs users to appropriate paths
+- **BOOTSTRAP_GUIDE.md**: Authoritative manual procedures with automation markers
+- **scripts/README.md**: Automated script documentation (ADR-013)
+- **IMPLEMENTATION_ADR_012.md**: This document - validates documentation completeness
+- **DEPLOYMENT_GUIDE.md**: Depends on bootstrap completion, references both manual and automated paths
 
 The documentation clearly explains the "chicken and egg" problem (BOOTSTRAP_GUIDE.md lines 31-43):
 
@@ -192,14 +238,19 @@ The BOOTSTRAP_GUIDE.md follows the same pattern as other implementation guides:
 | Pattern Element | BOOTSTRAP_GUIDE.md | Similar to |
 |-----------------|-------------------|------------|
 | Status header | "Required Pre-Deployment Steps" | IMPLEMENTATION_ADR_011.md |
-| Version tracking | Version 1.0.0, Date: Jan 20, 2026 | All ADR docs |
+| Version tracking | Version 2.0.0, Date: Jan 25, 2026 | All ADR docs |
 | ADR Reference | Lines 249-259 of ARCHITECTURE.md | All ADR docs |
-| Phase structure | 4 numbered phases | DEPLOYMENT_GUIDE.md |
+| Phase structure | 3 numbered phases with automation markers | DEPLOYMENT_GUIDE.md |
 | Code examples | Bash, HCL, YAML | DEPLOYMENT_GUIDE.md |
 | Verification | Checklist with verification commands | IMPLEMENTATION_ADR_011.md |
 | Troubleshooting | Common issues + solutions | DEPLOYMENT_GUIDE.md |
 | References | Internal + external links | All ADR docs |
 | Contributors | Architecture + Implementation teams | All ADR docs |
+
+**New in Version 2.0.0:**
+- 🤖 Automation markers showing which steps can be automated
+- Clear distinction between manual fallback and primary automation path
+- Enhanced cross-references to GETTING_STARTED.md and scripts/README.md
 
 ## ADR-013 Alignment
 
@@ -240,12 +291,14 @@ ARCHITECTURE.md ADR-013 (lines 261-299) provides reference implementation script
 
 ### Integration with Existing Documentation ✅
 
-- [x] README.md updated with link to BOOTSTRAP_GUIDE.md
-- [x] DEPLOYMENT_GUIDE.md updated with cross-references
-- [x] DEPLOYMENT_GUIDE.md bootstrap section streamlined
+- [x] GETTING_STARTED.md created as primary entry point
+- [x] README.md updated with quick start and documentation hierarchy
+- [x] BOOTSTRAP_GUIDE.md updated with automation markers (v2.0.0)
+- [x] DEPLOYMENT_GUIDE.md streamlined with automation paths
+- [x] scripts/README.md enhanced with cross-references
 - [x] Document flow logically structured
 - [x] Consistent formatting and style with other ADR docs
-- [x] No duplicate content between BOOTSTRAP_GUIDE.md and DEPLOYMENT_GUIDE.md
+- [x] Minimal duplication between documents (consolidated to single sources)
 
 ### Technical Accuracy ✅
 
@@ -383,12 +436,15 @@ Instead of service principal with client secret:
 ## Related Documentation
 
 ### Internal References
-- **ARCHITECTURE.md**: ADR-012 specification (lines 249-259)
-- **ARCHITECTURE.md**: ADR-013 reference scripts (lines 261-299)
-- **DEPLOYMENT_GUIDE.md**: Terraform deployment process
-- **ZERO_TRUST_IMPLEMENTATION.md**: Zero Trust architecture details
-- **IMPLEMENTATION_ADR_011.md**: Terraform engineering conventions
-- **ADR_002_IMPLEMENTATION_SUMMARY.md**: Zero Trust implementation
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Primary entry point for new users
+- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Authoritative bootstrap procedures
+- **[scripts/README.md](./scripts/README.md)**: Automated bootstrap implementation (ADR-013)
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment process
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: ADR-012 specification (lines 249-259), ADR-013 (lines 261-299)
+- **[IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md)**: Automation script implementation details
+- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture details
+- **[IMPLEMENTATION_ADR_011.md](./IMPLEMENTATION_ADR_011.md)**: Terraform engineering conventions
+- **[ADR_002_IMPLEMENTATION_SUMMARY.md](./ADR_002_IMPLEMENTATION_SUMMARY.md)**: Zero Trust implementation
 
 ### External References
 - [Terraform Azure Backend Documentation](https://developer.hashicorp.com/terraform/language/settings/backends/azurerm)
@@ -420,5 +476,12 @@ ADR-012 requirements have been **fully documented** in comprehensive, production
 ---
 
 **Document Status:** ✅ Complete  
-**Last Updated:** January 20, 2026  
+**Last Updated:** January 25, 2026  
+**Version:** 2.0.0  
 **Maintained By:** AssetSim Pro DevOps Team
+
+**Related Documents:**
+- [GETTING_STARTED.md](./GETTING_STARTED.md) - Quick start entry point
+- [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - Authoritative bootstrap procedures
+- [scripts/README.md](./scripts/README.md) - Automation implementation
+- [IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md) - Automation verification

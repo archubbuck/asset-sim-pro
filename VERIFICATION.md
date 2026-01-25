@@ -2,6 +2,19 @@
 
 This document provides verification steps to ensure the source control governance implementation is working correctly.
 
+## Prerequisites
+
+Before running verification steps:
+- **Local Development**: See [GETTING_STARTED.md](./GETTING_STARTED.md) for setup
+- **Azure Deployment**: Complete [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) first
+
+## Related Documentation
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Initial setup guide
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines and git workflow
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: See ADR-001 for governance specifications
+
+---
+
 ## Quick Verification Checklist
 
 ### ✅ 1. Package Installation
@@ -220,5 +233,12 @@ All verifications should pass with:
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [commitlint Documentation](https://commitlint.js.org/)
 - [Husky Documentation](https://typicode.github.io/husky/)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - See ADR-001
+- [CONTRIBUTING.md](./CONTRIBUTING.md) - Development workflow
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - See ADR-001 for governance requirements
+- [GETTING_STARTED.md](./GETTING_STARTED.md) - Setup guide
+
+---
+
+**Last Updated:** January 25, 2026  
+**Version:** 2.0  
+**Maintained By:** AssetSim Pro Engineering Team
