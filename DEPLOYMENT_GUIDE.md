@@ -85,7 +85,7 @@ STORAGE_NAME=$(az storage account list \
 echo "Storage Account: $STORAGE_NAME"
 ```
 
-**Reference:** See [BOOTSTRAP_GUIDE.md Phase 1](../BOOTSTRAP_GUIDE.md#phase-1-terraform-state-storage-bootstrap) for saved configuration details.
+**Reference:** See [BOOTSTRAP_GUIDE.md Phase 1](./BOOTSTRAP_GUIDE.md#phase-1-terraform-state-storage-bootstrap) for saved configuration details.
 
 ### 1.2 Create Terraform Backend Configuration File
 

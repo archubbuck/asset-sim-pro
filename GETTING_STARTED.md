@@ -99,7 +99,7 @@ npm start
 - **Backend API:** http://localhost:7071/api
 - **API Documentation:** http://localhost:7071/api/docs
 
-**📖 Next:** See [Local Development Guide](./README.md#local-development-environment-adr-003) for detailed Docker service configuration.
+**📖 Next:** See [Local Development Guide](./README.md#local-development-environment) for detailed Docker service configuration.
 
 ---
 
