@@ -171,6 +171,13 @@ stages:
           - script: |
               export DATABASE_URL="$(SQL_CONNECTION_STRING)" # From KeyVault
               cd $(System.DefaultWorkingDirectory)
-              npm ci
-              npx prisma migrate deploy
+              
+              # Only run Prisma migrations if Prisma is configured in this repository.
+              if [ -d "prisma" ]; then
+                echo "Prisma configuration detected. Installing dependencies and running migrations..."
+                npm ci
+                npx prisma migrate deploy
+              else
+                echo "No Prisma configuration detected (missing ./prisma directory). Skipping Prisma migrations."
+              fi
             displayName: 'Run Prisma Migrations'
