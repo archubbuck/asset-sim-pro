@@ -70,11 +70,11 @@ The following critical user journeys are tested:
 - Confirms stub data is displayed (AAPL, MSFT, GOOGL, TSLA)
 - Checks grid column headers (Order ID, Symbol, Side, Status)
 
-### 6. Order Status Filtering
-**Test:** `should filter orders by status in position blotter`
-- Tests status filter dropdown functionality
-- Filters orders by status (e.g., "Filled")
-- Verifies grid updates with filtered results
+### 6. Position Blotter with Status Filter
+**Test:** `should display status filter dropdown and orders in position blotter`
+- Verifies status filter dropdown is available
+- Confirms grid displays all orders (4 orders in stub data)
+- Validates orders with different statuses (FILLED, PENDING) are present
 
 ### 7. Order Submission
 **Test:** `should handle order submission and display success message`

@@ -141,7 +141,7 @@ test.describe('Critical User Journey: Trading Flow', () => {
     await expect(headers.filter({ hasText: 'Status' })).toBeVisible();
   });
 
-  test('should filter orders by status in position blotter', async ({ page }) => {
+  test('should display status filter dropdown and orders in position blotter', async ({ page }) => {
     // Navigate to trading page
     await page.goto('/trade');
     
@@ -149,7 +149,7 @@ test.describe('Critical User Journey: Trading Flow', () => {
     await expect(page.locator('h3:has-text("Position Blotter")')).toBeVisible();
     await expect(page.locator('kendo-grid')).toBeVisible({ timeout: 5000 });
     
-    // Verify we can see the filter dropdown and that it has options
+    // Verify status filter dropdown is available
     const statusDropdown = page.locator('kendo-dropdownlist').first();
     await expect(statusDropdown).toBeVisible();
     
@@ -157,9 +157,10 @@ test.describe('Critical User Journey: Trading Flow', () => {
     const gridRows = page.locator('kendo-grid tbody tr');
     await expect(gridRows).toHaveCount(4, { timeout: 5000 });
     
-    // Verify at least one FILLED order exists in the stub data
+    // Verify orders with different statuses exist in the stub data
     const gridCells = page.locator('kendo-grid td');
     await expect(gridCells.filter({ hasText: 'FILLED' }).first()).toBeVisible();
+    await expect(gridCells.filter({ hasText: 'PENDING' }).first()).toBeVisible();
   });
 
   test('should handle order submission and display success message', async ({ page }) => {
