@@ -1,11 +1,13 @@
 # Bootstrap Guide - Manual Operations (ADR-012)
 
 **Status:** Required Pre-Deployment Steps  
-**Version:** 1.1.0  
-**Date:** January 21, 2026  
+**Version:** 2.0.0  
+**Date:** January 25, 2026  
 **ADR Reference:** ARCHITECTURE.md ADR-012 (lines 249-259)
 
-> 📢 **NEW:** Automation scripts are now available! See [scripts/](./scripts/) for automated implementations of Phase 1 and Phase 2 (ADR-013).
+> 📢 **AUTOMATION AVAILABLE:** This guide documents manual procedures, but automation scripts exist for Phases 1 and 2.  
+> **Quick Path:** See [scripts/README.md](./scripts/README.md) for automated implementations (ADR-013).  
+> **Getting Started:** New to the project? Start with [GETTING_STARTED.md](./GETTING_STARTED.md).
 
 ## Overview
 
@@ -14,17 +16,21 @@ This guide documents the "chicken and egg" steps required **before** Terraform a
 Per ADR-012, the following steps must be completed manually:
 
 1. **Bootstrap Infrastructure**: Create Resource Group `rg-tfstate` and Storage Account for Terraform remote state
+   - 🤖 **Can be automated:** Use `./scripts/bootstrap-terraform-state.sh`
 2. **Entra ID Consent**: Global Admin must grant `GroupMember.Read.All` API permission
+   - 🤖 **Can be automated:** Use `./scripts/bootstrap-entra-consent.sh`
 3. **Azure DevOps Self-Hosted Agent Pool**: Create `Self-Hosted-VNet-Pool` for deployments to private resources
+   - ⚠️ **Must be manual:** No automation available yet
 
-### Automation Available (ADR-013)
+## Document Purpose
 
-✨ **Phases 1 and 2 can now be automated using the provided scripts:**
-- **Phase 1**: Run `./scripts/bootstrap-terraform-state.sh` (ADR-013 Section 13.2)
-- **Phase 2**: Run `./scripts/bootstrap-entra-consent.sh` (ADR-013 Section 13.1)
-- **Phase 3**: Still requires manual setup (Azure DevOps Agent Pool)
+This document serves as:
+- **Reference**: Detailed manual procedures for each bootstrap step
+- **Fallback**: When automation scripts fail or are not suitable
+- **Understanding**: Explanation of what the scripts do under the hood
 
-See [scripts/README.md](./scripts/README.md) for complete automation documentation.
+**For most users:** Use the automation scripts in [scripts/README.md](./scripts/README.md).  
+**For specific scenarios:** Follow the manual steps below when needed.
 
 ## Prerequisites
 
@@ -54,6 +60,9 @@ Similarly:
 - Therefore, self-hosted agents must be provisioned after VNet creation but configured before deployment
 
 ## Phase 1: Terraform State Storage Bootstrap
+
+> 🤖 **Automation Available:** Use `./scripts/bootstrap-terraform-state.sh` for automated setup.  
+> **Manual Steps Below:** For reference or when automation is not suitable.
 
 ### Overview
 
@@ -225,6 +234,9 @@ az lock list \
 
 ## Phase 2: Entra ID API Consent
 
+> 🤖 **Automation Available:** Use `./scripts/bootstrap-entra-consent.sh` for automated setup.  
+> **Manual Steps Below:** For reference or when automation is not suitable.
+
 ### Overview
 
 AssetSim Pro uses Microsoft Entra ID (formerly Azure Active Directory) for authentication and authorization. The application requires the `GroupMember.Read.All` Microsoft Graph API permission to:
@@ -390,6 +402,8 @@ az ad app update \
 ```
 
 ## Phase 3: Azure DevOps Self-Hosted Agent Pool
+
+> ⚠️ **Manual Setup Required:** No automation available for this phase.
 
 ### Overview
 
@@ -629,6 +643,7 @@ After completing all bootstrap steps:
 
 1. **Proceed to Infrastructure Deployment:**
    - See **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** for Terraform deployment instructions
+   - Or follow the streamlined path in **[GETTING_STARTED.md](./GETTING_STARTED.md)**
 
 2. **Deploy VNet and Agent VM:**
    - After Terraform creates the VNet, provision an agent VM in the `snet-agents` subnet
@@ -638,6 +653,19 @@ After completing all bootstrap steps:
    - Update Entra ID redirect URIs after Static Web App deployment
    - Store secrets in Azure Key Vault
    - Configure Function App application settings
+
+## Related Documentation
+
+### Primary Documents
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Quick setup guide (recommended starting point)
+- **[scripts/README.md](./scripts/README.md)**: Automation scripts for Phases 1-2
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Infrastructure deployment with Terraform
+
+### Reference Documents
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: ADR-012 specification (lines 249-259), ADR-013 automation (lines 261-299)
+- **[IMPLEMENTATION_ADR_012.md](./IMPLEMENTATION_ADR_012.md)**: Detailed ADR-012 implementation documentation
+- **[IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md)**: Automation script implementation details
+- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture details
 
 ## Troubleshooting
 
@@ -738,5 +766,11 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 ---
 
 **Document Status:** ✅ Complete  
-**Last Updated:** January 20, 2026  
+**Last Updated:** January 25, 2026  
+**Version:** 2.0.0  
 **Maintained By:** AssetSim Pro DevOps Team
+
+**Related Documents:**
+- [GETTING_STARTED.md](./GETTING_STARTED.md) - Quick setup guide
+- [scripts/README.md](./scripts/README.md) - Automation scripts
+- [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Next steps after bootstrap

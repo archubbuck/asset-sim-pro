@@ -5,6 +5,15 @@
 **Repository:** archubbuck/asset-sim-pro  
 **Reference:** [Phase 3 & 4 Evaluation Issue #51](https://github.com/archubbuck/asset-sim-pro/issues/51)
 
+## Prerequisites
+
+Before reviewing this evaluation, familiarize yourself with:
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Setup guide and deployment path
+- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Bootstrap procedures (ADR-012)
+- **[scripts/README.md](./scripts/README.md)**: Automation scripts (ADR-013)
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment procedures
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Complete architectural decisions
+
 ---
 
 ## Executive Summary
@@ -435,6 +444,11 @@ The AssetSim Pro platform successfully implements:
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** January 21, 2026  
+**Document Version:** 2.0  
+**Last Updated:** January 25, 2026  
 **Maintained By:** AssetSim Pro Engineering Team
+
+**Related Documents:**
+- [GETTING_STARTED.md](./GETTING_STARTED.md) - Setup guide
+- [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - Prerequisites for deployment
+- [EVALUATION_DOCS_README.md](./EVALUATION_DOCS_README.md) - Evaluation navigation guide

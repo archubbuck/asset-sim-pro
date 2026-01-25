@@ -2,8 +2,17 @@
 
 **Status:** ✅ Complete  
 **Implementation Date:** January 21, 2026  
+**Version:** 2.0.0 (Updated January 25, 2026)  
 **ADR Reference:** ARCHITECTURE.md ADR-013 (lines 261-298)  
 **Related ADRs:** ADR-012 (Manual Operations & Bootstrap Guide)
+
+## Document Purpose
+
+This document serves as the **implementation verification** for ADR-013, validating that the bootstrap automation scripts have been properly implemented and documented.
+
+**Primary Documentation:** [scripts/README.md](./scripts/README.md) - Authoritative guide for automation scripts  
+**Manual Procedures:** [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - Manual fallback and detailed explanations  
+**Quick Start:** [GETTING_STARTED.md](./GETTING_STARTED.md) - Streamlined automation path
 
 ## Overview
 
@@ -43,245 +52,94 @@ Automate Azure infrastructure bootstrap using:
 
 ### ✅ Deliverable 2: Entra ID Consent Script
 
-**File:** `/scripts/bootstrap-entra-consent.sh`  
+**File:** [scripts/bootstrap-entra-consent.sh](./scripts/bootstrap-entra-consent.sh)  
 **Lines:** 257 lines  
 **Executable:** ✓ (chmod +x)  
-**ADR Section:** 13.1 (lines 267-281)
+**ADR Section:** 13.1 (lines 267-281)  
+**Documentation:** [scripts/README.md - Section 1](./scripts/README.md#1-bootstrap-entra-consentsh)
 
-**Implementation Details:**
-
-#### Features
-1. **Prerequisites Verification**
-   - Azure CLI installation check
-   - Azure login status validation
-   - Version compatibility verification
-   - Tenant ID and user identification
-
-2. **Configuration Management**
-   - Environment variable support (`APP_ID`)
-   - Interactive prompt fallback
-   - Input validation
-
-3. **Service Principal Operations**
-   - Microsoft Graph SP ID retrieval (appId: 00000003-0000-0000-c000-000000000000)
-   - Application SP ID lookup
-   - SP existence validation with helpful error messages
-
-4. **API Permission Grant**
-   - GroupMember.Read.All role assignment (Role ID: 98830695-27a2-44f7-8c18-0c3ebc9698f6)
-   - Graph API POST request via `az rest`
-   - Idempotent operation (detects existing permissions)
-
-5. **Verification & Validation**
-   - Query granted permissions
-   - Confirm permission activation
-   - Replication delay handling
-
-6. **Error Handling**
-   - `set -euo pipefail` for strict error handling
-   - Graceful handling of existing resources
-   - Detailed error messages with remediation steps
-
-7. **User Experience**
-   - Color-coded output (INFO, SUCCESS, WARNING, ERROR)
-   - Progress indicators
-   - Clear next steps guidance
-
-**API Calls Implemented:**
-```bash
-# Service Principal Query
-az ad sp list --filter "appId eq '<APP_ID>'" --query "[0].id" -o tsv
-
-# Grant Consent (Graph API)
-az rest --method POST \
-  --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$APP_SP_ID/appRoleAssignedTo" \
-  --headers "Content-Type=application/json" \
-  --body '{"principalId": "$APP_SP_ID", "resourceId": "$GRAPH_SP_ID", "appRoleId": "$ROLE_ID"}'
-
-# Verify Permissions
-az rest --method GET \
-  --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$APP_SP_ID/appRoleAssignments"
-```
-
-**Usage Examples:**
-```bash
-# Option 1: Environment variable
-export APP_ID="your-application-client-id"
-./scripts/bootstrap-entra-consent.sh
-
-# Option 2: Interactive prompt
-./scripts/bootstrap-entra-consent.sh
-```
+**For detailed usage, features, and examples:** See [scripts/README.md - Entra ID Consent Script](./scripts/README.md#1-bootstrap-entra-consentsh)
 
 ### ✅ Deliverable 3: Terraform State Bootstrap Script
 
-**File:** `/scripts/bootstrap-terraform-state.sh`  
+**File:** [scripts/bootstrap-terraform-state.sh](./scripts/bootstrap-terraform-state.sh)  
 **Lines:** 485 lines  
 **Executable:** ✓ (chmod +x)  
-**ADR Section:** 13.2 (lines 283-298)
+**ADR Section:** 13.2 (lines 283-298)  
+**Documentation:** [scripts/README.md - Section 2](./scripts/README.md#2-bootstrap-terraform-statesh)
 
-**Implementation Details:**
-
-#### Features
-1. **Prerequisites Verification**
-   - Azure CLI installation check
-   - Azure login status validation
-   - Subscription details retrieval
-   - User identification
-
-2. **Configuration Management**
-   - Environment variable support (`RG`, `LOC`, `STORAGE`, `CONTAINER`)
-   - Default values from ADR-013 specification
-   - Storage account name validation (3-24 chars, lowercase alphanumeric)
-
-3. **Resource Group Creation**
-   - ARM API PUT request for resource group
-   - Location specification
-   - Idempotent operation (skips if exists)
-
-4. **Storage Account Creation**
-   - ARM API PUT request for storage account
-   - Secure defaults (HTTPS-only, TLS 1.2, no public blob access)
-   - Standard_LRS SKU (Locally Redundant Storage)
-   - Blob encryption enabled
-   - Provisioning wait period
-
-5. **Blob Container Creation**
-   - Storage account key retrieval
-   - Private blob container creation
-   - Container existence check
-
-6. **Configuration Generation**
-   - `terraform-backend-config/backend.tf` - Terraform backend block
-   - `terraform-backend-config/backend.env` - Environment variables
-   - `terraform-backend-config/README.md` - Usage instructions
-   - Auto-generated with timestamps and metadata
-
-7. **Optional Resource Lock**
-   - Interactive prompt for CanNotDelete lock
-   - Protection against accidental deletion
-   - Clear removal instructions
-
-8. **Security Features**
-   - Storage account keys protected (not displayed)
-   - Generated files contain credentials warning
-   - Clear guidance on .gitignore requirements
-
-**API Calls Implemented:**
-```bash
-# Create Resource Group (ARM API)
-az rest --method PUT \
-  --uri "https://management.azure.com/subscriptions/{subscriptionId}/resourcegroups/$RG?api-version=2021-04-01" \
-  --body '{"location": "$LOC"}'
-
-# Create Storage Account (ARM API)
-az rest --method PUT \
-  --uri "https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/$RG/providers/Microsoft.Storage/storageAccounts/$STORAGE?api-version=2021-04-01" \
-  --body '{"sku":{"name":"Standard_LRS"},"kind":"StorageV2","location":"$LOC",...}'
-
-# Create Blob Container
-az storage container create \
-  --account-name "$STORAGE" \
-  --account-key "$STORAGE_KEY" \
-  --name "$CONTAINER" \
-  --public-access off
-```
-
-**Default Configuration:**
-- Resource Group: `rg-tfstate`
-- Storage Account: `sttfstate{timestamp8}{random4}` (e.g., `sttfstate12345678abcd`)
-- Blob Container: `tfstate`
-- Location: `eastus2`
-- SKU: Standard_LRS
-
-**Usage Examples:**
-```bash
-# Option 1: Use defaults
-./scripts/bootstrap-terraform-state.sh
-
-# Option 2: Custom configuration
-export RG="rg-tfstate-prod"
-export LOC="westus2"
-export STORAGE="sttfstateprod"
-./scripts/bootstrap-terraform-state.sh
-```
+**For detailed usage, features, configuration, and examples:** See [scripts/README.md - Terraform State Bootstrap](./scripts/README.md#2-bootstrap-terraform-statesh)
 
 ### ✅ Deliverable 4: Comprehensive Documentation
 
-**File:** `/scripts/README.md`  
-**Lines:** 281 lines  
+**File:** [scripts/README.md](./scripts/README.md)  
+**Lines:** 281+ lines  
+**Version:** 1.1.0 (Updated January 25, 2026)  
 **Status:** Complete
 
-**Sections:**
-1. **Overview** - Purpose and ADR reference
-2. **Scripts** - Detailed description of both scripts
-3. **Security Features** - Error handling, validation, secure defaults
-4. **Execution Order** - Step-by-step bootstrap workflow
-5. **Error Handling & Troubleshooting** - Common issues and solutions
-6. **Integration** - Links to BOOTSTRAP_GUIDE.md and ARCHITECTURE.md
-7. **Testing & Validation** - Syntax checking and dry run testing
-8. **Security Considerations** - Secrets management and permissions
-9. **Future Enhancements** - Potential improvements
-
-**Key Features:**
-- Usage examples for both scripts
-- Prerequisites and permission requirements
-- API endpoints documentation
-- Security best practices
-- Idempotency guarantees
-- Integration with existing documentation
+This is the **primary documentation** for the automation scripts. See [scripts/README.md](./scripts/README.md) for:
+- Detailed script descriptions and usage
+- Security features and best practices
+- Execution order and workflow
+- Error handling and troubleshooting
+- Integration with other documentation
+- Testing and validation procedures
 
 ### ✅ Deliverable 5: Documentation Integration
 
 #### 5.1 Updated BOOTSTRAP_GUIDE.md
+**Version:** 2.0.0 (Updated January 25, 2026)  
 **Status:** Complete
 
 **Changes Made:**
-- Added automation notice at top of document (line 8)
-- Updated version to 1.1.0
-- Added reference to ADR-013 automation scripts
-- Linked to `/scripts/README.md` for automation details
-- Clear indication that Phases 1 and 2 can be automated
+- Added comprehensive automation notice at document start
+- Updated version to 2.0.0
+- Added 🤖 automation markers for Phases 1 and 2
+- Added ⚠️ manual-only marker for Phase 3
+- Enhanced cross-references to GETTING_STARTED.md and scripts/README.md
+- Clarified document purpose (reference + fallback)
+- Added "Related Documents" section at end
 
-**Cross-References:**
-```markdown
-✨ **Phases 1 and 2 can now be automated using the provided scripts:**
-- **Phase 1**: Run `./scripts/bootstrap-terraform-state.sh` (ADR-013 Section 13.2)
-- **Phase 2**: Run `./scripts/bootstrap-entra-consent.sh` (ADR-013 Section 13.1)
-- **Phase 3**: Still requires manual setup (Azure DevOps Agent Pool)
-```
+#### 5.2 Created GETTING_STARTED.md (NEW)
+**Created:** January 25, 2026  
+**Status:** Complete
 
-#### 5.2 Updated README.md
+**Role:** Primary entry point for all users
+- Section on local development setup
+- Section on Azure deployment with automation path highlighted
+- Clear sequential bootstrap → deploy → verify flow
+- Links to both automated scripts and manual procedures
+
+#### 5.3 Updated README.md
 **Status:** Complete
 
 **Changes Made:**
-- Added scripts reference to "Infrastructure & Security" section
-- Linked to `/scripts/` directory
-- Added ADR-013 reference
+- Added prominent 🚀 Quick Start section
+- Links to GETTING_STARTED.md as primary entry point
+- Reorganized Infrastructure & Security section
+- Added clear document hierarchy
 
-**New Entry:**
-```markdown
-- **[scripts/](./scripts/)**: Bootstrap automation scripts for Entra ID consent and Terraform state setup (ADR-013)
-```
-
-#### 5.3 Updated .gitignore
+#### 5.4 Updated scripts/README.md
+**Version:** 1.1.0 (Updated January 25, 2026)  
 **Status:** Complete
 
 **Changes Made:**
-- Added `terraform-backend-config/` to Terraform section
-- Protects generated configuration files with sensitive credentials
+- Added Quick Links section
+- Enhanced cross-references to GETTING_STARTED.md and BOOTSTRAP_GUIDE.md
+- Improved script descriptions with manual alternatives
+- Added version history
 
-**New Rule:**
-```gitignore
-# Terraform
-terraform/.terraform/
-terraform/.terraform.lock.hcl
-terraform/*.tfstate
-terraform/*.tfstate.backup
-terraform/*.tfvars
-terraform/terraform.tfvars.json
-terraform-backend-config/
-```
+#### 5.5 Updated DEPLOYMENT_GUIDE.md
+**Status:** Complete
+
+**Changes Made:**
+- Added Option A (automation) and Option B (manual) at start
+- Streamlined bootstrap verification section
+- References to both automated scripts and manual procedures
+- Clear indication of which backend config to use based on bootstrap method
+
+#### 5.6 Updated .gitignore
+**Status:** Complete (No changes needed - already present from previous work)
 
 ## Script Validation
 
@@ -435,17 +293,20 @@ All ADR-013 requirements have been successfully implemented:
 ## Files Changed
 
 ### New Files Created
-1. `/scripts/bootstrap-entra-consent.sh` (257 lines, executable)
-2. `/scripts/bootstrap-terraform-state.sh` (485 lines, executable)
-3. `/scripts/README.md` (281 lines)
-4. `/IMPLEMENTATION_ADR_013.md` (this document)
+1. [scripts/bootstrap-entra-consent.sh](./scripts/bootstrap-entra-consent.sh) (257 lines, executable)
+2. [scripts/bootstrap-terraform-state.sh](./scripts/bootstrap-terraform-state.sh) (485 lines, executable)
+3. [scripts/README.md](./scripts/README.md) (281+ lines, v1.1.0)
+4. [GETTING_STARTED.md](./GETTING_STARTED.md) (280+ lines, new entry point)
+5. [IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md) (this document)
 
 ### Files Modified
-1. `/BOOTSTRAP_GUIDE.md` - Added automation references
-2. `/README.md` - Added scripts link in documentation section
-3. `/.gitignore` - Added `terraform-backend-config/` exclusion
+1. [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - v2.0.0 with automation markers
+2. [README.md](./README.md) - Added quick start and reorganized documentation
+3. [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Streamlined with automation paths
+4. [EVALUATION_DOCS_README.md](./EVALUATION_DOCS_README.md) - Added prerequisites
+5. [IMPLEMENTATION_ADR_012.md](./IMPLEMENTATION_ADR_012.md) - v2.0.0 clarifying relationships
 
-**Total Lines Added:** ~1,000 lines of implementation and documentation
+**Total Documentation:** ~1,500+ lines of implementation, automation, and integration documentation
 
 ## Future Enhancements
 
@@ -484,15 +345,29 @@ ADR-013 has been **fully implemented** with production-ready automation scripts 
 ✅ **Use** Azure CLI and REST APIs as specified  
 ✅ **Implement** exact API calls from ARCHITECTURE.md  
 ✅ **Provide** comprehensive error handling and validation  
-✅ **Include** extensive documentation and usage examples  
+✅ **Include** extensive documentation in [scripts/README.md](./scripts/README.md)  
 ✅ **Follow** security best practices and Zero Trust principles  
-✅ **Integrate** seamlessly with existing documentation  
+✅ **Integrate** seamlessly with [GETTING_STARTED.md](./GETTING_STARTED.md), [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md), and [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)  
 ✅ **Maintain** idempotency and repeatability  
 
 The implementation successfully bridges the gap between manual operations (ADR-012) and full Terraform automation (ADR-014), providing a robust, secure, and user-friendly bootstrap experience for AssetSim Pro infrastructure deployment.
 
+## Related Documentation
+
+### Primary Documents
+- **[scripts/README.md](./scripts/README.md)**: Authoritative automation script documentation
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Quick start with automation path
+- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual procedures and detailed explanations
+
+### Reference Documents
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: ADR-013 specification (lines 261-298)
+- **[IMPLEMENTATION_ADR_012.md](./IMPLEMENTATION_ADR_012.md)**: Manual operations verification
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Post-bootstrap deployment
+
 ---
 
 **Implementation Date:** January 21, 2026  
+**Last Updated:** January 25, 2026  
+**Version:** 2.0.0  
 **Validation Status:** ✅ Complete  
 **Production Ready:** Yes
