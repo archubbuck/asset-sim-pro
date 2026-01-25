@@ -1,13 +1,16 @@
 # AssetSim Pro - Evaluation Documentation Guide
 
-**Last Updated:** January 23, 2026  
+**Last Updated:** January 25, 2026  
 **Purpose:** Navigation guide for Phase 4 & 5 evaluation documentation
 
 ---
 
 ## Quick Navigation
 
-### 📊 Start Here
+### 🚀 New to AssetSim Pro?
+Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)** for local development and Azure deployment paths.
+
+### 📊 Executive Overview
 
 **For Executives:**
 - [PHASE_4_5_EXECUTIVE_SUMMARY.md](./PHASE_4_5_EXECUTIVE_SUMMARY.md) - High-level overview, status, risks, timeline
@@ -20,6 +23,27 @@
 - [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md) - Detailed Phase 5 implementation status
 - [PHASE_3_4_EVALUATION.md](./PHASE_3_4_EVALUATION.md) - Phase 3 & 4 verification details
 - [PHASE_1_2_EVALUATION.md](./PHASE_1_2_EVALUATION.md) - Phase 1 & 2 verification details
+
+---
+
+## Prerequisites & Setup
+
+Before diving into evaluation reports, familiarize yourself with:
+
+### Getting Started
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Local dev setup and Azure deployment path
+- **[README.md](./README.md)** - Project overview and workspace structure
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development guidelines and git workflow
+
+### Infrastructure & Deployment
+- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)** - Manual bootstrap procedures (Phases 1-3)
+- **[scripts/README.md](./scripts/README.md)** - Automated bootstrap scripts
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Terraform and application deployment
+- **[VERIFICATION.md](./VERIFICATION.md)** - Post-deployment verification
+
+### Architecture
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete architectural decisions (all ADRs)
+- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)** - Security architecture
 
 ---
 
@@ -269,15 +293,15 @@
 
 ## Document Metadata
 
-| Document | Description | Last Updated |
-|----------|-------------|--------------|
-| PHASE_4_5_EXECUTIVE_SUMMARY.md | Executive overview of Phase 4 & 5 status | Jan 23, 2026 |
-| EVALUATION_SUMMARY.md | Cross-phase evaluation status and key decisions | Jan 23, 2026 |
-| PHASE_5_EVALUATION.md | Detailed Phase 5 implementation and verification | Jan 23, 2026 |
-| BACKEND_FRONTEND_INTEGRATION.md | Backend–frontend integration design and gaps | Jan 23, 2026 |
-| PHASE_3_4_EVALUATION.md | Phase 3 & 4 verification details | Jan 21, 2026 |
-| PHASE_1_2_EVALUATION.md | Phase 1 & 2 verification details | Jan 21, 2026 |
+| Document | Description | Last Updated | Prerequisites |
+|----------|-------------|--------------|---------------|
+| PHASE_4_5_EXECUTIVE_SUMMARY.md | Executive overview of Phase 4 & 5 status | Jan 23, 2026 | [GETTING_STARTED.md](./GETTING_STARTED.md) |
+| EVALUATION_SUMMARY.md | Cross-phase evaluation status and key decisions | Jan 23, 2026 | [ARCHITECTURE.md](./ARCHITECTURE.md) |
+| PHASE_5_EVALUATION.md | Detailed Phase 5 implementation and verification | Jan 23, 2026 | [PHASE_3_4_EVALUATION.md](./PHASE_3_4_EVALUATION.md) |
+| BACKEND_FRONTEND_INTEGRATION.md | Backend–frontend integration design and gaps | Jan 23, 2026 | [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md) |
+| PHASE_3_4_EVALUATION.md | Phase 3 & 4 verification details | Jan 21, 2026 | [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md), [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) |
+| PHASE_1_2_EVALUATION.md | Phase 1 & 2 verification details | Jan 21, 2026 | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 
 ---
 
-**Last Updated:** January 23, 2026
+**Last Updated:** January 25, 2026

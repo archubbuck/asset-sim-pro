@@ -8,6 +8,15 @@ Enterprise-grade simulation platform designed for **Asset Management Firms**, **
 
 AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates and Portfolio Managers can train on execution strategies, risk management, and portfolio construction in a controlled environment. Organizations run private **"Exchanges"** (Simulation Venues), allowing Risk Managers to configure specific market regimes (e.g., "High Volatility," "Liquidity Crisis") to test their team's performance under pressure.
 
+## 🚀 Quick Start
+
+**New to AssetSim Pro?** Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)** for a streamlined setup guide that covers:
+- Local development setup (Docker + npm)
+- Azure deployment path (Bootstrap → Deploy → Verify)
+- Common troubleshooting and next steps
+
+This guide provides the fastest path from clone to running application.
+
 ## 🏗️ Workspace Structure (ADR-004)
 
 AssetSim Pro uses an **Nx monorepo** with Angular 21+ and Kendo UI:
@@ -36,6 +45,9 @@ See **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)** for detailed workspace 
 
 ## Documentation
 
+### Getting Started
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: 🚀 **Start here!** Quick setup guide for local dev and Azure deployment
+
 ### Project Status
 - **[EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md)**: Phase 1 & 2 evaluation - ✅ **100% COMPLETE**
 - **[PHASE_1_2_EVALUATION.md](./PHASE_1_2_EVALUATION.md)**: Comprehensive evaluation report for all ADRs
@@ -47,10 +59,11 @@ See **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)** for detailed workspace 
 - **[TESTING.md](./TESTING.md)**: Testing strategy and quality gates (92.59% coverage)
 
 ### Infrastructure & Security
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual operations & bootstrap steps required before deployment (ADR-012)
-- **[scripts/](./scripts/)**: Bootstrap automation scripts for Entra ID consent and Terraform state setup (ADR-013)
-- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust Network Architecture implementation details
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Step-by-step deployment instructions for Azure infrastructure
+- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures (Terraform state, Entra ID, DevOps) - ADR-012
+- **[scripts/README.md](./scripts/README.md)**: Automated bootstrap scripts for Phases 1-2 - ADR-013
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment and application configuration
+- **[VERIFICATION.md](./VERIFICATION.md)**: Post-deployment verification and testing
+- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture implementation details
 - **[ADR_002_IMPLEMENTATION_SUMMARY.md](./ADR_002_IMPLEMENTATION_SUMMARY.md)**: Complete summary of ADR-002 implementation
 
 ## Getting Started
