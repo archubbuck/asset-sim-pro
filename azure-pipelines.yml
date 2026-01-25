@@ -15,7 +15,7 @@ pool:
 variables:
   - group: 'assetsim-prod-vars' # Links to Azure Key Vault for secrets
   - name: terraform_version
-    value: '1.5.0'
+    value: '1.7.0'
 
 stages:
   # ============================================================================
@@ -47,8 +47,8 @@ stages:
               artifact: 'client-artifact'
             displayName: 'Publish Client Artifact'
 
-          # Build Backend Function App (dist/apps/backend)
-          # Backend has its own package.json, so we need to install deps and build
+          # Build Backend Function App
+          # Backend is a standalone Azure Functions app with its own package.json
           - script: |
               cd apps/backend
               npm ci
@@ -56,6 +56,7 @@ stages:
             displayName: 'Build Function App'
 
           # Archive backend for Function App deployment
+          # Include package.json, host.json, and dist folder for Azure Functions
           - task: ArchiveFiles@2
             inputs:
               rootFolderOrFile: 'apps/backend'
@@ -157,6 +158,9 @@ stages:
             displayName: 'Deploy Static Web App'
 
           # 3. Database Migrations (Run from VNet)
+          # Note: Dependencies are reinstalled here because the Deploy stage runs on
+          # a different agent (Self-Hosted-VNet-Pool) than the Build stage (ubuntu-latest).
+          # Artifacts are published without node_modules to keep artifact size minimal.
           - script: |
               export DATABASE_URL="$(SQL_CONNECTION_STRING)" # From KeyVault
               cd $(System.DefaultWorkingDirectory)
