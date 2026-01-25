@@ -411,6 +411,248 @@ az staticwebapp show \
 az ad app show --id $APP_ID --query web.redirectUris
 ```
 
+## CI/CD Pipeline (ADR-023)
+
+AssetSim Pro uses Azure DevOps with a split pipeline architecture for secure, automated deployments.
+
+### Pipeline Architecture
+
+The pipeline is divided into three stages:
+
+1. **Build Stage** (Cloud - `ubuntu-latest`)
+   - Compiles Angular client and Azure Functions backend
+   - Publishes build artifacts
+   - Runs on cloud-hosted agents for efficiency
+
+2. **Infrastructure Stage** (VNet - `Self-Hosted-VNet-Pool`)
+   - Provisions Azure resources via Terraform
+   - Runs from VNet for secure access to private resources
+   - Manages infrastructure as code
+
+3. **Deploy Stage** (VNet - `Self-Hosted-VNet-Pool`)
+   - Deploys Function App and Static Web App
+   - Runs database migrations
+   - Executes from VNet for security
+
+### Pipeline Configuration
+
+The pipeline is defined in `azure-pipelines.yml` at the repository root.
+
+#### Required Variables
+
+Create an Azure DevOps Variable Group named `assetsim-prod-vars` linked to Azure Key Vault:
+
+```yaml
+# Variables from Azure Key Vault
+- SWA_DEPLOYMENT_TOKEN: Static Web App deployment token
+- SQL_CONNECTION_STRING: Database connection string for migrations
+```
+
+#### Required Service Connections
+
+1. **Azure-Service-Connection**
+   - Type: Azure Resource Manager
+   - Permissions: Contributor on target subscription
+   - Used for Terraform and deployment tasks
+
+### Running the Pipeline
+
+The pipeline triggers automatically on commits to the `main` branch:
+
+```bash
+# Commit and push to trigger pipeline
+git add .
+git commit -m "feat: new feature"
+git push origin main
+```
+
+Manual trigger via Azure DevOps:
+1. Navigate to Pipelines → asset-sim-pro
+2. Click "Run pipeline"
+3. Select branch and click "Run"
+
+### Pipeline Stages in Detail
+
+#### Stage 1: Build Application
+
+```yaml
+# Builds Angular client with Nx
+npx nx run client:build:production → dist/apps/client
+
+# Builds Azure Functions backend
+cd apps/backend && npm ci && npm run build → apps/backend/dist
+
+# Publishes artifacts
+- client-artifact: dist/apps/client
+- backend-artifact: backend.zip (contains package.json, host.json, dist/)
+```
+
+#### Stage 2: Provision Infrastructure
+
+```yaml
+# Install Terraform 1.7.0
+# Initialize with remote backend
+terraform init \
+  -backend-config="resource_group_name=rg-tfstate" \
+  -backend-config="storage_account_name=sttfstate" \
+  -backend-config="container_name=tfstate" \
+  -backend-config="key=prod.terraform.tfstate"
+
+# Apply infrastructure changes
+terraform apply -auto-approve
+```
+
+**Prerequisites:**
+- Terraform state storage (see BOOTSTRAP_GUIDE.md Phase 1)
+- `Self-Hosted-VNet-Pool` configured (see BOOTSTRAP_GUIDE.md Phase 3)
+- Service connection with appropriate permissions
+
+#### Stage 3: Deploy Code
+
+```yaml
+# Download build artifacts
+# Deploy Function App
+az functionapp deployment source config-zip \
+  --name func-assetsim-backend-prod \
+  --src backend.zip
+
+# Deploy Static Web App
+# Publishes client artifact to Azure Static Web Apps
+
+# Run database migrations
+export DATABASE_URL="<from KeyVault>"
+npx prisma migrate deploy
+```
+
+**Security Note:** All deployment tasks run on `Self-Hosted-VNet-Pool` to ensure secure access to private endpoints.
+
+### Monitoring Pipeline Runs
+
+#### Via Azure DevOps UI
+1. Navigate to Pipelines → asset-sim-pro
+2. View recent runs and their status
+3. Click a run to see stage details and logs
+
+#### Via Azure CLI
+```bash
+# List recent pipeline runs
+az pipelines runs list \
+  --organization https://dev.azure.com/YourOrg \
+  --project AssetSimPro \
+  --pipeline-ids <pipeline-id>
+
+# Show specific run details
+az pipelines runs show \
+  --id <run-id> \
+  --organization https://dev.azure.com/YourOrg \
+  --project AssetSimPro
+```
+
+### Troubleshooting Pipeline Issues
+
+#### Build Stage Failures
+
+**Problem:** Client build fails
+```bash
+# Check Nx cache and dependencies
+npx nx reset
+npm ci
+npx nx run client:build:production
+```
+
+**Problem:** Backend build fails
+```bash
+cd apps/backend
+npm ci
+npm run build
+npm test
+```
+
+#### Infrastructure Stage Failures
+
+**Problem:** Terraform init fails
+- Verify `Self-Hosted-VNet-Pool` is online
+- Check service connection permissions
+- Ensure Terraform state storage exists (BOOTSTRAP_GUIDE.md Phase 1)
+
+**Problem:** Terraform apply fails
+- Review Terraform plan output in pipeline logs
+- Verify service principal has Contributor role
+- Check for resource name conflicts or quota limits
+
+#### Deploy Stage Failures
+
+**Problem:** Function App deployment fails
+```bash
+# Verify Function App exists
+az functionapp show \
+  --name func-assetsim-backend-prod \
+  --resource-group rg-assetsim-prod-useast2
+
+# Check deployment status
+az functionapp deployment list-publishing-credentials \
+  --name func-assetsim-backend-prod \
+  --resource-group rg-assetsim-prod-useast2
+```
+
+**Problem:** Static Web App deployment fails
+- Verify SWA_DEPLOYMENT_TOKEN is set correctly in variable group
+- Check Static Web App exists and is accessible
+
+**Problem:** Database migration fails
+```bash
+# Test connection from VNet agent
+sqlcmd -S tcp:sql-assetsim-prod.database.windows.net,1433 \
+  -d sqldb-assetsim-prod \
+  -U sqladmin \
+  -P <password>
+
+# Manually run migration
+export DATABASE_URL="<connection-string>"
+npx prisma migrate deploy
+```
+
+### Manual Deployment (Bypass Pipeline)
+
+For emergency deployments or testing:
+
+```bash
+# 1. Build locally
+npm ci
+npx nx run client:build:production
+cd apps/backend && npm ci && npm run build && cd ../..
+
+# 2. Deploy Function App
+cd apps/backend
+func azure functionapp publish func-assetsim-backend-prod
+
+# 3. Deploy Static Web App
+# Use Azure CLI or portal to deploy dist/apps/client
+
+# 4. Run migrations (from VNet-connected machine)
+export DATABASE_URL="<connection-string>"
+npx prisma migrate deploy
+```
+
+**Warning:** Manual deployments bypass audit trails and may cause inconsistencies. Use only in emergencies.
+
+### Best Practices
+
+1. **Always use the pipeline** for production deployments
+2. **Test changes in dev/staging** before merging to main
+3. **Review pipeline logs** for warnings even on successful runs
+4. **Monitor deployments** via Azure Application Insights
+5. **Keep variable groups updated** with Key Vault references
+6. **Rotate deployment tokens** quarterly
+7. **Maintain agent pool health** (Self-Hosted-VNet-Pool)
+
+### Related Documentation
+
+- Pipeline definition: `azure-pipelines.yml`
+- Architecture decisions: [ARCHITECTURE.md](./ARCHITECTURE.md) (ADR-023, lines 1151-1293)
+- Bootstrap guide: [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)
+- Zero Trust setup: [ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)
+
 ## Rollback Procedure
 
 If deployment fails:
