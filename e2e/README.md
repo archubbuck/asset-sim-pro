@@ -39,10 +39,10 @@ The following critical user journeys are tested:
 ### 1. Complete Trading Journey
 **Test:** `should complete full trading journey`
 - Verifies application loads with "AssetSim Pro" branding
-- Navigates through Terminal (Dashboard) -> Execution -> Fund Performance
+- Navigates through Terminal (Dashboard) -> Execution
 - Places a trading order with pre-filled default values (AAPL, 100 shares, BUY, MARKET)
 - Verifies order confirmation message
-- Confirms orders appear in Position Blotter
+- Confirms orders appear in Position Blotter on the same page
 
 ### 2. Dashboard Widget Display
 **Test:** `should display trading terminal with widgets`
