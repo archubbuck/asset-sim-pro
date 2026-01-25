@@ -3,6 +3,12 @@ import { encode } from '@msgpack/msgpack';
 import { InvocationContext } from '@azure/functions';
 import Decimal from 'decimal.js';
 import { PriceUpdateEvent } from '../types/market-engine';
+import {
+  trackUpdateBroadcasted,
+  trackBroadcastFailure,
+  trackDeadbandFiltered,
+  trackBroadcastLatency,
+} from './telemetry';
 
 let signalRClient: WebPubSubServiceClient | null = null;
 
@@ -65,6 +71,11 @@ export function shouldBroadcastPriceUpdate(lastPrice: number, newPrice: number):
  * - Uses MessagePack for protocol efficiency
  * - Applies deadband filtering
  * 
+ * ADR-025: Observability & Health Checks
+ * - Tracks UpdatesBroadcasted metric for monitoring
+ * - Tracks BroadcastFailures for error detection
+ * - Tracks DeadbandFiltered for optimization insights
+ * 
  * @param priceUpdate - Price update event data
  * @param lastPrice - Previous price for deadband filtering
  * @param context - Azure Functions context for logging
@@ -74,12 +85,17 @@ export async function broadcastPriceUpdate(
   lastPrice: number,
   context: InvocationContext
 ): Promise<void> {
+  const startTime = performance.now();
+  
   try {
     // Apply deadband filter
     if (!shouldBroadcastPriceUpdate(lastPrice, priceUpdate.price)) {
       context.log(
         `Deadband filter: skipping ${priceUpdate.symbol} (change < $0.01)`
       );
+      
+      // ADR-025: Track filtered updates
+      trackDeadbandFiltered(priceUpdate.exchangeId, priceUpdate.symbol, context);
       return;
     }
 
@@ -96,9 +112,19 @@ export async function broadcastPriceUpdate(
     context.log(
       `Broadcast to ${groupName}: ${priceUpdate.symbol} @ ${priceUpdate.price}`
     );
+    
+    // ADR-025: Track successful broadcast and latency
+    const duration = performance.now() - startTime;
+    trackUpdateBroadcasted(priceUpdate.exchangeId, priceUpdate.symbol, context);
+    trackBroadcastLatency(duration, priceUpdate.exchangeId, priceUpdate.symbol, context);
+    
   } catch (error) {
     const err = error as Error;
     context.error(`Failed to broadcast price update: ${err.message}`);
+    
+    // ADR-025: Track broadcast failures
+    trackBroadcastFailure(priceUpdate.exchangeId, priceUpdate.symbol, err.message, context);
+    
     // Don't throw - allow market engine to continue even if broadcast fails
   }
 }
