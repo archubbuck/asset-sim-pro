@@ -21,7 +21,8 @@
     "backend:build": "cd apps/backend && npm run build",
     "backend:test": "cd apps/backend && vitest run",
     "backend:test:coverage": "cd apps/backend && vitest run --coverage",
-    "seed:local": "ts-node scripts/seed-local.ts"
+    "db:init": "ts-node --project scripts/tsconfig.json scripts/init-db.ts",
+    "seed:local": "ts-node --project scripts/tsconfig.json scripts/seed-local.ts"
   },
   "keywords": [
     "trading",
