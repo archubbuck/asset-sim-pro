@@ -3,9 +3,6 @@ import { test, expect } from '@playwright/test';
 /**
  * Critical User Journey: Login -> Place Order -> Verify Blotter
  * Per ADR-005: Test against Dockerized Local Environment
- * 
- * NOTE: Tests are skipped until UI is fully implemented
- * Remove test.skip() once the application UI is ready
  */
 test.describe('Critical User Journey: Trading Flow', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,95 +10,184 @@ test.describe('Critical User Journey: Trading Flow', () => {
     await page.goto('/');
   });
 
-  // Remove test.skip() once the application UI is ready
-  // Prerequisites: Login functionality, order placement form, and blotter display must be implemented
-  test.skip('should complete full trading journey', async ({ page }) => {
-    // Step 1: Login
-    // Note: In local environment, authentication might be mocked
-    // In production, this would use Azure AD authentication
+  test('should complete full trading journey', async ({ page }) => {
+    // Step 1: Verify Application Loads
+    // In local environment, authentication is mocked via MockAuthService
+    // The AppShell component displays "AssetSim Pro" in the header
     await page.waitForSelector('text=AssetSim Pro', { timeout: 10000 });
     
-    // Step 2: Navigate to Trading Terminal
+    // Step 2: Navigate to Trading Terminal (Dashboard)
+    // The navigation drawer has a "Terminal" link that routes to /dashboard
     await page.click('text=Terminal');
+    await page.waitForURL(/\/dashboard/);
+    
+    // Step 3: Verify Dashboard Widgets are Displayed
+    // The dashboard should show "Trading Desk" title and widgets
     await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible();
-
-    // Step 3: Verify Market Data is Loading
-    // The dashboard should show widgets as per ADR configuration
-    await expect(page.locator('app-market-depth:has-text("Market Depth")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('app-market-depth')).toBeVisible({ timeout: 5000 });
     
     // Step 4: Navigate to Execution Page
+    // The "Execution" nav link routes to /trade where the order entry form is
     await page.click('text=Execution');
+    await page.waitForURL(/\/trade/);
     
-    // Step 5: Place an Order (Currently skipped - order form not yet implemented)
-    // TODO: Once order form is implemented, this test should:
-    // 1. Verify order form is visible
-    // 2. Fill in order details (symbol, quantity, etc.)
-    // 3. Submit the order
-    // 4. Verify order confirmation
+    // Step 5: Place an Order
+    // Verify order entry form is visible
+    await expect(page.locator('h3:has-text("Order Entry")')).toBeVisible();
+    
+    // Fill in order details - using default values that should already be populated
+    // Symbol field should have "AAPL" by default
+    await expect(page.locator('kendo-textbox input')).toHaveValue('AAPL');
+    
+    // Quantity should be 100 by default, verify it's set
+    const quantityInput = page.locator('kendo-numerictextbox input').first();
+    await expect(quantityInput).toHaveValue('100');
+    
+    // Submit the order
+    await page.click('button:has-text("Place Order")');
+    
+    // Verify order confirmation message appears
+    await expect(page.locator('.status-message.success')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.status-message.success')).toContainText(/Order.*placed/);
     
     // Step 6: Verify Blotter (Order History)
-    // Navigate to portfolio/blotter to verify orders appear
+    // The position blotter is on the same page (trade page) below the order entry
+    // Wait for the blotter to load and display orders
+    await expect(page.locator('h3:has-text("Position Blotter")')).toBeVisible();
+    
+    // Verify the blotter grid is displayed with data (stub data will be shown)
+    await expect(page.locator('kendo-grid')).toBeVisible({ timeout: 5000 });
+    
+    // Verify at least one order is visible in the blotter
+    // In stub mode, orders like "AAPL", "MSFT", etc. should be present
+    await expect(page.locator('kendo-grid').locator('text=AAPL')).toBeVisible();
+    
+    // Step 7: Navigate to Fund Performance (Portfolio view)
     await page.click('text=Fund Performance');
+    await page.waitForURL(/\/portfolio/);
     
-    // Verify the page loaded successfully
-    await expect(page.locator('body')).toContainText('Fund Performance', { timeout: 5000 });
-    
-    // TODO: Once blotter is implemented, add assertions to verify:
-    // - Order history table is visible
-    // - Orders are displayed with correct details
-    // This completes the critical journey: Login -> Place Order -> Verify Blotter
+    // Verify the portfolio/trading page loads with blotter
+    await expect(page.locator('h3:has-text("Position Blotter")')).toBeVisible();
   });
 
-  // Remove test.skip() once dashboard widgets are implemented
-  // Prerequisites: Dashboard page with market data widgets must be functional
-  test.skip('should display trading terminal with widgets', async ({ page }) => {
+  test('should display trading terminal with widgets', async ({ page }) => {
     await page.goto('/dashboard');
     
     // Verify dashboard loads
     await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible({ timeout: 10000 });
     
     // Verify widgets are present (per ADR-022)
-    const widgets = [
-      'Market Depth',
-      'VaR',
-      'Bloomberg Feed',
-      'Risk',
-      'News'
-    ];
+    // Based on DashboardComponent implementation, the following widgets should be visible:
+    // - L2 Market Depth
+    // - Risk Matrix (VaR)
+    // - News Terminal
     
-    // At least one widget should be visible
-    let widgetVisible = false;
-    for (const widget of widgets) {
-      try {
-        const locator = page.locator(`text=${widget}`);
-        if (await locator.isVisible({ timeout: 2000 })) {
-          widgetVisible = true;
-          break;
-        }
-      } catch (error) {
-        // Widget not found or check failed; continue checking other widgets.
-        continue;
-      }
-    }
-    expect(widgetVisible).toBeTruthy();
+    await expect(page.locator('app-market-depth')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h3:has-text("L2 Market Depth")')).toBeVisible();
+    
+    await expect(page.locator('app-risk-matrix')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h3:has-text("Risk Matrix")')).toBeVisible();
+    
+    await expect(page.locator('app-news-terminal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h3:has-text("News Terminal")')).toBeVisible();
   });
 
-  // Remove test.skip() once navigation UI is implemented
-  // Prerequisites: Navigation menu with Terminal, Fund Performance, and Execution links must be available
-  test.skip('should handle navigation between sections', async ({ page }) => {
+  test('should handle navigation between sections', async ({ page }) => {
     // Test navigation between main sections
+    // Start at root which redirects to /dashboard
     await page.goto('/');
     
-    // Navigate to Terminal
+    // Wait for redirect to dashboard
+    await page.waitForURL(/\/dashboard/);
+    
+    // Navigate to Terminal (already on dashboard, but verify)
     await page.click('text=Terminal');
-    await expect(page).toHaveURL(/\/dashboard($|\/)/);
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible();
     
     // Navigate to Fund Performance
     await page.click('text=Fund Performance');
-    await expect(page).toHaveURL(/\/portfolio($|\/)/);
+    await expect(page).toHaveURL(/\/portfolio/);
+    // Verify trading page loads (portfolio route loads Trading component)
+    await expect(page.locator('h2:has-text("Live Trading Terminal")')).toBeVisible();
     
     // Navigate to Execution
     await page.click('text=Execution');
-    await expect(page).toHaveURL(/\/trade($|\/)/);
+    await expect(page).toHaveURL(/\/trade/);
+    // Verify trading page loads
+    await expect(page.locator('h2:has-text("Live Trading Terminal")')).toBeVisible();
+  });
+
+  test('should display order entry form with validation', async ({ page }) => {
+    // Navigate to trading/execution page
+    await page.goto('/trade');
+    
+    // Verify order entry form is visible
+    await expect(page.locator('h3:has-text("Order Entry")')).toBeVisible();
+    
+    // Verify form fields are present
+    await expect(page.locator('kendo-label:has-text("Symbol")')).toBeVisible();
+    await expect(page.locator('kendo-label:has-text("Side")')).toBeVisible();
+    await expect(page.locator('kendo-label:has-text("Order Type")')).toBeVisible();
+    await expect(page.locator('kendo-label:has-text("Quantity")')).toBeVisible();
+    
+    // Verify Place Order button is present
+    await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
+  });
+
+  test('should display position blotter with orders', async ({ page }) => {
+    // Navigate to trading page
+    await page.goto('/trade');
+    
+    // Verify position blotter is visible
+    await expect(page.locator('h3:has-text("Position Blotter")')).toBeVisible();
+    
+    // Verify the grid is rendered
+    await expect(page.locator('kendo-grid')).toBeVisible({ timeout: 5000 });
+    
+    // In stub mode, verify sample orders are displayed
+    // The blotter loads stub data with AAPL, MSFT, GOOGL, TSLA orders
+    await expect(page.locator('kendo-grid').locator('text=AAPL')).toBeVisible();
+    
+    // Verify grid has column headers
+    await expect(page.locator('text=Order ID')).toBeVisible();
+    await expect(page.locator('text=Symbol')).toBeVisible();
+    await expect(page.locator('text=Side')).toBeVisible();
+    await expect(page.locator('text=Status')).toBeVisible();
+  });
+
+  test('should filter orders by status in position blotter', async ({ page }) => {
+    // Navigate to trading page
+    await page.goto('/trade');
+    
+    // Wait for blotter to load
+    await expect(page.locator('h3:has-text("Position Blotter")')).toBeVisible();
+    await expect(page.locator('kendo-grid')).toBeVisible({ timeout: 5000 });
+    
+    // Find and interact with the status filter dropdown
+    const statusDropdown = page.locator('kendo-dropdownlist').first();
+    await statusDropdown.click();
+    
+    // Select "Filled" filter option
+    await page.locator('text=Filled').click();
+    
+    // Verify grid updates (in stub data, there's at least one FILLED order: AAPL)
+    await expect(page.locator('kendo-grid').locator('text=FILLED')).toBeVisible();
+  });
+
+  test('should handle order submission and display success message', async ({ page }) => {
+    // Navigate to trading page
+    await page.goto('/trade');
+    
+    // Verify order entry form is visible
+    await expect(page.locator('h3:has-text("Order Entry")')).toBeVisible();
+    
+    // The form has default values pre-filled (AAPL, BUY, MARKET, 100)
+    // Just click Place Order to submit with defaults
+    await page.click('button:has-text("Place Order")');
+    
+    // Verify success message appears
+    await expect(page.locator('.status-message.success')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.status-message')).toContainText(/Order.*placed/i);
   });
 });
