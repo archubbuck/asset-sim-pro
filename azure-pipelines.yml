@@ -1,0 +1,165 @@
+# Azure DevOps Pipeline for AssetSim Pro
+# ADR-023: Split CI/CD Pipeline for Build, Infra, & Deploy
+# 
+# Pipeline Stages:
+# 1. Build (Cloud): Compile Angular client & Azure Functions backend
+# 2. Infrastructure (VNet): Provision Azure resources via Terraform
+# 3. Deploy (VNet): Deploy Function App, Static Web App, and run migrations
+
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: 'assetsim-prod-vars' # Links to Azure Key Vault for secrets
+  - name: terraform_version
+    value: '1.5.0'
+
+stages:
+  # ============================================================================
+  # STAGE 1: BUILD APPLICATION
+  # ============================================================================
+  - stage: Build
+    displayName: 'Build Application'
+    jobs:
+      - job: Build
+        steps:
+          # Setup Node.js environment
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Install Node.js 20.x'
+            
+          # Install root dependencies for Nx workspace
+          - script: npm ci
+            displayName: 'Install Dependencies'
+
+          # Build Angular Client (dist/apps/client)
+          - script: npx nx run client:build:production
+            displayName: 'Build Institutional Client'
+
+          # Publish client artifact for Static Web App deployment
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: 'dist/apps/client'
+              artifact: 'client-artifact'
+            displayName: 'Publish Client Artifact'
+
+          # Build Backend Function App (dist/apps/backend)
+          # Backend has its own package.json, so we need to install deps and build
+          - script: |
+              cd apps/backend
+              npm ci
+              npm run build
+            displayName: 'Build Function App'
+
+          # Archive backend for Function App deployment
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: 'apps/backend'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/backend.zip'
+            displayName: 'Archive Backend Function App'
+
+          # Publish backend artifact for Function App deployment
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(Build.ArtifactStagingDirectory)/backend.zip'
+              artifact: 'backend-artifact'
+            displayName: 'Publish Backend Artifact'
+
+  # ============================================================================
+  # STAGE 2: INFRASTRUCTURE PROVISIONING
+  # ============================================================================
+  - stage: Infrastructure
+    displayName: 'Provision Infrastructure'
+    dependsOn: Build
+    jobs:
+      - job: Terraform
+        pool:
+          name: 'Self-Hosted-VNet-Pool' # MUST be inside VNet to reach Storage/KeyVault
+        steps:
+          # Install Terraform CLI
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: $(terraform_version)
+            displayName: 'Install Terraform'
+
+          # Initialize Terraform with remote backend
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              backendServiceArm: 'Azure-Service-Connection'
+              backendAzureRmResourceGroupName: 'rg-tfstate'
+              backendAzureRmStorageAccountName: 'sttfstate'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'prod.terraform.tfstate'
+            displayName: 'Terraform Init'
+
+          # Apply Terraform configuration
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              environmentServiceNameAzureRM: 'Azure-Service-Connection'
+              commandOptions: '-auto-approve'
+            displayName: 'Terraform Apply'
+
+  # ============================================================================
+  # STAGE 3: DEPLOY CODE
+  # ============================================================================
+  - stage: Deploy
+    displayName: 'Deploy Code'
+    dependsOn: Infrastructure
+    jobs:
+      - job: DeployAssets
+        pool:
+          name: 'Self-Hosted-VNet-Pool' # Deploy from VNet for security
+        steps:
+          # Download client artifact
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'client-artifact'
+              path: '$(Pipeline.Workspace)/client'
+            displayName: 'Download Client Artifact'
+
+          # Download backend artifact
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'backend-artifact'
+              path: '$(Pipeline.Workspace)/backend'
+            displayName: 'Download Backend Artifact'
+
+          # 1. Deploy Function App (Backend API & Market Engine)
+          - task: AzureFunctionApp@2
+            inputs:
+              azureSubscription: 'Azure-Service-Connection'
+              appType: 'functionAppLinux'
+              appName: 'func-assetsim-backend-prod' # Must match Terraform output
+              package: '$(Pipeline.Workspace)/backend/backend.zip'
+              deploymentMethod: 'runFromPackage'
+            displayName: 'Deploy Azure Function App'
+
+          # 2. Deploy Static Content (Frontend)
+          - task: AzureStaticWebApp@0
+            inputs:
+              app_location: '/'
+              api_location: ''
+              output_location: '$(Pipeline.Workspace)/client'
+              skip_app_build: true
+              azure_static_web_apps_api_token: $(SWA_DEPLOYMENT_TOKEN)
+            displayName: 'Deploy Static Web App'
+
+          # 3. Database Migrations (Run from VNet)
+          - script: |
+              export DATABASE_URL="$(SQL_CONNECTION_STRING)" # From KeyVault
+              cd $(System.DefaultWorkingDirectory)
+              npm ci
+              npx prisma migrate deploy
+            displayName: 'Run Prisma Migrations'
