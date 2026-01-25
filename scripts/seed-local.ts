@@ -98,7 +98,7 @@ function generateMarketData(symbol: string, basePrice: number, days: number = 7)
       const timestamp = new Date(date);
       timestamp.setMinutes(timestamp.getMinutes() + minute);
       
-      // Random walk with mean reversion using Decimal.js
+      // Random walk with mean reversion using Decimal.js (ADR-006)
       const volatility = new Decimal(0.002); // 0.2% per minute
       const drift = basePriceDecimal.minus(currentPrice).times(0.0001); // Mean reversion
       const randomFactor = new Decimal(Math.random() - 0.5);
@@ -106,6 +106,7 @@ function generateMarketData(symbol: string, basePrice: number, days: number = 7)
       
       const open = currentPrice;
       const close = currentPrice.plus(change);
+      // Note: Math.random() is acceptable for synthetic seed data generation
       const highMultiplier = new Decimal(1).plus(Math.random() * 0.001);
       const lowMultiplier = new Decimal(1).minus(Math.random() * 0.001);
       const high = Decimal.max(open, close).times(highMultiplier);
@@ -115,6 +116,7 @@ function generateMarketData(symbol: string, basePrice: number, days: number = 7)
       data.push({
         symbol,
         timestamp,
+        // Convert to number for SQL bulk insert (parseFloat preserves 8 decimal places)
         open: parseFloat(open.toFixed(8)),
         high: parseFloat(high.toFixed(8)),
         low: parseFloat(low.toFixed(8)),
