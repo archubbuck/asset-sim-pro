@@ -84,8 +84,8 @@ function generateMarketData(symbol: string, basePrice: number, days: number = 7)
   let currentPrice = basePrice;
   const now = new Date();
   
-  // Generate data for each day
-  for (let day = days; day >= 0; day--) {
+  // Generate data for each day (days - 1 to 0, inclusive = days total)
+  for (let day = days - 1; day >= 0; day--) {
     const date = new Date(now);
     date.setDate(date.getDate() - day);
     date.setHours(9, 30, 0, 0); // Market open
@@ -314,7 +314,8 @@ async function seedLocalEnvironment() {
       
       console.log(`  • ${instrument.symbol}: ${marketData.length} ticks`);
     }
-    console.log(`✅ ${totalTicks} total market data ticks seeded\n`);
+    const expectedTicks = SAMPLE_INSTRUMENTS.length * 7 * 390; // 7 days * 390 minutes per day
+    console.log(`✅ ${totalTicks} total market data ticks seeded (expected: ${expectedTicks})\n`);
     
     // 7. Cache Exchange Config in Redis
     console.log('📦 Caching Exchange Configuration in Redis...');

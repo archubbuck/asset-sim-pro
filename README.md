@@ -106,7 +106,7 @@ AssetSim Pro follows a **Zero Trust** architecture that prevents developers from
    This will populate:
    - Demo Exchange with default configuration
    - 20 sample instruments (AAPL, MSFT, GOOGL, etc.)
-   - 62,400 historical market data ticks (8 days of 1-minute OHLC data)
+   - 54,600 historical market data ticks (7 days of 1-minute OHLC data)
    - Demo portfolio with $10M starting cash
    - Redis cache with exchange config and latest quotes
 
