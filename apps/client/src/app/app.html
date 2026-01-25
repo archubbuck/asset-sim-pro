@@ -1,53 +1,5 @@
-<div class="app-container">
-  <header class="app-header">
-    <h1 class="app-title">{{ fullTitle() }}</h1>
-    <p class="app-description">
-      Enterprise-grade simulation platform for Asset Management Firms, 
-      Hedge Funds, and Proprietary Trading Desks
-    </p>
-  </header>
-
-  <main class="app-content">
-    <section class="welcome-section">
-      <h2>Nx Workspace with Angular & Kendo UI</h2>
-      <p>
-        This workspace is configured according to <strong>ADR-004</strong>:
-      </p>
-      <ul>
-        <li>✅ <strong>Nx</strong> workspace structure</li>
-        <li>✅ <strong>Angular Signals</strong> for reactive state management</li>
-        <li>✅ <strong>Zoneless change detection</strong> enabled</li>
-        <li>✅ <strong>Kendo UI for Angular</strong> with Institutional Slate theme</li>
-      </ul>
-
-      <div class="demo-section">
-        <h3>Angular Signals Demo</h3>
-        <p>Click count (using Angular Signals): <strong>{{ clickCount() }}</strong></p>
-        <button 
-          class="demo-button"
-          (click)="onTestClick()">
-          Test Signal Update
-        </button>
-      </div>
-
-      <div class="demo-section">
-        <h3>Error Handling Demo (ADR-018)</h3>
-        <p>Test RFC 7807 Problem Details error notification:</p>
-        <button 
-          class="demo-button"
-          (click)="onTestErrorHandling()">
-          Test Error Notification
-        </button>
-      </div>
-    </section>
-
-    <router-outlet></router-outlet>
-  </main>
-
-  <footer class="app-footer">
-    <p>AssetSim Pro v1.0.0 | Following ADR-004 Architecture</p>
-  </footer>
-</div>
+<!-- Root application container - router handles all layout via AppShell -->
+<router-outlet></router-outlet>
 
 <!-- Error notifications (ADR-018: RFC 7807 Error Handling) -->
 <core-error-notification></core-error-notification>

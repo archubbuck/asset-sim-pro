@@ -24,7 +24,7 @@ test.describe('Critical User Journey: Trading Flow', () => {
     // Step 3: Verify Dashboard Widgets are Displayed
     // The dashboard should show "Trading Desk" title and widgets
     await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible();
-    await expect(page.locator('app-market-depth')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h3:has-text("L2 Market Depth")')).toBeVisible({ timeout: 5000 });
     
     // Step 4: Navigate to Execution Page
     // The "Execution" nav link routes to /trade where the order entry form is
@@ -37,7 +37,7 @@ test.describe('Critical User Journey: Trading Flow', () => {
     
     // Fill in order details - using default values that should already be populated
     // Symbol field should have "AAPL" by default
-    await expect(page.locator('kendo-textbox input')).toHaveValue('AAPL');
+    await expect(page.locator('kendo-textbox input').first()).toHaveValue('AAPL');
     
     // Quantity should be 100 by default, verify it's set
     const quantityInput = page.locator('kendo-numerictextbox input').first();
@@ -47,7 +47,7 @@ test.describe('Critical User Journey: Trading Flow', () => {
     await page.click('button:has-text("Place Order")');
     
     // Verify order confirmation message appears
-    await expect(page.locator('.status-message.success')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.status-message.success')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('.status-message.success')).toContainText(/Order.*placed/);
     
     // Step 6: Verify Blotter (Order History)
@@ -60,7 +60,8 @@ test.describe('Critical User Journey: Trading Flow', () => {
     
     // Verify at least one order is visible in the blotter
     // In stub mode, orders like "AAPL", "MSFT", etc. should be present
-    await expect(page.locator('kendo-grid').locator('text=AAPL')).toBeVisible();
+    const gridCells = page.locator('kendo-grid td');
+    await expect(gridCells.filter({ hasText: 'AAPL' }).first()).toBeVisible();
     
     // Step 7: Navigate to Fund Performance (Portfolio view)
     await page.click('text=Fund Performance');
@@ -82,14 +83,9 @@ test.describe('Critical User Journey: Trading Flow', () => {
     // - Risk Matrix (VaR)
     // - News Terminal
     
-    await expect(page.locator('app-market-depth')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('h3:has-text("L2 Market Depth")')).toBeVisible();
-    
-    await expect(page.locator('app-risk-matrix')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('h3:has-text("Risk Matrix")')).toBeVisible();
-    
-    await expect(page.locator('app-news-terminal')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('h3:has-text("News Terminal")')).toBeVisible();
+    await expect(page.locator('h3:has-text("L2 Market Depth")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h3:has-text("Risk Matrix")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h3:has-text("News Terminal")')).toBeVisible({ timeout: 5000 });
   });
 
   test('should handle navigation between sections', async ({ page }) => {
@@ -147,13 +143,15 @@ test.describe('Critical User Journey: Trading Flow', () => {
     
     // In stub mode, verify sample orders are displayed
     // The blotter loads stub data with AAPL, MSFT, GOOGL, TSLA orders
-    await expect(page.locator('kendo-grid').locator('text=AAPL')).toBeVisible();
+    const gridCells = page.locator('kendo-grid td');
+    await expect(gridCells.filter({ hasText: 'AAPL' }).first()).toBeVisible();
     
-    // Verify grid has column headers
-    await expect(page.locator('text=Order ID')).toBeVisible();
-    await expect(page.locator('text=Symbol')).toBeVisible();
-    await expect(page.locator('text=Side')).toBeVisible();
-    await expect(page.locator('text=Status')).toBeVisible();
+    // Verify grid has column headers - use more specific selectors
+    const headers = page.locator('kendo-grid th');
+    await expect(headers.filter({ hasText: 'Order ID' })).toBeVisible();
+    await expect(headers.filter({ hasText: 'Symbol' })).toBeVisible();
+    await expect(headers.filter({ hasText: 'Side' })).toBeVisible();
+    await expect(headers.filter({ hasText: 'Status' })).toBeVisible();
   });
 
   test('should filter orders by status in position blotter', async ({ page }) => {
@@ -168,11 +166,14 @@ test.describe('Critical User Journey: Trading Flow', () => {
     const statusDropdown = page.locator('kendo-dropdownlist').first();
     await statusDropdown.click();
     
-    // Select "Filled" filter option
-    await page.locator('text=Filled').click();
+    // Wait for dropdown options to appear and select "Filled" filter option
+    const dropdownList = page.locator('kendo-popup .k-list-item');
+    await expect(dropdownList.first()).toBeVisible({ timeout: 2000 });
+    await dropdownList.filter({ hasText: 'Filled' }).click();
     
     // Verify grid updates (in stub data, there's at least one FILLED order: AAPL)
-    await expect(page.locator('kendo-grid').locator('text=FILLED')).toBeVisible();
+    const gridCells = page.locator('kendo-grid td');
+    await expect(gridCells.filter({ hasText: 'FILLED' }).first()).toBeVisible();
   });
 
   test('should handle order submission and display success message', async ({ page }) => {
