@@ -30,7 +30,7 @@ The AssetSim Pro pipeline implements a **split architecture** for security:
 
 **Outputs:**
 - `dist/apps/client` → Published as client-artifact
-- `apps/backend/dist` → Archived and published as backend-artifact
+- `apps/backend` (including `dist/`, `host.json`, `package.json`, etc.) → Archived and published as backend-artifact
 
 ### 2️⃣ Provision Infrastructure (VNet)
 
