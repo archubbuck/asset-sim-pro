@@ -48,7 +48,11 @@ stages:
             displayName: 'Publish Client Artifact'
 
           # Build Backend Function App
-          # Backend is a standalone Azure Functions app with its own package.json
+          # NOTE: Backend is a standalone Azure Functions app with its own package.json,
+          # not an Nx-managed project. ADR-023 mentions "npx nx run backend:build:production"
+          # but the backend doesn't have a project.json file for Nx integration.
+          # This approach builds the backend independently, which is appropriate for
+          # Azure Functions that need their own runtime and dependencies.
           - script: |
               cd apps/backend
               npm ci
@@ -158,9 +162,12 @@ stages:
             displayName: 'Deploy Static Web App'
 
           # 3. Database Migrations (Run from VNet)
-          # Note: Dependencies are reinstalled here because the Deploy stage runs on
-          # a different agent (Self-Hosted-VNet-Pool) than the Build stage (ubuntu-latest).
-          # Artifacts are published without node_modules to keep artifact size minimal.
+          # NOTE: Dependencies are reinstalled here because:
+          # 1. Deploy stage runs on a different agent pool (Self-Hosted-VNet-Pool)
+          # 2. Build artifacts don't include node_modules (keeps artifact size minimal)
+          # 3. This is the standard Prisma migration approach in Azure DevOps
+          # Alternative approaches (migration artifact, cached node_modules) add complexity
+          # without significant benefit for the migration step which runs once per deployment.
           - script: |
               export DATABASE_URL="$(SQL_CONNECTION_STRING)" # From KeyVault
               cd $(System.DefaultWorkingDirectory)
