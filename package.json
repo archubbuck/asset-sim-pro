@@ -106,6 +106,7 @@
     "@progress/kendo-angular-inputs": "^22.0.1",
     "@progress/kendo-angular-intl": "^22.0.1",
     "@progress/kendo-angular-l10n": "^22.0.1",
+    "@progress/kendo-angular-label": "^22.0.1",
     "@progress/kendo-angular-layout": "^22.0.1",
     "@progress/kendo-angular-navigation": "^22.0.1",
     "@progress/kendo-angular-popup": "^22.0.1",

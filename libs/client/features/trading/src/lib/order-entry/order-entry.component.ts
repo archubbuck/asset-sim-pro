@@ -102,7 +102,7 @@ interface OrderForm {
         <div class="form-group">
           <kendo-label text="Quantity">
             <kendo-numerictextbox
-              [value]="orderForm().quantity !== null ? orderForm().quantity : undefined"
+              [value]="$any(orderForm().quantity)"
               (valueChange)="updateForm('quantity', $event)"
               [min]="1"
               [format]="'n0'"
@@ -116,7 +116,7 @@ interface OrderForm {
           <div class="form-group">
             <kendo-label text="Limit Price">
               <kendo-numerictextbox
-                [value]="orderForm().price !== null ? orderForm().price : undefined"
+                [value]="$any(orderForm().price ?? null)"
                 (valueChange)="updateForm('price', $event)"
                 [min]="0.01"
                 [format]="'c2'"
@@ -131,7 +131,7 @@ interface OrderForm {
           <div class="form-group">
             <kendo-label text="Stop Price">
               <kendo-numerictextbox
-                [value]="orderForm().stopPrice !== null ? orderForm().stopPrice : undefined"
+                [value]="$any(orderForm().stopPrice ?? null)"
                 (valueChange)="updateForm('stopPrice', $event)"
                 [min]="0.01"
                 [format]="'c2'"
