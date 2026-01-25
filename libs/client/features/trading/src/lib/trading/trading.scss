@@ -1,0 +1,88 @@
+.trading-container {
+  padding: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.trading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.trading-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #1e293b;
+  border-radius: 0.25rem;
+}
+
+.status-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+.status-indicator.connected {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.status-indicator.disconnected {
+  background-color: #ef4444;
+}
+
+.status-text {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.trading-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+/* Tablet and larger */
+@media (min-width: 768px) {
+  .trading-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .blotter-widget {
+    grid-column: span 2;
+  }
+}
+
+/* Desktop and larger */
+@media (min-width: 1024px) {
+  .trading-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .order-entry-widget {
+    grid-column: span 1;
+  }
+
+  .chart-widget {
+    grid-column: span 2;
+  }
+
+  .blotter-widget {
+    grid-column: span 3;
+  }
+}
+
+.grid-item {
+  min-height: 200px;
+}
