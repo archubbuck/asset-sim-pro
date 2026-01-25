@@ -18,7 +18,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { OrderApiService } from '@assetsim/shared/api-client';
-import { SignalRService } from '@assetsim/client/core';
+import { SignalRService, LoggerService } from '@assetsim/client/core';
 import { firstValueFrom } from 'rxjs';
 import { 
   OrderSide, 
@@ -240,6 +240,7 @@ export class OrderEntryComponent {
   private orderApiService = inject(OrderApiService);
   private signalRService = inject(SignalRService);
   private destroyRef = inject(DestroyRef);
+  private logger = inject(LoggerService);
   private resetTimeoutId: number | null = null;
 
   // Form data as a signal for reactivity
@@ -347,8 +348,8 @@ export class OrderEntryComponent {
         this.statusMessage.set(`Order ${response.orderId} placed successfully!`);
       } catch (apiError) {
         // Fallback to stub mode if API fails (e.g., no database seeding, network issue)
-        console.warn('API order creation failed, using stub mode:', apiError);
-        const stubOrderId = `stub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        this.logger.logTrace('API order creation failed, using stub mode', { error: apiError });
+        const stubOrderId = `stub-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
         
         this.statusType.set('success');
         this.statusMessage.set(`Order ${stubOrderId} placed (demo mode)`);

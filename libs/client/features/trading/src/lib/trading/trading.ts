@@ -48,8 +48,9 @@ export class Trading implements OnInit {
       if (!this.signalRService.isConnected()) {
         await this.signalRService.connect('00000000-0000-0000-0000-000000000000');
       }
-    } catch (error) {
-      this.logger.logException(error as Error, 3); // Error severity
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.logException(err, 3); // Error severity
     }
   }
 }
