@@ -202,11 +202,11 @@ These scripts implement automation for manual steps documented in:
 ### Related Documentation
 - **[GETTING_STARTED.md](../GETTING_STARTED.md)**: Quick setup path using these scripts
 - **[BOOTSTRAP_GUIDE.md](../BOOTSTRAP_GUIDE.md)**: Detailed manual procedures and fallback instructions
-  - Phase 1 (Lines 56-213): Terraform State Storage → `bootstrap-terraform-state.sh`
-  - Phase 2 (Lines 226-379): Entra ID API Consent → `bootstrap-entra-consent.sh`
+  - Phase 1: Terraform State Storage → `bootstrap-terraform-state.sh`
+  - Phase 2: Entra ID API Consent → `bootstrap-entra-consent.sh`
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)**: ADR specifications
-  - ADR-012 (Lines 249-259): Manual operations specification
-  - ADR-013 (Lines 261-298): Automation implementation (these scripts)
+  - ADR-012: Manual operations specification
+  - ADR-013: Automation implementation (these scripts)
 - **[IMPLEMENTATION_ADR_012.md](../IMPLEMENTATION_ADR_012.md)**: ADR-012 implementation details
 - **[IMPLEMENTATION_ADR_013.md](../IMPLEMENTATION_ADR_013.md)**: Complete automation implementation documentation
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)**: Next steps after bootstrap completion
