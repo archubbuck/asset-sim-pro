@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { InvocationContext } from '@azure/functions';
 
+// Mock telemetry functions before importing
+vi.mock('./telemetry', () => ({
+  trackUpdateBroadcasted: vi.fn(),
+  trackBroadcastFailure: vi.fn(),
+  trackDeadbandFiltered: vi.fn(),
+  trackBroadcastLatency: vi.fn(),
+}));
+
 // Create a mock client instance
 const mockWebPubSubGroup = {
   sendToAll: vi.fn().mockResolvedValue(undefined),
@@ -33,6 +41,7 @@ import {
   resetSignalRClient,
 } from './signalr-broadcast';
 import { PriceUpdateEvent } from '../types/market-engine';
+import * as telemetry from './telemetry';
 
 describe('SignalR Broadcast Service', () => {
   let mockContext: InvocationContext;
@@ -106,6 +115,15 @@ describe('SignalR Broadcast Service', () => {
       expect(mockContext.log).toHaveBeenCalledWith(
         expect.stringContaining('Broadcast to ticker:exchange-123')
       );
+      
+      // ADR-025: Verify telemetry tracking
+      expect(vi.mocked(telemetry.trackUpdateBroadcasted)).toHaveBeenCalledWith('exchange-123', 'AAPL', mockContext);
+      expect(vi.mocked(telemetry.trackBroadcastLatency)).toHaveBeenCalledWith(
+        expect.any(Number),
+        'exchange-123',
+        'AAPL',
+        mockContext
+      );
     });
 
     it('should skip broadcast when change is below deadband', async () => {
@@ -116,6 +134,10 @@ describe('SignalR Broadcast Service', () => {
       expect(mockContext.log).toHaveBeenCalledWith(
         expect.stringContaining('Deadband filter: skipping AAPL')
       );
+      
+      // ADR-025: Verify deadband filtering is tracked
+      expect(vi.mocked(telemetry.trackDeadbandFiltered)).toHaveBeenCalledWith('exchange-123', 'AAPL', mockContext);
+      expect(vi.mocked(telemetry.trackUpdateBroadcasted)).not.toHaveBeenCalled();
     });
 
     it('should handle broadcast errors gracefully', async () => {
@@ -129,6 +151,15 @@ describe('SignalR Broadcast Service', () => {
       expect(mockContext.error).toHaveBeenCalledWith(
         expect.stringContaining('Failed to broadcast price update')
       );
+      
+      // ADR-025: Verify failure is tracked
+      expect(vi.mocked(telemetry.trackBroadcastFailure)).toHaveBeenCalledWith(
+        'exchange-123',
+        'AAPL',
+        'Network error',
+        mockContext
+      );
+      expect(vi.mocked(telemetry.trackUpdateBroadcasted)).not.toHaveBeenCalled();
     });
 
     it('should use MessagePack content type', async () => {
