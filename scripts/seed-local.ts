@@ -130,6 +130,7 @@ async function seedLocalEnvironment() {
   console.log('🌱 Starting local data seeding (ADR-024)...\n');
   
   // Get connection strings from environment
+  // Fallback values match .env.local.example for local development only
   const sqlConnectionString = process.env.SQL_CONNECTION_STRING || 
     'Server=localhost,1433;Database=AssetSimPro;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
   

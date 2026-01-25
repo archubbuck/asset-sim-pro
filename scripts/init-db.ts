@@ -15,6 +15,7 @@ async function initDatabase() {
   console.log('🗄️  Initializing database...\n');
   
   // Connection string for master database (to create AssetSimPro database)
+  // Fallback value matches .env.local.example for local development only
   const masterConnectionString = 
     'Server=localhost,1433;Database=master;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
   
@@ -44,6 +45,7 @@ async function initDatabase() {
     
     // Connect to AssetSimPro database and apply schema
     console.log('📊 Connecting to AssetSimPro database...');
+    // Fallback value matches .env.local.example for local development only
     const assetSimProConnectionString = 
       'Server=localhost,1433;Database=AssetSimPro;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
     
