@@ -93,7 +93,26 @@ AssetSim Pro follows a **Zero Trust** architecture that prevents developers from
    docker compose ps
    ```
 
-3. Check service health:
+3. Initialize the database with the schema:
+   ```bash
+   npm run db:init
+   ```
+
+4. Seed the database with demo data (ADR-024):
+   ```bash
+   npm run seed:local
+   ```
+
+   This will populate:
+   - Demo Exchange with default configuration
+   - 20 sample instruments (AAPL, MSFT, GOOGL, etc.)
+   - 54,600 historical market data ticks (7 days of 1-minute OHLC data)
+   - Demo portfolio with $10M starting cash
+   - Redis cache with exchange config and latest quotes
+
+   The seeding script is idempotent and can be run multiple times safely.
+
+5. Check service health:
    ```bash
    docker compose logs
    ```
@@ -105,11 +124,7 @@ The following services will be available:
 - **SQL Server 2022**: `localhost:1433`
   - Username: `sa`
   - Password: `LocalDevPassword123!`
-  - Database: `AssetSimPro`
-    - **Database initialization**: After the SQL Server container is running, create the `AssetSimPro` database (if it does not already exist). For example:
-      ```bash
-      docker compose exec sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "LocalDevPassword123!" -Q "IF DB_ID('AssetSimPro') IS NULL CREATE DATABASE AssetSimPro;"
-      ```
+  - Database: `AssetSimPro` (created by `npm run db:init`)
 
 - **Redis**: `localhost:6379`
 
