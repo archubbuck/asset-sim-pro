@@ -18,7 +18,8 @@
  */
 
 import * as sql from 'mssql';
-import Redis from 'ioredis';
+import Decimal from 'decimal.js';
+import { cacheExchangeConfig, cacheQuote } from '../apps/backend/src/lib/cache';
 
 // Constants
 const DEMO_EXCHANGE_ID = '00000000-0000-0000-0000-000000000001';
@@ -81,7 +82,9 @@ function generateMarketData(symbol: string, basePrice: number, days: number = 7)
     volume: number;
   }> = [];
   
-  let currentPrice = basePrice;
+  // Use Decimal.js for all financial calculations (ADR-006)
+  let currentPrice = new Decimal(basePrice);
+  const basePriceDecimal = new Decimal(basePrice);
   const now = new Date();
   
   // Generate data for each day (days - 1 to 0, inclusive = days total)
@@ -95,15 +98,18 @@ function generateMarketData(symbol: string, basePrice: number, days: number = 7)
       const timestamp = new Date(date);
       timestamp.setMinutes(timestamp.getMinutes() + minute);
       
-      // Random walk with mean reversion
-      const volatility = 0.002; // 0.2% per minute
-      const drift = (basePrice - currentPrice) * 0.0001; // Mean reversion
-      const change = (Math.random() - 0.5) * volatility * currentPrice + drift;
+      // Random walk with mean reversion using Decimal.js
+      const volatility = new Decimal(0.002); // 0.2% per minute
+      const drift = basePriceDecimal.minus(currentPrice).times(0.0001); // Mean reversion
+      const randomFactor = new Decimal(Math.random() - 0.5);
+      const change = randomFactor.times(volatility).times(currentPrice).plus(drift);
       
       const open = currentPrice;
-      const close = currentPrice + change;
-      const high = Math.max(open, close) * (1 + Math.random() * 0.001);
-      const low = Math.min(open, close) * (1 - Math.random() * 0.001);
+      const close = currentPrice.plus(change);
+      const highMultiplier = new Decimal(1).plus(Math.random() * 0.001);
+      const lowMultiplier = new Decimal(1).minus(Math.random() * 0.001);
+      const high = Decimal.max(open, close).times(highMultiplier);
+      const low = Decimal.min(open, close).times(lowMultiplier);
       const volume = Math.floor(Math.random() * 1000000) + 100000;
       
       data.push({
@@ -134,10 +140,12 @@ async function seedLocalEnvironment() {
   const sqlConnectionString = process.env.SQL_CONNECTION_STRING || 
     'Server=localhost,1433;Database=AssetSimPro;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
   
-  const redisConnectionString = process.env.REDIS_CONNECTION_STRING || 'localhost:6379';
+  // Set Redis connection string for cache helper functions
+  if (!process.env.REDIS_CONNECTION_STRING) {
+    process.env.REDIS_CONNECTION_STRING = 'localhost:6379';
+  }
   
   let pool: sql.ConnectionPool | null = null;
-  let redis: Redis | null = null;
   let totalTicks = 0;
   
   try {
@@ -145,15 +153,6 @@ async function seedLocalEnvironment() {
     console.log('📊 Connecting to SQL Server...');
     pool = await sql.connect(sqlConnectionString);
     console.log('✅ Connected to SQL Server\n');
-    
-    // Connect to Redis
-    console.log('📦 Connecting to Redis...');
-    redis = new Redis(redisConnectionString);
-    await new Promise((resolve, reject) => {
-      redis!.once('ready', resolve);
-      redis!.once('error', reject);
-    });
-    console.log('✅ Connected to Redis\n');
     
     // Set SESSION_CONTEXT for RLS bypass (using Super Admin)
     // Note: SESSION_CONTEXT persists across transactions on same connection
@@ -318,16 +317,12 @@ async function seedLocalEnvironment() {
     const expectedTicks = SAMPLE_INSTRUMENTS.length * 7 * 390; // 7 days * 390 minutes per day
     console.log(`✅ ${totalTicks} total market data ticks seeded (expected: ${expectedTicks})\n`);
     
-    // 7. Cache Exchange Config in Redis
+    // 7. Cache Exchange Config in Redis using shared helper
     console.log('📦 Caching Exchange Configuration in Redis...');
-    await redis.setex(
-      `CONFIG:${DEMO_EXCHANGE_ID}`,
-      300, // 5 minutes TTL
-      JSON.stringify(DEFAULT_MARKET_CONFIG)
-    );
+    await cacheExchangeConfig(DEMO_EXCHANGE_ID, DEFAULT_MARKET_CONFIG);
     console.log('✅ Exchange Config cached\n');
     
-    // 8. Cache latest quotes in Redis
+    // 8. Cache latest quotes in Redis using shared helper
     console.log('📦 Caching Latest Quotes in Redis...');
     for (const instrument of SAMPLE_INSTRUMENTS) {
       // Get latest price from generated data
@@ -342,14 +337,14 @@ async function seedLocalEnvironment() {
         `)).recordset[0];
       
       if (latestData) {
-        await redis.setex(
-          `QUOTE:${DEMO_EXCHANGE_ID}:${instrument.symbol}`,
-          60, // 1 minute TTL
-          JSON.stringify({
+        await cacheQuote(
+          DEMO_EXCHANGE_ID,
+          instrument.symbol,
+          {
             price: parseFloat(latestData.Close),
             timestamp: latestData.Timestamp.toISOString(),
             volume: parseInt(latestData.Volume),
-          })
+          }
         );
       }
     }
@@ -370,13 +365,11 @@ async function seedLocalEnvironment() {
     console.error('\n❌ Seeding failed:', error);
     process.exit(1);
   } finally {
-    // Cleanup connections
+    // Cleanup SQL connection
     if (pool) {
       await pool.close();
     }
-    if (redis) {
-      await redis.quit();
-    }
+    // Redis connection is managed by the cache helper singleton
   }
 }
 
