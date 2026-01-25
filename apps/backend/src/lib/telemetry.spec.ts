@@ -56,6 +56,11 @@ describe('Telemetry Service (ADR-025)', () => {
       'InstrumentationKey=test-key;IngestionEndpoint=https://test.applicationinsights.azure.com/';
   });
 
+  afterEach(() => {
+    // Clean up environment variables to prevent test pollution
+    delete process.env.APPLICATIONINSIGHTS_CONNECTION_STRING;
+  });
+
   describe('trackUpdateBroadcasted', () => {
     it('should track UpdatesBroadcasted metric with correct properties', () => {
       trackUpdateBroadcasted('exchange-123', 'AAPL', mockContext);

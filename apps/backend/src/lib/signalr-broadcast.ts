@@ -85,7 +85,7 @@ export async function broadcastPriceUpdate(
   lastPrice: number,
   context: InvocationContext
 ): Promise<void> {
-  const startTime = Date.now();
+  const startTime = performance.now();
   
   try {
     // Apply deadband filter
@@ -114,7 +114,7 @@ export async function broadcastPriceUpdate(
     );
     
     // ADR-025: Track successful broadcast and latency
-    const duration = Date.now() - startTime;
+    const duration = performance.now() - startTime;
     trackUpdateBroadcasted(priceUpdate.exchangeId, priceUpdate.symbol, context);
     trackBroadcastLatency(duration, priceUpdate.exchangeId, priceUpdate.symbol, context);
     

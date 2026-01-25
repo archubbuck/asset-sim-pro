@@ -128,7 +128,7 @@ resource "azurerm_monitor_metric_alert" "ticker_heartbeat_failure" {
   enabled             = true
 
   criteria {
-    metric_namespace = "Microsoft.Insights/components"
+    metric_namespace = "microsoft.applicationinsights/components/customMetrics"
     metric_name      = "UpdatesBroadcasted"
     aggregation      = "Sum"
     operator         = "LessThan"
