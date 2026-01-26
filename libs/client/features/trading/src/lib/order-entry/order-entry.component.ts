@@ -42,6 +42,18 @@ interface OrderForm {
   stopPrice?: number | null;
 }
 
+/**
+ * Default exchange ID for demo/development mode
+ * In production, this should be provided from user context or routing
+ */
+const DEFAULT_EXCHANGE_ID = '00000000-0000-0000-0000-000000000000';
+
+/**
+ * Default portfolio ID for demo/development mode
+ * In production, this should be provided from user context or state management
+ */
+const DEFAULT_PORTFOLIO_ID = '11111111-1111-1111-1111-111111111111';
+
 @Component({
   selector: 'app-order-entry',
   standalone: true,
@@ -249,14 +261,14 @@ export class OrderEntryComponent {
    * Defaults to a demo exchange ID for backwards compatibility
    * In production, this should be provided from user context or routing
    */
-  exchangeId = input<string>('00000000-0000-0000-0000-000000000000');
+  exchangeId = input<string>(DEFAULT_EXCHANGE_ID);
 
   /**
    * Portfolio ID for the user's trading portfolio
    * Defaults to a demo portfolio ID for backwards compatibility
    * In production, this should be provided from user context or state management
    */
-  portfolioId = input<string>('11111111-1111-1111-1111-111111111111');
+  portfolioId = input<string>(DEFAULT_PORTFOLIO_ID);
 
   // Form data as a signal for reactivity
   orderForm = signal<OrderForm>({
