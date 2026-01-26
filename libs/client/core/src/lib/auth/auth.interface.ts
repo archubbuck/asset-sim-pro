@@ -6,7 +6,7 @@
  * Following ADR-020: Azure Authentication
  */
 import { Signal } from '@angular/core';
-import { ClientPrincipal } from '@assetsim/shared/finance-models';
+import { ClientPrincipal } from '@assetsim/shared/auth-models';
 
 export interface IAuthService {
   /**

@@ -4,7 +4,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MockAuthService } from './mock-auth.service';
 import { LoggerService } from '../logger/logger.service';
-import { ExchangeRole } from '@assetsim/shared/finance-models';
+import { ExchangeRole } from '@assetsim/shared/auth-models';
 
 describe('MockAuthService', () => {
   let service: MockAuthService;
