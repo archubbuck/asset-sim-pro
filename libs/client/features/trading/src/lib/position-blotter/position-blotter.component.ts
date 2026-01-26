@@ -19,7 +19,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { OrderApiService } from '@assetsim/shared/api-client';
 import { OrderResponse, OrderStatus } from '@assetsim/shared/api-client';
 import { firstValueFrom } from 'rxjs';
-import { TRADING_STUB_CONFIG, TradingStubConfig } from '../models/trading-config';
+import { TRADING_STUB_CONFIG } from '../models/trading-config';
 
 @Component({
   selector: 'app-position-blotter',
