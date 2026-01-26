@@ -19,6 +19,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { OrderApiService } from '@assetsim/shared/api-client';
 import { OrderResponse, OrderStatus } from '@assetsim/shared/api-client';
 import { firstValueFrom } from 'rxjs';
+import { TRADING_STUB_CONFIG, TradingStubConfig } from '../models/trading-config';
 
 @Component({
   selector: 'app-position-blotter',
@@ -283,6 +284,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class PositionBlotterComponent implements OnInit {
   private orderApiService = inject(OrderApiService);
+  private stubConfig = inject(TRADING_STUB_CONFIG);
 
   // Grid data
   orders = signal<OrderResponse[]>([]);
@@ -319,10 +321,9 @@ export class PositionBlotterComponent implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      // In a real implementation, exchangeId would come from user context
-      // Using valid UUID for demo compatibility with backend Zod validation
+      // Use exchangeId from configuration for flexibility
       const query = {
-        exchangeId: '00000000-0000-0000-0000-000000000000',
+        exchangeId: this.stubConfig.exchangeId,
         limit: 100,
         offset: 0
       };
@@ -346,13 +347,16 @@ export class PositionBlotterComponent implements OnInit {
 
   /**
    * Load stub data for demonstration
+   * Uses configuration for IDs to allow runtime customization
    */
   loadStubData(): void {
+    const { exchangeId, portfolioId, orderIdPrefix = 'demo-order' } = this.stubConfig;
+    
     const stubOrders: OrderResponse[] = [
       {
-        orderId: '10000000-0000-0000-0000-000000000001',
-        exchangeId: '00000000-0000-0000-0000-000000000000',
-        portfolioId: '11111111-1111-1111-1111-111111111111',
+        orderId: `${orderIdPrefix}-001`,
+        exchangeId,
+        portfolioId,
         symbol: 'AAPL',
         side: 'BUY',
         orderType: 'MARKET',
@@ -364,9 +368,9 @@ export class PositionBlotterComponent implements OnInit {
         updatedAt: new Date(Date.now() - 3600000).toISOString()
       },
       {
-        orderId: '10000000-0000-0000-0000-000000000002',
-        exchangeId: '00000000-0000-0000-0000-000000000000',
-        portfolioId: '11111111-1111-1111-1111-111111111111',
+        orderId: `${orderIdPrefix}-002`,
+        exchangeId,
+        portfolioId,
         symbol: 'MSFT',
         side: 'BUY',
         orderType: 'LIMIT',
@@ -379,9 +383,9 @@ export class PositionBlotterComponent implements OnInit {
         updatedAt: new Date(Date.now() - 1800000).toISOString()
       },
       {
-        orderId: '10000000-0000-0000-0000-000000000003',
-        exchangeId: '00000000-0000-0000-0000-000000000000',
-        portfolioId: '11111111-1111-1111-1111-111111111111',
+        orderId: `${orderIdPrefix}-003`,
+        exchangeId,
+        portfolioId,
         symbol: 'GOOGL',
         side: 'SELL',
         orderType: 'LIMIT',
@@ -393,9 +397,9 @@ export class PositionBlotterComponent implements OnInit {
         updatedAt: new Date(Date.now() - 900000).toISOString()
       },
       {
-        orderId: '10000000-0000-0000-0000-000000000004',
-        exchangeId: '00000000-0000-0000-0000-000000000000',
-        portfolioId: '11111111-1111-1111-1111-111111111111',
+        orderId: `${orderIdPrefix}-004`,
+        exchangeId,
+        portfolioId,
         symbol: 'TSLA',
         side: 'BUY',
         orderType: 'MARKET',

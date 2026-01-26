@@ -4,6 +4,8 @@ import { OrderApiService } from '@assetsim/shared/api-client';
 import { of, throwError } from 'rxjs';
 import { OrderResponse } from '@assetsim/shared/api-client';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TRADING_STUB_CONFIG, TradingStubConfig } from '../models/trading-config';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 /**
  * PositionBlotterComponent tests
@@ -13,11 +15,18 @@ describe('PositionBlotterComponent', () => {
   let fixture: ComponentFixture<PositionBlotterComponent>;
   let mockOrderApiService: Partial<OrderApiService>;
 
+  // Test configuration
+  const testConfig: TradingStubConfig = {
+    exchangeId: 'test-exchange-001',
+    portfolioId: 'test-portfolio-001',
+    orderIdPrefix: 'test-order'
+  };
+
   const mockOrders: OrderResponse[] = [
     {
       orderId: 'ord-001',
-      exchangeId: 'demo-exchange-001',
-      portfolioId: 'demo-portfolio-001',
+      exchangeId: 'test-exchange-001',
+      portfolioId: 'test-portfolio-001',
       symbol: 'AAPL',
       side: 'BUY',
       orderType: 'MARKET',
@@ -30,8 +39,8 @@ describe('PositionBlotterComponent', () => {
     },
     {
       orderId: 'ord-002',
-      exchangeId: 'demo-exchange-001',
-      portfolioId: 'demo-portfolio-001',
+      exchangeId: 'test-exchange-001',
+      portfolioId: 'test-portfolio-001',
       symbol: 'MSFT',
       side: 'BUY',
       orderType: 'LIMIT',
@@ -53,7 +62,9 @@ describe('PositionBlotterComponent', () => {
     await TestBed.configureTestingModule({
       imports: [PositionBlotterComponent],
       providers: [
-        { provide: OrderApiService, useValue: mockOrderApiService }
+        provideAnimations(),
+        { provide: OrderApiService, useValue: mockOrderApiService },
+        { provide: TRADING_STUB_CONFIG, useValue: testConfig }
       ],
       schemas: [NO_ERRORS_SCHEMA] // Ignore Kendo UI component templates in tests
     }).compileComponents();
@@ -136,6 +147,30 @@ describe('PositionBlotterComponent', () => {
     expect(mockOrderApiService.cancelOrder).toHaveBeenCalledWith(
       orderToCancel.orderId,
       orderToCancel.exchangeId
+    );
+  });
+
+  it('should use configuration for stub data IDs', () => {
+    component.loadStubData();
+    
+    const orders = component.orders();
+    
+    // Verify all orders use configured IDs
+    orders.forEach(order => {
+      expect(order.exchangeId).toBe(testConfig.exchangeId);
+      expect(order.portfolioId).toBe(testConfig.portfolioId);
+      expect(order.orderId).toContain(testConfig.orderIdPrefix || 'demo-order');
+    });
+  });
+
+  it('should use configuration for API query', async () => {
+    await component.loadOrders();
+    
+    // Verify API was called with configured exchangeId
+    expect(mockOrderApiService.listOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exchangeId: testConfig.exchangeId
+      })
     );
   });
 });
