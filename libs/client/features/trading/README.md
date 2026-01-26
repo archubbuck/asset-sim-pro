@@ -324,6 +324,6 @@ When extending the trading library:
 
 ## Related Documentation
 
-- [ADR-022: Trading UI Components](../../../../docs/adr/adr-022-trading-ui-components.md) - Architecture decision record
+- [ADR-022: Trading UI Components](../../../../ARCHITECTURE.md#adr-022-reference-implementation---trading-ui-components) - Architecture decision record
 - [NX Workspace Guide](../../../../NX_WORKSPACE_GUIDE.md) - Nx workspace configuration and commands
 - [TESTING.md](../../../../TESTING.md) - Testing strategies and best practices
