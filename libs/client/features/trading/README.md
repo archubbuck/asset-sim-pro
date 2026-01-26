@@ -31,7 +31,7 @@ export class TradingDashboard {}
 
 ##### Usage with Custom Exchange and Portfolio IDs
 ```typescript
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { OrderEntryComponent } from '@assetsim/client/features/trading';
 
 @Component({
