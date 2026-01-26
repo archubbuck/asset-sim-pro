@@ -133,7 +133,7 @@ All request and response models are exported from the library:
 
 - **Exchange Models**: `CreateExchangeRequest`, `ExchangeResponse`
 - **Order Models**: `CreateOrderRequest`, `OrderResponse`, `ListOrdersQuery`, `OrderSide`, `OrderType`, `OrderStatus`
-- **Feature Flag Models**: `FeatureFlagResponse` (imported from `@assetsim/shared/finance-models`), `ExchangeConfig`, `ExchangeFeatureFlags`
+- **Feature Flag Models**: `FeatureFlagResponse`, `ExchangeConfig`, `ExchangeFeatureFlags` (all imported from `@assetsim/shared/finance-models`)
 
 These models align with:
 - Backend types in `apps/backend/src/types/`
