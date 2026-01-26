@@ -31,11 +31,15 @@ Base service that provides common HTTP operations. All other services extend thi
 Service for exchange-related operations.
 
 **Methods:**
-- `createExchange(request: CreateExchangeRequest): Observable<ExchangeResponse>` - Create a new exchange
-- `getExchange(exchangeId: string): Observable<ExchangeResponse>` - Get exchange by ID
-- `listExchanges(): Observable<ExchangeResponse[]>` - List all exchanges for the current user
-- `updateExchange(exchangeId: string, request: Partial<CreateExchangeRequest>): Observable<ExchangeResponse>` - Update exchange
-- `deleteExchange(exchangeId: string): Observable<void>` - Delete exchange
+- `createExchange(request: CreateExchangeRequest): Observable<ExchangeResponse>` - Create a new exchange ✅ **Implemented**
+- `getExchange(exchangeId: string): Observable<ExchangeResponse>` - Get exchange by ID ⚠️ **Backend pending**
+- `listExchanges(): Observable<ExchangeResponse[]>` - List all exchanges for the current user ⚠️ **Backend pending**
+- `updateExchange(exchangeId: string, request: Partial<CreateExchangeRequest>): Observable<ExchangeResponse>` - Update exchange ⚠️ **Backend pending**
+- `deleteExchange(exchangeId: string): Observable<void>` - Delete exchange ⚠️ **Backend pending**
+
+**Backend Status:**
+- ✅ `POST /api/v1/exchanges` - Fully implemented in `apps/backend/src/functions/createExchange.ts`
+- ⚠️ Other endpoints planned but not yet implemented in backend
 
 **Example:**
 ```typescript
@@ -59,10 +63,14 @@ export class ExchangeComponent {
 Service for order-related operations.
 
 **Methods:**
-- `createOrder(request: CreateOrderRequest): Observable<OrderResponse>` - Create a new order
-- `getOrder(orderId: string): Observable<OrderResponse>` - Get order by ID
-- `listOrders(query: ListOrdersQuery): Observable<OrderResponse[]>` - List orders with filters
-- `cancelOrder(orderId: string, exchangeId: string): Observable<OrderResponse>` - Cancel an order
+- `createOrder(request: CreateOrderRequest): Observable<OrderResponse>` - Create a new order ✅ **Implemented**
+- `getOrder(orderId: string): Observable<OrderResponse>` - Get order by ID ⚠️ **Backend pending**
+- `listOrders(query: ListOrdersQuery): Observable<OrderResponse[]>` - List orders with filters ⚠️ **Backend pending**
+- `cancelOrder(orderId: string, exchangeId: string): Observable<OrderResponse>` - Cancel an order ⚠️ **Backend pending**
+
+**Backend Status:**
+- ✅ `POST /api/v1/orders` - Fully implemented in `apps/backend/src/functions/createOrder.ts`
+- ⚠️ Other endpoints planned but not yet implemented in backend
 
 **Example:**
 ```typescript
@@ -94,8 +102,12 @@ export class TradingComponent {
 Service for fetching exchange rules and feature flags.
 
 **Methods:**
-- `getExchangeRules(exchangeId: string): Observable<FeatureFlagResponse>` - Get exchange rules
-- `updateExchangeRules(exchangeId: string, configuration: Partial<FeatureFlagResponse>): Observable<FeatureFlagResponse>` - Update exchange rules
+- `getExchangeRules(exchangeId: string): Observable<FeatureFlagResponse>` - Get exchange rules ✅ **Implemented**
+- `updateExchangeRules(exchangeId: string, configuration: Partial<FeatureFlagResponse>): Observable<FeatureFlagResponse>` - Update exchange rules ⚠️ **Backend pending**
+
+**Backend Status:**
+- ✅ `GET /api/v1/exchange/rules?exchangeId={uuid}` - Fully implemented in `apps/backend/src/functions/getExchangeRules.ts`
+- ⚠️ `PUT /api/v1/exchange/rules` - Planned but not yet implemented in backend
 
 **Example:**
 ```typescript
@@ -121,11 +133,12 @@ All request and response models are exported from the library:
 
 - **Exchange Models**: `CreateExchangeRequest`, `ExchangeResponse`
 - **Order Models**: `CreateOrderRequest`, `OrderResponse`, `ListOrdersQuery`, `OrderSide`, `OrderType`, `OrderStatus`
+- **Feature Flag Models**: `FeatureFlagResponse`, `ExchangeConfig`, `ExchangeFeatureFlags` (all imported from `@assetsim/shared/finance-models`)
 
 These models align with:
 - Backend types in `apps/backend/src/types/`
 - Shared finance models in `@assetsim/shared/finance-models`
-- OpenAPI specifications
+- OpenAPI specifications (available at `GET /api/docs` in dev/staging)
 
 ## Installation
 
@@ -141,13 +154,24 @@ import {
 
 ## Error Handling
 
-All API calls automatically use the error interceptor configured in `libs/client/core`. Errors are:
+All API calls automatically use the error interceptor configured in `libs/client/core/src/lib/error-handling/error.interceptor.ts`. Errors are:
 1. Intercepted by the error interceptor
-2. Parsed as RFC 7807 Problem Details if available
-3. Displayed to users via the error notification service
+2. Parsed as RFC 7807 Problem Details if available (see ADR-018)
+3. Displayed to users via the error notification service (`libs/client/core/src/lib/error-handling/error-notification.service.ts`)
 4. Logged to Application Insights
 
 No additional error handling is required in components unless specific behavior is needed.
+
+**RFC 7807 Problem Details Format:**
+```json
+{
+  "type": "https://assetsim.com/errors/insufficient-funds",
+  "title": "Insufficient Funds",
+  "status": 400,
+  "detail": "Order value $50,000 exceeds buying power $10,000.",
+  "instance": "/orders/123"
+}
+```
 
 ## Testing
 
@@ -195,8 +219,37 @@ The library follows these architectural patterns:
 ## References
 
 - [BACKEND_FRONTEND_INTEGRATION.md](../../../BACKEND_FRONTEND_INTEGRATION.md) - Integration architecture
+- [apps/backend/README.md](../../../apps/backend/README.md) - Backend API endpoints documentation
 - [ADR-006](../../../ARCHITECTURE.md#adr-006-ai-assisted-development) - AI-Assisted Development
 - [ADR-007](../../../ARCHITECTURE.md#adr-007-serverless-compute-swa--dedicated-functions) - Serverless Compute (SWA & Dedicated Functions)
+- [ADR-017](../../../ARCHITECTURE.md#adr-017-api-documentation--standards) - API Documentation & Standards (OpenAPI/Zod)
+- [ADR-018](../../../ARCHITECTURE.md#adr-018-standardized-error-handling) - Standardized Error Handling (RFC 7807)
 - [ADR-020](../../../ARCHITECTURE.md#adr-020-reference-implementation---azure-authentication) - Azure Authentication
 - [ADR-021](../../../ARCHITECTURE.md#adr-021-reference-implementation---feature-flag-engine) - Feature Flag Engine
+
+## API Endpoint Summary
+
+### Currently Implemented (Backend + Frontend)
+
+| Method | Endpoint | Service Method | Backend Function | Status |
+|--------|----------|---------------|------------------|--------|
+| POST | `/api/v1/exchanges` | `createExchange()` | `createExchange.ts` | ✅ Production Ready |
+| POST | `/api/v1/orders` | `createOrder()` | `createOrder.ts` | ✅ Production Ready |
+| GET | `/api/v1/exchange/rules` | `getExchangeRules()` | `getExchangeRules.ts` | ✅ Production Ready |
+| GET | `/api/docs` | N/A | `apiDocs.ts` | ✅ Dev/Staging Only |
+
+### Planned (Frontend Ready, Backend Pending)
+
+| Method | Endpoint | Service Method | Status |
+|--------|----------|---------------|--------|
+| GET | `/api/v1/exchanges/:id` | `getExchange()` | ⚠️ Backend pending |
+| GET | `/api/v1/exchanges` | `listExchanges()` | ⚠️ Backend pending |
+| PUT | `/api/v1/exchanges/:id` | `updateExchange()` | ⚠️ Backend pending |
+| DELETE | `/api/v1/exchanges/:id` | `deleteExchange()` | ⚠️ Backend pending |
+| GET | `/api/v1/orders/:id` | `getOrder()` | ⚠️ Backend pending |
+| GET | `/api/v1/orders` | `listOrders()` | ⚠️ Backend pending |
+| DELETE | `/api/v1/orders/:id` | `cancelOrder()` | ⚠️ Backend pending |
+| PUT | `/api/v1/exchange/rules` | `updateExchangeRules()` | ⚠️ Backend pending |
+
+**Note:** The frontend API client services are designed to work with all endpoints. Calling methods for pending endpoints will result in 404 errors until the backend implementations are added.
 
