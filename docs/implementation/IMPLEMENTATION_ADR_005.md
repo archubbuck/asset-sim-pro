@@ -188,9 +188,9 @@ npm run test:ci
 
 ## References
 
-- [ARCHITECTURE.md ADR-005](./ARCHITECTURE.md#adr-005-testing-strategy--quality-gates)
-- [TESTING.md](./TESTING.md)
-- [e2e/README.md](./e2e/README.md)
+- [ARCHITECTURE.md ADR-005](../../ARCHITECTURE.md#adr-005-testing-strategy--quality-gates)
+- [TESTING.md](../development/TESTING.md)
+- [e2e/README.md](../../e2e/README.md)
 - [Vitest Documentation](https://vitest.dev/)
 - [Playwright Documentation](https://playwright.dev/)
 - [Jest Documentation](https://jestjs.io/)

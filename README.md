@@ -41,7 +41,7 @@ npm start            # Start Angular dev server
 npm run build:prod   # Build for production
 ```
 
-See **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)** for detailed workspace documentation.
+See **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)** for detailed workspace documentation.
 
 ## Documentation
 
@@ -49,22 +49,22 @@ See **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)** for detailed workspace 
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)**: 🚀 **Start here!** Quick setup guide for local dev and Azure deployment
 
 ### Project Status
-- **[EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md)**: Phase 1 & 2 evaluation - ✅ **100% COMPLETE**
-- **[PHASE_1_2_EVALUATION.md](./PHASE_1_2_EVALUATION.md)**: Comprehensive evaluation report for all ADRs
+- **[EVALUATION_SUMMARY.md](./docs/evaluation/EVALUATION_SUMMARY.md)**: Phase 1 & 2 evaluation - ✅ **100% COMPLETE**
+- **[PHASE_1_2_EVALUATION.md](./docs/evaluation/PHASE_1_2_EVALUATION.md)**: Comprehensive evaluation report for all ADRs
 
 ### Architecture & Development
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Complete architectural decisions and technical specifications
-- **[NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)**: Nx workspace structure and development workflow
+- **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)**: Nx workspace structure and development workflow
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines, git workflows, and contribution process
-- **[TESTING.md](./TESTING.md)**: Testing strategy and quality gates (92.59% coverage)
+- **[TESTING.md](./docs/development/TESTING.md)**: Testing strategy and quality gates (92.59% coverage)
 
 ### Infrastructure & Security
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures (Terraform state, Entra ID, DevOps) - ADR-012
+- **[BOOTSTRAP_GUIDE.md](./docs/deployment/BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures (Terraform state, Entra ID, DevOps) - ADR-012
 - **[scripts/README.md](./scripts/README.md)**: Automated bootstrap scripts for Phases 1-2 - ADR-013
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment and application configuration
-- **[VERIFICATION.md](./VERIFICATION.md)**: Post-deployment verification and testing
-- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture implementation details
-- **[ADR_002_IMPLEMENTATION_SUMMARY.md](./ADR_002_IMPLEMENTATION_SUMMARY.md)**: Complete summary of ADR-002 implementation
+- **[DEPLOYMENT_GUIDE.md](./docs/deployment/DEPLOYMENT_GUIDE.md)**: Terraform deployment and application configuration
+- **[VERIFICATION.md](./docs/architecture/VERIFICATION.md)**: Post-deployment verification and testing
+- **[ZERO_TRUST_IMPLEMENTATION.md](./docs/architecture/ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture implementation details
+- **[ADR_002_IMPLEMENTATION_SUMMARY.md](./docs/implementation/ADR_002_IMPLEMENTATION_SUMMARY.md)**: Complete summary of ADR-002 implementation
 
 ## Getting Started
 

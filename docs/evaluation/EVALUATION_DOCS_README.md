@@ -8,7 +8,7 @@
 ## Quick Navigation
 
 ### 🚀 New to AssetSim Pro?
-Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)** for local development and Azure deployment paths.
+Start with **[GETTING_STARTED.md](../../GETTING_STARTED.md)** for local development and Azure deployment paths.
 
 ### 📊 Executive Overview
 
@@ -17,7 +17,7 @@ Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)** for local development 
 
 **For Technical Leads:**
 - [EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md) - Complete status of all 5 phases
-- [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md) - Integration architecture and gaps
+- [BACKEND_FRONTEND_INTEGRATION.md](../architecture/BACKEND_FRONTEND_INTEGRATION.md) - Integration architecture and gaps
 
 **For Developers:**
 - [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md) - Detailed Phase 5 implementation status
@@ -31,19 +31,19 @@ Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)** for local development 
 Before diving into evaluation reports, familiarize yourself with:
 
 ### Getting Started
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Local dev setup and Azure deployment path
-- **[README.md](./README.md)** - Project overview and workspace structure
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development guidelines and git workflow
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)** - Local dev setup and Azure deployment path
+- **[README.md](../../README.md)** - Project overview and workspace structure
+- **[CONTRIBUTING.md](../../CONTRIBUTING.md)** - Development guidelines and git workflow
 
 ### Infrastructure & Deployment
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)** - Manual bootstrap procedures (Phases 1-3)
-- **[scripts/README.md](./scripts/README.md)** - Automated bootstrap scripts
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Terraform and application deployment
-- **[VERIFICATION.md](./VERIFICATION.md)** - Post-deployment verification
+- **[BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)** - Manual bootstrap procedures (Phases 1-3)
+- **[scripts/README.md](../../scripts/README.md)** - Automated bootstrap scripts
+- **[DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)** - Terraform and application deployment
+- **[VERIFICATION.md](../architecture/VERIFICATION.md)** - Post-deployment verification
 
 ### Architecture
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete architectural decisions (all ADRs)
-- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)** - Security architecture
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)** - Complete architectural decisions (all ADRs)
+- **[ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md)** - Security architecture
 
 ---
 
@@ -195,7 +195,7 @@ Before diving into evaluation reports, familiarize yourself with:
 ### Path 1: Executive Review (30 minutes)
 1. [PHASE_4_5_EXECUTIVE_SUMMARY.md](./PHASE_4_5_EXECUTIVE_SUMMARY.md) - 10 min
 2. [EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md) - 15 min
-3. [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md) - 5 min (skim integration matrix)
+3. [BACKEND_FRONTEND_INTEGRATION.md](../architecture/BACKEND_FRONTEND_INTEGRATION.md) - 5 min (skim integration matrix)
 
 **Outcome:** Understand overall status, risks, and timeline
 
@@ -205,7 +205,7 @@ Before diving into evaluation reports, familiarize yourself with:
 1. [EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md) - 15 min
 2. [PHASE_3_4_EVALUATION.md](./PHASE_3_4_EVALUATION.md) - 20 min
 3. [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md) - 25 min
-4. [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md) - 30 min
+4. [BACKEND_FRONTEND_INTEGRATION.md](../architecture/BACKEND_FRONTEND_INTEGRATION.md) - 30 min
 5. Source code exploration - 30 min
 
 **Outcome:** Complete understanding of implementation and gaps
@@ -215,7 +215,7 @@ Before diving into evaluation reports, familiarize yourself with:
 ### Path 3: Frontend Developer Onboarding (1.5 hours)
 1. [EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md) - Phase 5 section only (10 min)
 2. [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md) - 25 min
-3. [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md) - 30 min
+3. [BACKEND_FRONTEND_INTEGRATION.md](../architecture/BACKEND_FRONTEND_INTEGRATION.md) - 30 min
 4. Frontend source code exploration - 25 min
 
 **Outcome:** Ready to contribute to Phase 5 completion
@@ -225,7 +225,7 @@ Before diving into evaluation reports, familiarize yourself with:
 ### Path 4: Backend Developer Verification (1 hour)
 1. [EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md) - Phase 3-4 sections (10 min)
 2. [PHASE_3_4_EVALUATION.md](./PHASE_3_4_EVALUATION.md) - 20 min
-3. [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md) - Integration points 1-4 (20 min)
+3. [BACKEND_FRONTEND_INTEGRATION.md](../architecture/BACKEND_FRONTEND_INTEGRATION.md) - Integration points 1-4 (20 min)
 4. Backend source code verification - 10 min
 
 **Outcome:** Verify backend completeness and integration readiness
@@ -295,12 +295,12 @@ Before diving into evaluation reports, familiarize yourself with:
 
 | Document | Description | Last Updated | Prerequisites |
 |----------|-------------|--------------|---------------|
-| PHASE_4_5_EXECUTIVE_SUMMARY.md | Executive overview of Phase 4 & 5 status | Jan 23, 2026 | [GETTING_STARTED.md](./GETTING_STARTED.md) |
-| EVALUATION_SUMMARY.md | Cross-phase evaluation status and key decisions | Jan 23, 2026 | [ARCHITECTURE.md](./ARCHITECTURE.md) |
+| PHASE_4_5_EXECUTIVE_SUMMARY.md | Executive overview of Phase 4 & 5 status | Jan 23, 2026 | [GETTING_STARTED.md](../../GETTING_STARTED.md) |
+| EVALUATION_SUMMARY.md | Cross-phase evaluation status and key decisions | Jan 23, 2026 | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
 | PHASE_5_EVALUATION.md | Detailed Phase 5 implementation and verification | Jan 23, 2026 | [PHASE_3_4_EVALUATION.md](./PHASE_3_4_EVALUATION.md) |
 | BACKEND_FRONTEND_INTEGRATION.md | Backend–frontend integration design and gaps | Jan 23, 2026 | [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md) |
-| PHASE_3_4_EVALUATION.md | Phase 3 & 4 verification details | Jan 21, 2026 | [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md), [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) |
-| PHASE_1_2_EVALUATION.md | Phase 1 & 2 verification details | Jan 21, 2026 | [ARCHITECTURE.md](./ARCHITECTURE.md) |
+| PHASE_3_4_EVALUATION.md | Phase 3 & 4 verification details | Jan 21, 2026 | [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md), [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md) |
+| PHASE_1_2_EVALUATION.md | Phase 1 & 2 verification details | Jan 21, 2026 | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
 
 ---
 

@@ -9,9 +9,9 @@
 
 This document serves as the **implementation verification** for ADR-012, validating that the manual bootstrap procedures have been properly documented and integrated into the project.
 
-**Primary Documentation:** [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - The authoritative guide for bootstrap procedures  
-**Automation Documentation:** [scripts/README.md](./scripts/README.md) - Automated implementation via ADR-013  
-**Quick Start:** [GETTING_STARTED.md](./GETTING_STARTED.md) - Streamlined setup path
+**Primary Documentation:** [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md) - The authoritative guide for bootstrap procedures  
+**Automation Documentation:** [scripts/README.md](../../scripts/README.md) - Automated implementation via ADR-013  
+**Quick Start:** [GETTING_STARTED.md](../../GETTING_STARTED.md) - Streamlined setup path
 
 ## Overview
 
@@ -36,7 +36,7 @@ Steps required *before* Terraform can run (Chicken and Egg scenarios).
 All required documentation has been created and integrated into the repository:
 
 #### 1. BOOTSTRAP_GUIDE.md ✅
-**File:** [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)  
+**File:** [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)  
 **Version:** 2.0.0 (Updated January 25, 2026)  
 **Lines:** 742 lines of comprehensive documentation  
 **Status:** Complete
@@ -77,7 +77,7 @@ All required documentation has been created and integrated into the repository:
   - References and External Resources (Lines 707-726)
 
 #### 2. DEPLOYMENT_GUIDE.md Updates ✅
-**File:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)  
+**File:** [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)  
 **Status:** Updated with automation and bootstrap references
 
 **Changes Made:**
@@ -88,7 +88,7 @@ All required documentation has been created and integrated into the repository:
 - Added 15+ cross-references to BOOTSTRAP_GUIDE.md and scripts/README.md
 
 #### 3. README.md Updates ✅
-**File:** [README.md](./README.md)  
+**File:** [README.md](../../README.md)  
 **Status:** Updated with quick start and navigation improvements
 
 **Changes Made:**
@@ -98,7 +98,7 @@ All required documentation has been created and integrated into the repository:
 - Added ADR references to all infrastructure documents
 
 #### 4. GETTING_STARTED.md (NEW) ✅
-**File:** [GETTING_STARTED.md](./GETTING_STARTED.md)  
+**File:** [GETTING_STARTED.md](../../GETTING_STARTED.md)  
 **Created:** January 25, 2026  
 **Lines:** 280+ lines  
 **Status:** Complete
@@ -113,7 +113,7 @@ All required documentation has been created and integrated into the repository:
 - Document navigation map showing relationships
 
 #### 5. scripts/README.md Updates ✅
-**File:** [scripts/README.md](./scripts/README.md)  
+**File:** [scripts/README.md](../../scripts/README.md)  
 **Version:** 1.1.0 (Updated January 25, 2026)  
 **Status:** Enhanced with cross-references
 
@@ -436,13 +436,13 @@ Instead of service principal with client secret:
 ## Related Documentation
 
 ### Internal References
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Primary entry point for new users
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Authoritative bootstrap procedures
-- **[scripts/README.md](./scripts/README.md)**: Automated bootstrap implementation (ADR-013)
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment process
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: ADR-012 specification (lines 249-259), ADR-013 (lines 261-299)
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Primary entry point for new users
+- **[BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)**: Authoritative bootstrap procedures
+- **[scripts/README.md](../../scripts/README.md)**: Automated bootstrap implementation (ADR-013)
+- **[DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)**: Terraform deployment process
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: ADR-012 specification (lines 249-259), ADR-013 (lines 261-299)
 - **[IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md)**: Automation script implementation details
-- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture details
+- **[ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture details
 - **[IMPLEMENTATION_ADR_011.md](./IMPLEMENTATION_ADR_011.md)**: Terraform engineering conventions
 - **[ADR_002_IMPLEMENTATION_SUMMARY.md](./ADR_002_IMPLEMENTATION_SUMMARY.md)**: Zero Trust implementation
 
@@ -481,7 +481,7 @@ ADR-012 requirements have been **fully documented** in comprehensive, production
 **Maintained By:** AssetSim Pro DevOps Team
 
 **Related Documents:**
-- [GETTING_STARTED.md](./GETTING_STARTED.md) - Quick start entry point
-- [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - Authoritative bootstrap procedures
-- [scripts/README.md](./scripts/README.md) - Automation implementation
+- [GETTING_STARTED.md](../../GETTING_STARTED.md) - Quick start entry point
+- [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md) - Authoritative bootstrap procedures
+- [scripts/README.md](../../scripts/README.md) - Automation implementation
 - [IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md) - Automation verification

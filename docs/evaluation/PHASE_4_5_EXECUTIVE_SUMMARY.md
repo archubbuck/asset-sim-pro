@@ -163,7 +163,7 @@ Core frontend infrastructure is complete with strong backend integration. Fronte
 | Real-time Data | ✅ Broadcasting | ❌ Missing | ❌ None | 🔴 Critical |
 
 ### Detailed Analysis
-Full integration matrix with code examples: [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md)
+Full integration matrix with code examples: [BACKEND_FRONTEND_INTEGRATION.md](../architecture/BACKEND_FRONTEND_INTEGRATION.md)
 
 ---
 
@@ -325,9 +325,9 @@ None identified. All technical challenges have known solutions.
 **Documentation:**
 - Phase 4 Evaluation: [PHASE_3_4_EVALUATION.md](./PHASE_3_4_EVALUATION.md)
 - Phase 5 Evaluation: [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md)
-- Integration Matrix: [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md)
+- Integration Matrix: [BACKEND_FRONTEND_INTEGRATION.md](../architecture/BACKEND_FRONTEND_INTEGRATION.md)
 - Full Summary: [EVALUATION_SUMMARY.md](./EVALUATION_SUMMARY.md)
-- Architecture: [ARCHITECTURE.md](./ARCHITECTURE.md)
+- Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 
 **Source Code:**
 - Backend: `apps/backend/src/`

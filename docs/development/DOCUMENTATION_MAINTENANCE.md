@@ -15,37 +15,37 @@ This guide helps maintainers keep AssetSim Pro documentation accurate, consisten
 ### Document Categories
 
 #### 1. Entry Points (Must be kept current)
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Primary entry point for all users
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Primary entry point for all users
   - **Owner:** DevOps Team
   - **Review Frequency:** Monthly or after major changes
   - **Dependencies:** README.md, BOOTSTRAP_GUIDE.md, DEPLOYMENT_GUIDE.md
 
-- **[README.md](./README.md)**: Project overview and navigation
+- **[README.md](../../README.md)**: Project overview and navigation
   - **Owner:** Project Lead
   - **Review Frequency:** Quarterly or after major milestones
   - **Dependencies:** All documentation files
 
 #### 2. Primary Procedure Documents (Authoritative sources)
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures
+- **[BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures
   - **Owner:** DevOps Team
   - **Review Frequency:** After Azure service changes or automation updates
   - **Version:** Semantic versioning (currently v2.0.0)
   
-- **[scripts/README.md](./scripts/README.md)**: Automation script documentation
+- **[scripts/README.md](../../scripts/README.md)**: Automation script documentation
   - **Owner:** DevOps Team
   - **Review Frequency:** After script changes
   - **Version:** Semantic versioning (currently v1.1.0)
 
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment procedures
+- **[DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)**: Terraform deployment procedures
   - **Owner:** Infrastructure Team
   - **Review Frequency:** After infrastructure changes
 
 #### 3. Reference Documents (Background information)
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: All ADRs and technical decisions
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: All ADRs and technical decisions
   - **Owner:** Architecture Team
   - **Review Frequency:** After each ADR addition or update
   
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines
+- **[CONTRIBUTING.md](../../CONTRIBUTING.md)**: Development guidelines
   - **Owner:** Development Team
   - **Review Frequency:** Quarterly
 
@@ -67,7 +67,7 @@ This guide helps maintainers keep AssetSim Pro documentation accurate, consisten
   - **Owner:** Project Manager
   - **Review Frequency:** At phase milestones
   
-- **[EVALUATION_DOCS_README.md](./EVALUATION_DOCS_README.md)**: Evaluation navigation
+- **[EVALUATION_DOCS_README.md](../evaluation/EVALUATION_DOCS_README.md)**: Evaluation navigation
   - **Owner:** Project Manager
   - **Review Frequency:** After new evaluation reports
 
@@ -174,14 +174,14 @@ For each documentation update:
 
 **Always use relative links:**
 ```markdown
-✅ Good: [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)
+✅ Good: [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)
 ❌ Bad:  [BOOTSTRAP_GUIDE.md](/BOOTSTRAP_GUIDE.md)
 ❌ Bad:  [BOOTSTRAP_GUIDE.md](https://github.com/archubbuck/asset-sim-pro/blob/main/BOOTSTRAP_GUIDE.md)
 ```
 
 **Always provide context:**
 ```markdown
-✅ Good: See [BOOTSTRAP_GUIDE.md Phase 2](./BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent) for Entra ID setup
+✅ Good: See [BOOTSTRAP_GUIDE.md Phase 2](../deployment/BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent) for Entra ID setup
 ❌ Bad:  See BOOTSTRAP_GUIDE.md
 ```
 

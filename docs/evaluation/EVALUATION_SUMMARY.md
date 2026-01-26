@@ -340,5 +340,5 @@ The AssetSim Pro platform successfully implements:
 - [PHASE_1_2_EVALUATION.md](./PHASE_1_2_EVALUATION.md) - Phase 1 & 2 Details
 - [PHASE_3_4_EVALUATION.md](./PHASE_3_4_EVALUATION.md) - Phase 3 & 4 Details
 - [PHASE_5_EVALUATION.md](./PHASE_5_EVALUATION.md) - Phase 5 Details & Backend-Frontend Cohesion
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Full ADR Specifications
-- [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Deployment Instructions
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) - Full ADR Specifications
+- [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md) - Deployment Instructions

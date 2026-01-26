@@ -6,8 +6,8 @@
 **ADR Reference:** ARCHITECTURE.md ADR-012 (lines 249-259)
 
 > 📢 **AUTOMATION AVAILABLE:** This guide documents manual procedures, but automation scripts exist for Phases 1 and 2.  
-> **Quick Path:** See [scripts/README.md](./scripts/README.md) for automated implementations (ADR-013).  
-> **Getting Started:** New to the project? Start with [GETTING_STARTED.md](./GETTING_STARTED.md).
+> **Quick Path:** See [scripts/README.md](../../scripts/README.md) for automated implementations (ADR-013).  
+> **Getting Started:** New to the project? Start with [GETTING_STARTED.md](../../GETTING_STARTED.md).
 
 ## Overview
 
@@ -29,7 +29,7 @@ This document serves as:
 - **Fallback**: When automation scripts fail or are not suitable
 - **Understanding**: Explanation of what the scripts do under the hood
 
-**For most users:** Use the automation scripts in [scripts/README.md](./scripts/README.md).  
+**For most users:** Use the automation scripts in [scripts/README.md](../../scripts/README.md).  
 **For specific scenarios:** Follow the manual steps below when needed.
 
 ## Prerequisites
@@ -643,7 +643,7 @@ After completing all bootstrap steps:
 
 1. **Proceed to Infrastructure Deployment:**
    - See **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** for Terraform deployment instructions
-   - Or follow the streamlined path in **[GETTING_STARTED.md](./GETTING_STARTED.md)**
+   - Or follow the streamlined path in **[GETTING_STARTED.md](../../GETTING_STARTED.md)**
 
 2. **Deploy VNet and Agent VM:**
    - After Terraform creates the VNet, provision an agent VM in the `snet-agents` subnet
@@ -657,15 +657,15 @@ After completing all bootstrap steps:
 ## Related Documentation
 
 ### Primary Documents
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Quick setup guide (recommended starting point)
-- **[scripts/README.md](./scripts/README.md)**: Automation scripts for Phases 1-2
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Quick setup guide (recommended starting point)
+- **[scripts/README.md](../../scripts/README.md)**: Automation scripts for Phases 1-2
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Infrastructure deployment with Terraform
 
 ### Reference Documents
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: ADR-012 specification (lines 249-259), ADR-013 automation (lines 261-299)
-- **[IMPLEMENTATION_ADR_012.md](./IMPLEMENTATION_ADR_012.md)**: Detailed ADR-012 implementation documentation
-- **[IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md)**: Automation script implementation details
-- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture details
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: ADR-012 specification (lines 249-259), ADR-013 automation (lines 261-299)
+- **[IMPLEMENTATION_ADR_012.md](../implementation/IMPLEMENTATION_ADR_012.md)**: Detailed ADR-012 implementation documentation
+- **[IMPLEMENTATION_ADR_013.md](../implementation/IMPLEMENTATION_ADR_013.md)**: Automation script implementation details
+- **[ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture details
 
 ## Troubleshooting
 
@@ -771,6 +771,6 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 **Maintained By:** AssetSim Pro DevOps Team
 
 **Related Documents:**
-- [GETTING_STARTED.md](./GETTING_STARTED.md) - Quick setup guide
-- [scripts/README.md](./scripts/README.md) - Automation scripts
+- [GETTING_STARTED.md](../../GETTING_STARTED.md) - Quick setup guide
+- [scripts/README.md](../../scripts/README.md) - Automation scripts
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Next steps after bootstrap

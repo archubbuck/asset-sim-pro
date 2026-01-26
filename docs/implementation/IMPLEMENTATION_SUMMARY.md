@@ -245,9 +245,9 @@ The implementation ensures that all future commits will follow the established g
 
 ## References
 
-- [ADR-001 in ARCHITECTURE.md](./ARCHITECTURE.md#adr-001-source-control-governance)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [VERIFICATION.md](./VERIFICATION.md)
+- [ADR-001 in ARCHITECTURE.md](../../ARCHITECTURE.md#adr-001-source-control-governance)
+- [CONTRIBUTING.md](../../CONTRIBUTING.md)
+- [VERIFICATION.md](../architecture/VERIFICATION.md)
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [Trunk-Based Development](https://trunkbaseddevelopment.com/)
 

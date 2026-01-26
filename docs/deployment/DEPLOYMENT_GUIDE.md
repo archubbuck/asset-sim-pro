@@ -16,7 +16,7 @@ This guide covers deploying the AssetSim Pro Zero Trust Architecture to Azure.
 # 2. Continue with this deployment guide
 ```
 
-See **[GETTING_STARTED.md](./GETTING_STARTED.md)** for the complete quick start path.
+See **[GETTING_STARTED.md](../../GETTING_STARTED.md)** for the complete quick start path.
 
 ### Option B: Manual Bootstrap Path
 
@@ -27,7 +27,7 @@ Complete the manual bootstrap steps documented in **[BOOTSTRAP_GUIDE.md](./BOOTS
 3. **Azure DevOps Agent Pool**: Create `Self-Hosted-VNet-Pool` for VNet deployments
 
 If you haven't completed bootstrap, see:
-- **[scripts/README.md](./scripts/README.md)** for automated bootstrap
+- **[scripts/README.md](../../scripts/README.md)** for automated bootstrap
 - **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)** for manual bootstrap procedures
 
 ## Prerequisites
@@ -684,9 +684,9 @@ npx prisma migrate deploy
 ### Related Documentation
 
 - Pipeline definition: `azure-pipelines.yml`
-- Architecture decisions: [ARCHITECTURE.md](./ARCHITECTURE.md) (ADR-023, lines 1151-1293)
+- Architecture decisions: [ARCHITECTURE.md](../../ARCHITECTURE.md) (ADR-023, lines 1151-1293)
 - Bootstrap guide: [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)
-- Zero Trust setup: [ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)
+- Zero Trust setup: [ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md)
 
 ## Rollback Procedure
 
@@ -705,9 +705,9 @@ terraform state push backup.tfstate
 ## Support
 
 For issues or questions:
-- Review [ARCHITECTURE.md](./ARCHITECTURE.md) for design decisions
-- Check [ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md) for architecture details
-- See [backend/README.md](./backend/README.md) for API documentation
+- Review [ARCHITECTURE.md](../../ARCHITECTURE.md) for design decisions
+- Check [ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md) for architecture details
+- See [backend/README.md](../../backend/README.md) for API documentation
 
 ---
 

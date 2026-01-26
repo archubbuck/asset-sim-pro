@@ -403,10 +403,10 @@ While all ADR-002 requirements are satisfied, consider these enhancements:
 
 ## References
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Full architectural specification
-- [ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md) - Technical implementation details
-- [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Deployment procedures
-- [backend/README.md](./backend/README.md) - Backend API reference
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) - Full architectural specification
+- [ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md) - Technical implementation details
+- [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md) - Deployment procedures
+- [backend/README.md](../../backend/README.md) - Backend API reference
 
 ---
 

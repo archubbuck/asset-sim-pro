@@ -175,6 +175,6 @@ open coverage/index.html
 ```
 
 ## References
-- [ARCHITECTURE.md ADR-005](./ARCHITECTURE.md#adr-005-testing-strategy--quality-gates)
+- [ARCHITECTURE.md ADR-005](../../ARCHITECTURE.md#adr-005-testing-strategy--quality-gates)
 - [Vitest Documentation](https://vitest.dev/)
 - [Playwright Documentation](https://playwright.dev/)

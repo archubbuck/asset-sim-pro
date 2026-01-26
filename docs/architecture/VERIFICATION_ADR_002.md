@@ -205,7 +205,7 @@
 ## Next Steps
 
 ### For Deployment
-1. Review [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+1. Review [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)
 2. Create Terraform backend storage
 3. Generate strong SQL admin password
 4. Deploy infrastructure with Terraform
@@ -214,9 +214,9 @@
 7. Configure Static Web App authentication
 
 ### For Development
-1. Review [ARCHITECTURE.md](./ARCHITECTURE.md) for full specification
-2. See [backend/README.md](./backend/README.md) for API development
-3. Follow [CONTRIBUTING.md](./CONTRIBUTING.md) for git workflow
+1. Review [ARCHITECTURE.md](../../ARCHITECTURE.md) for full specification
+2. See [backend/README.md](../../backend/README.md) for API development
+3. Follow [CONTRIBUTING.md](../../CONTRIBUTING.md) for git workflow
 4. Implement remaining ADRs (003-025)
 
 ## Approval

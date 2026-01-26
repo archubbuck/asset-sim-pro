@@ -9,8 +9,8 @@ This directory contains automation scripts that implement ADR-013 for bootstrapp
 ## Quick Links
 
 - **New to the project?** Start with [GETTING_STARTED.md](../GETTING_STARTED.md)
-- **Need manual steps?** See [BOOTSTRAP_GUIDE.md](../BOOTSTRAP_GUIDE.md)
-- **Ready to deploy?** Proceed to [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)
+- **Need manual steps?** See [BOOTSTRAP_GUIDE.md](../docs/deployment/BOOTSTRAP_GUIDE.md)
+- **Ready to deploy?** Proceed to [DEPLOYMENT_GUIDE.md](../docs/deployment/DEPLOYMENT_GUIDE.md)
 
 ## Overview
 
@@ -28,7 +28,7 @@ These scripts automate the manual "chicken and egg" operations documented in ADR
 
 **Purpose:** Automate Entra ID API consent for GroupMember.Read.All permission  
 **ADR Section:** ARCHITECTURE.md ADR-013 §13.1 (lines 267-281)  
-**Manual Alternative:** [BOOTSTRAP_GUIDE.md Phase 2](../BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent)
+**Manual Alternative:** [BOOTSTRAP_GUIDE.md Phase 2](../docs/deployment/BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent)
 
 **Prerequisites:**
 - Azure CLI 2.50.0 or higher installed
@@ -56,13 +56,13 @@ export APP_ID="your-application-client-id"
 **API Permissions Granted:**
 - `GroupMember.Read.All` (Role ID: 98830695-27a2-44f7-8c18-0c3ebc9698f6)
 
-**For detailed manual steps:** See [BOOTSTRAP_GUIDE.md Phase 2](../BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent)
+**For detailed manual steps:** See [BOOTSTRAP_GUIDE.md Phase 2](../docs/deployment/BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent)
 
 ### 2. `bootstrap-terraform-state.sh`
 
 **Purpose:** Automate Azure Resource Group and Storage Account creation for Terraform remote state  
 **ADR Section:** ARCHITECTURE.md ADR-013 §13.2 (lines 283-298)  
-**Manual Alternative:** [BOOTSTRAP_GUIDE.md Phase 1](../BOOTSTRAP_GUIDE.md#phase-1-terraform-state-storage-bootstrap)
+**Manual Alternative:** [BOOTSTRAP_GUIDE.md Phase 1](../docs/deployment/BOOTSTRAP_GUIDE.md#phase-1-terraform-state-storage-bootstrap)
 
 **Prerequisites:**
 - Azure CLI 2.50.0 or higher installed

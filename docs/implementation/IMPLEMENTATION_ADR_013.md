@@ -10,9 +10,9 @@
 
 This document serves as the **implementation verification** for ADR-013, validating that the bootstrap automation scripts have been properly implemented and documented.
 
-**Primary Documentation:** [scripts/README.md](./scripts/README.md) - Authoritative guide for automation scripts  
-**Manual Procedures:** [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - Manual fallback and detailed explanations  
-**Quick Start:** [GETTING_STARTED.md](./GETTING_STARTED.md) - Streamlined automation path
+**Primary Documentation:** [scripts/README.md](../../scripts/README.md) - Authoritative guide for automation scripts  
+**Manual Procedures:** [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md) - Manual fallback and detailed explanations  
+**Quick Start:** [GETTING_STARTED.md](../../GETTING_STARTED.md) - Streamlined automation path
 
 ## Overview
 
@@ -56,9 +56,9 @@ Automate Azure infrastructure bootstrap using:
 **Lines:** 257 lines  
 **Executable:** ✓ (chmod +x)  
 **ADR Section:** 13.1 (lines 267-281)  
-**Documentation:** [scripts/README.md - Section 1](./scripts/README.md#1-bootstrap-entra-consentsh)
+**Documentation:** [scripts/README.md - Section 1](../../scripts/README.md#1-bootstrap-entra-consentsh)
 
-**For detailed usage, features, and examples:** See [scripts/README.md - Entra ID Consent Script](./scripts/README.md#1-bootstrap-entra-consentsh)
+**For detailed usage, features, and examples:** See [scripts/README.md - Entra ID Consent Script](../../scripts/README.md#1-bootstrap-entra-consentsh)
 
 ### ✅ Deliverable 3: Terraform State Bootstrap Script
 
@@ -66,18 +66,18 @@ Automate Azure infrastructure bootstrap using:
 **Lines:** 485 lines  
 **Executable:** ✓ (chmod +x)  
 **ADR Section:** 13.2 (lines 283-298)  
-**Documentation:** [scripts/README.md - Section 2](./scripts/README.md#2-bootstrap-terraform-statesh)
+**Documentation:** [scripts/README.md - Section 2](../../scripts/README.md#2-bootstrap-terraform-statesh)
 
-**For detailed usage, features, configuration, and examples:** See [scripts/README.md - Terraform State Bootstrap](./scripts/README.md#2-bootstrap-terraform-statesh)
+**For detailed usage, features, configuration, and examples:** See [scripts/README.md - Terraform State Bootstrap](../../scripts/README.md#2-bootstrap-terraform-statesh)
 
 ### ✅ Deliverable 4: Comprehensive Documentation
 
-**File:** [scripts/README.md](./scripts/README.md)  
+**File:** [scripts/README.md](../../scripts/README.md)  
 **Lines:** 281+ lines  
 **Version:** 1.1.0 (Updated January 25, 2026)  
 **Status:** Complete
 
-This is the **primary documentation** for the automation scripts. See [scripts/README.md](./scripts/README.md) for:
+This is the **primary documentation** for the automation scripts. See [scripts/README.md](../../scripts/README.md) for:
 - Detailed script descriptions and usage
 - Security features and best practices
 - Execution order and workflow
@@ -295,15 +295,15 @@ All ADR-013 requirements have been successfully implemented:
 ### New Files Created
 1. [scripts/bootstrap-entra-consent.sh](./scripts/bootstrap-entra-consent.sh) (257 lines, executable)
 2. [scripts/bootstrap-terraform-state.sh](./scripts/bootstrap-terraform-state.sh) (485 lines, executable)
-3. [scripts/README.md](./scripts/README.md) (281+ lines, v1.1.0)
-4. [GETTING_STARTED.md](./GETTING_STARTED.md) (280+ lines, new entry point)
+3. [scripts/README.md](../../scripts/README.md) (281+ lines, v1.1.0)
+4. [GETTING_STARTED.md](../../GETTING_STARTED.md) (280+ lines, new entry point)
 5. [IMPLEMENTATION_ADR_013.md](./IMPLEMENTATION_ADR_013.md) (this document)
 
 ### Files Modified
-1. [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - v2.0.0 with automation markers
-2. [README.md](./README.md) - Added quick start and reorganized documentation
-3. [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Streamlined with automation paths
-4. [EVALUATION_DOCS_README.md](./EVALUATION_DOCS_README.md) - Added prerequisites
+1. [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md) - v2.0.0 with automation markers
+2. [README.md](../../README.md) - Added quick start and reorganized documentation
+3. [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md) - Streamlined with automation paths
+4. [EVALUATION_DOCS_README.md](../evaluation/EVALUATION_DOCS_README.md) - Added prerequisites
 5. [IMPLEMENTATION_ADR_012.md](./IMPLEMENTATION_ADR_012.md) - v2.0.0 clarifying relationships
 
 **Total Documentation:** ~1,500+ lines of implementation, automation, and integration documentation
@@ -345,9 +345,9 @@ ADR-013 has been **fully implemented** with production-ready automation scripts 
 ✅ **Use** Azure CLI and REST APIs as specified  
 ✅ **Implement** exact API calls from ARCHITECTURE.md  
 ✅ **Provide** comprehensive error handling and validation  
-✅ **Include** extensive documentation in [scripts/README.md](./scripts/README.md)  
+✅ **Include** extensive documentation in [scripts/README.md](../../scripts/README.md)  
 ✅ **Follow** security best practices and Zero Trust principles  
-✅ **Integrate** seamlessly with [GETTING_STARTED.md](./GETTING_STARTED.md), [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md), and [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)  
+✅ **Integrate** seamlessly with [GETTING_STARTED.md](../../GETTING_STARTED.md), [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md), and [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)  
 ✅ **Maintain** idempotency and repeatability  
 
 The implementation successfully bridges the gap between manual operations (ADR-012) and full Terraform automation (ADR-014), providing a robust, secure, and user-friendly bootstrap experience for AssetSim Pro infrastructure deployment.
@@ -355,14 +355,14 @@ The implementation successfully bridges the gap between manual operations (ADR-0
 ## Related Documentation
 
 ### Primary Documents
-- **[scripts/README.md](./scripts/README.md)**: Authoritative automation script documentation
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Quick start with automation path
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual procedures and detailed explanations
+- **[scripts/README.md](../../scripts/README.md)**: Authoritative automation script documentation
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Quick start with automation path
+- **[BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)**: Manual procedures and detailed explanations
 
 ### Reference Documents
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: ADR-013 specification (lines 261-298)
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: ADR-013 specification (lines 261-298)
 - **[IMPLEMENTATION_ADR_012.md](./IMPLEMENTATION_ADR_012.md)**: Manual operations verification
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Post-bootstrap deployment
+- **[DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)**: Post-bootstrap deployment
 
 ---
 

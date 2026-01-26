@@ -8,11 +8,11 @@
 ## Prerequisites
 
 Before reviewing this evaluation, familiarize yourself with:
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Setup guide and deployment path
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Bootstrap procedures (ADR-012)
-- **[scripts/README.md](./scripts/README.md)**: Automation scripts (ADR-013)
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment procedures
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Complete architectural decisions
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Setup guide and deployment path
+- **[BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)**: Bootstrap procedures (ADR-012)
+- **[scripts/README.md](../../scripts/README.md)**: Automation scripts (ADR-013)
+- **[DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)**: Terraform deployment procedures
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: Complete architectural decisions
 
 ---
 
@@ -449,6 +449,6 @@ The AssetSim Pro platform successfully implements:
 **Maintained By:** AssetSim Pro Engineering Team
 
 **Related Documents:**
-- [GETTING_STARTED.md](./GETTING_STARTED.md) - Setup guide
-- [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) - Prerequisites for deployment
+- [GETTING_STARTED.md](../../GETTING_STARTED.md) - Setup guide
+- [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md) - Prerequisites for deployment
 - [EVALUATION_DOCS_README.md](./EVALUATION_DOCS_README.md) - Evaluation navigation guide
