@@ -28,10 +28,11 @@ export interface TradingStubConfig {
 
 /**
  * Default stub configuration for demo/development mode
+ * Uses placeholder UUID values for backend Zod validation compatibility
  */
 export const DEFAULT_TRADING_STUB_CONFIG: TradingStubConfig = {
-  exchangeId: 'demo-exchange',
-  portfolioId: 'demo-portfolio',
+  exchangeId: '00000000-0000-0000-0000-000000000000',
+  portfolioId: '00000000-0000-0000-0000-000000000001',
   orderIdPrefix: 'demo-order'
 };
 

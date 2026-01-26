@@ -15,18 +15,18 @@ describe('PositionBlotterComponent', () => {
   let fixture: ComponentFixture<PositionBlotterComponent>;
   let mockOrderApiService: Partial<OrderApiService>;
 
-  // Test configuration
+  // Test configuration - uses UUID format for backend compatibility
   const testConfig: TradingStubConfig = {
-    exchangeId: 'test-exchange-001',
-    portfolioId: 'test-portfolio-001',
+    exchangeId: '10000000-0000-0000-0000-000000000000',
+    portfolioId: '10000000-0000-0000-0000-000000000001',
     orderIdPrefix: 'test-order'
   };
 
   const mockOrders: OrderResponse[] = [
     {
       orderId: 'ord-001',
-      exchangeId: 'test-exchange-001',
-      portfolioId: 'test-portfolio-001',
+      exchangeId: '10000000-0000-0000-0000-000000000000',
+      portfolioId: '10000000-0000-0000-0000-000000000001',
       symbol: 'AAPL',
       side: 'BUY',
       orderType: 'MARKET',
@@ -39,8 +39,8 @@ describe('PositionBlotterComponent', () => {
     },
     {
       orderId: 'ord-002',
-      exchangeId: 'test-exchange-001',
-      portfolioId: 'test-portfolio-001',
+      exchangeId: '10000000-0000-0000-0000-000000000000',
+      portfolioId: '10000000-0000-0000-0000-000000000001',
       symbol: 'MSFT',
       side: 'BUY',
       orderType: 'LIMIT',
