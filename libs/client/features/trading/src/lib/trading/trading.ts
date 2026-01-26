@@ -17,6 +17,7 @@ import { SignalRService, LoggerService } from '@assetsim/client/core';
 import { OrderEntryComponent } from '../order-entry/order-entry.component';
 import { PositionBlotterComponent } from '../position-blotter/position-blotter.component';
 import { FinancialChartComponent } from '../financial-chart/financial-chart.component';
+import { TRADING_STUB_CONFIG } from '../models/trading-config';
 
 @Component({
   selector: 'lib-trading',
@@ -33,6 +34,7 @@ import { FinancialChartComponent } from '../financial-chart/financial-chart.comp
 export class Trading implements OnInit {
   private signalRService = inject(SignalRService);
   private logger = inject(LoggerService);
+  private config = inject(TRADING_STUB_CONFIG);
 
   // Trading desk name
   deskName = signal('Live Trading Terminal');
@@ -42,11 +44,10 @@ export class Trading implements OnInit {
 
   async ngOnInit(): Promise<void> {
     // Connect to SignalR for real-time price updates
-    // In a real implementation, exchangeId would come from user context
-    // Using valid UUID for demo compatibility with backend validation
+    // exchangeId is provided via TRADING_STUB_CONFIG injection token
     try {
       if (!this.signalRService.isConnected()) {
-        await this.signalRService.connect('00000000-0000-0000-0000-000000000000');
+        await this.signalRService.connect(this.config.exchangeId);
       }
     } catch (error: unknown) {
       const err = error instanceof Error ? error : new Error(String(error));
