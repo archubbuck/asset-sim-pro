@@ -1,6 +1,6 @@
 import { Route } from '@angular/router';
 import { AppShellComponent } from '@assetsim/client/core';
-import { DashboardComponent } from '@assetsim/client/features/dashboard';
+import { DashboardComponent } from '@assetsim/client/dashboard';
 
 export const appRoutes: Route[] = [
   {

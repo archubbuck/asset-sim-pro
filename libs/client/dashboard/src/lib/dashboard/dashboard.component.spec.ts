@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DashboardComponent, MarketDepthComponent, RiskMatrixComponent, NewsTerminalComponent } from './dashboard.component';
+import { DashboardComponent } from './dashboard.component';
+import { MarketDepthComponent } from '../market-depth/market-depth.component';
+import { RiskMatrixComponent } from '../risk-matrix/risk-matrix.component';
+import { NewsTerminalComponent } from '../news-terminal/news-terminal.component';
 import { FeatureService } from '@assetsim/client/core';
 import { signal, computed } from '@angular/core';
 
@@ -55,7 +58,7 @@ describe('DashboardComponent', () => {
 
   it('should render all three widgets', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const widgets = compiled.querySelectorAll('.p-4.bg-slate-700');
+    const widgets = compiled.querySelectorAll('.widget');
     expect(widgets.length).toBe(3);
   });
 

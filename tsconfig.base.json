@@ -25,8 +25,8 @@
       "@assetsim/client/features/trading": [
         "libs/client/features/trading/src/index.ts"
       ],
-      "@assetsim/client/features/dashboard": [
-        "libs/client/features/dashboard/src/index.ts"
+      "@assetsim/client/dashboard": [
+        "libs/client/dashboard/src/index.ts"
       ],
       "@assetsim/shared/api-client": ["libs/shared/api-client/src/index.ts"]
     }
