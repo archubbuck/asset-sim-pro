@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ErrorNotificationComponent } from './error-notification.component';
-import { ErrorNotificationService } from '../services/error-notification.service';
+import { ErrorNotificationService } from './error-notification.service';
 
 describe('ErrorNotificationComponent', () => {
   let component: ErrorNotificationComponent;
