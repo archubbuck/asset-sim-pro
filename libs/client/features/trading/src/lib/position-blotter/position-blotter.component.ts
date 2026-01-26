@@ -350,7 +350,7 @@ export class PositionBlotterComponent implements OnInit {
    * Uses configuration for IDs to allow runtime customization
    */
   loadStubData(): void {
-    const { exchangeId, portfolioId, orderIdPrefix } = this.stubConfig;
+    const { exchangeId, portfolioId, orderIdPrefix = 'demo-order' } = this.stubConfig;
     
     const stubOrders: OrderResponse[] = [
       {
