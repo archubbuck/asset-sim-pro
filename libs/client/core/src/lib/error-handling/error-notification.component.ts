@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ErrorNotificationService } from '../services/error-notification.service';
+import { ErrorNotificationService } from './error-notification.service';
 
 /**
  * Error Notification Component
