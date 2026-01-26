@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { FeatureFlagApiService } from './feature-flag-api.service';
+import { FeatureFlagApiService } from '../feature-flag-api.service';
 import { FeatureFlagResponse } from '@assetsim/shared/finance-models';
 
 describe('FeatureFlagApiService', () => {

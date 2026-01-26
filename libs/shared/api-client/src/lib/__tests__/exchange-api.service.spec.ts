@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ExchangeApiService } from './exchange-api.service';
-import { CreateExchangeRequest, ExchangeResponse } from './models/exchange.models';
+import { ExchangeApiService } from '../exchange-api.service';
+import { CreateExchangeRequest, ExchangeResponse } from '../models/exchange.models';
 
 describe('ExchangeApiService', () => {
   let service: ExchangeApiService;
