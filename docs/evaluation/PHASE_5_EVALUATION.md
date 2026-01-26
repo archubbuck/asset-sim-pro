@@ -12,6 +12,7 @@
 This document provides a comprehensive evaluation of **Phase 5 (Frontend Implementation)** of the AssetSim Pro Implementation Roadmap, with special emphasis on **backend-frontend cohesion** as requested in the issue.
 
 ### Overall Status
+
 - **Phase 5:** 🔄 **IN PROGRESS** - Core infrastructure implemented, integration work needed
 - **Backend-Frontend Cohesion:** ⚠️ **PARTIAL** - Shared models exist, but integration layer incomplete
 - **Total Components Evaluated:** 4 ADRs (ADR-019, ADR-020, ADR-021, ADR-022), 7 frontend libraries, 8 client app files
@@ -22,6 +23,7 @@ This document provides a comprehensive evaluation of **Phase 5 (Frontend Impleme
 ## Phase 5: Frontend Implementation Overview
 
 Phase 5 implements the Angular frontend with four reference implementation ADRs:
+
 - **ADR-019:** Enterprise Logging (Application Insights integration)
 - **ADR-020:** Azure Authentication (Entra ID with Static Web Apps)
 - **ADR-021:** Feature Flag Engine (Exchange-scoped configuration)
@@ -29,20 +31,20 @@ Phase 5 implements the Angular frontend with four reference implementation ADRs:
 
 ### 5.1 Implementation Status by ADR
 
-| ADR | Component | Status | Evidence |
-|-----|-----------|--------|----------|
-| **ADR-019** | LoggerService | ✅ Complete | `libs/client/core/src/lib/logger/logger.service.ts` |
-| | App Insights Integration | ✅ Complete | `@microsoft/applicationinsights-web` configured |
-| | Test Coverage | ✅ Complete | `logger.service.spec.ts` - 8 tests passing |
-| **ADR-020** | AuthService Interface | ✅ Complete | `libs/client/core/src/lib/auth/auth.interface.ts` |
-| | AzureAuthService | ✅ Complete | `libs/client/core/src/lib/auth/azure-auth.service.ts` |
-| | MockAuthService | ✅ Complete | `libs/client/core/src/lib/auth/mock-auth.service.ts` |
-| | Auth Factory | ✅ Complete | `libs/client/core/src/lib/auth/auth.factory.ts` |
-| | Test Coverage | ⚠️ Partial | 12 tests passing, integration tests needed |
-| **ADR-021** | FeatureService | ✅ Complete | `libs/client/core/src/lib/feature/feature.service.ts` |
-| | Test Coverage | ✅ Complete | `feature.service.spec.ts` - 8 tests passing |
-| **ADR-022** | AppShellComponent | ✅ Complete | `libs/client/core/src/lib/layout/app-shell.component.ts` |
-| | Test Coverage | ❌ Failing | Animation provider issues (9 tests failing) |
+| ADR         | Component                | Status      | Evidence                                                 |
+| ----------- | ------------------------ | ----------- | -------------------------------------------------------- |
+| **ADR-019** | LoggerService            | ✅ Complete | `libs/client/core/src/lib/logger/logger.service.ts`      |
+|             | App Insights Integration | ✅ Complete | `@microsoft/applicationinsights-web` configured          |
+|             | Test Coverage            | ✅ Complete | `logger.service.spec.ts` - 8 tests passing               |
+| **ADR-020** | AuthService Interface    | ✅ Complete | `libs/client/core/src/lib/auth/auth.interface.ts`        |
+|             | AzureAuthService         | ✅ Complete | `libs/client/core/src/lib/auth/azure-auth.service.ts`    |
+|             | MockAuthService          | ✅ Complete | `libs/client/core/src/lib/auth/mock-auth.service.ts`     |
+|             | Auth Factory             | ✅ Complete | `libs/client/core/src/lib/auth/auth.factory.ts`          |
+|             | Test Coverage            | ⚠️ Partial  | 12 tests passing, integration tests needed               |
+| **ADR-021** | FeatureService           | ✅ Complete | `libs/client/core/src/lib/feature/feature.service.ts`    |
+|             | Test Coverage            | ✅ Complete | `feature.service.spec.ts` - 8 tests passing              |
+| **ADR-022** | AppShellComponent        | ✅ Complete | `libs/client/core/src/lib/layout/app-shell.component.ts` |
+|             | Test Coverage            | ❌ Failing  | Animation provider issues (9 tests failing)              |
 
 ---
 
@@ -54,15 +56,16 @@ Phase 5 implements the Angular frontend with four reference implementation ADRs:
 
 **Location:** `libs/shared/finance-models/src/lib/`
 
-| Model | Backend Usage | Frontend Usage | Status |
-|-------|---------------|----------------|--------|
-| `ClientPrincipal` | Auth validation in `auth.ts` | State management in `azure-auth.service.ts` | ✅ Aligned |
-| `AuthResponse` | Not directly used (API gateway) | HTTP client in `checkSession()` | ✅ Aligned |
-| `ExchangeConfig` | Database schema in `ExchangeConfigurations` | Feature service configuration | ✅ Aligned |
-| `FeatureFlagResponse` | API response type (planned) | `feature.service.ts` state | ✅ Aligned |
-| `ExchangeRole` enum | RLS policy validation | RBAC role checks | ✅ Aligned |
+| Model                 | Backend Usage                               | Frontend Usage                              | Status     |
+| --------------------- | ------------------------------------------- | ------------------------------------------- | ---------- |
+| `ClientPrincipal`     | Auth validation in `auth.ts`                | State management in `azure-auth.service.ts` | ✅ Aligned |
+| `AuthResponse`        | Not directly used (API gateway)             | HTTP client in `checkSession()`             | ✅ Aligned |
+| `ExchangeConfig`      | Database schema in `ExchangeConfigurations` | Feature service configuration               | ✅ Aligned |
+| `FeatureFlagResponse` | API response type (planned)                 | `feature.service.ts` state                  | ✅ Aligned |
+| `ExchangeRole` enum   | RLS policy validation                       | RBAC role checks                            | ✅ Aligned |
 
 **Evidence:**
+
 ```typescript
 // Backend: apps/backend/src/lib/auth.ts
 import { ClientPrincipal } from '@assetsim/shared/finance-models';
@@ -80,14 +83,15 @@ import { AuthResponse, ClientPrincipal } from '@assetsim/shared/finance-models';
 **Backend:** RFC 7807 Problem Details via `libs/shared/error-models`
 **Frontend:** Error interceptor consumes Problem Details format
 
-| Component | Location | Status |
-|-----------|----------|--------|
-| Backend Error Handler | `apps/backend/src/lib/error-handler.ts` | ✅ Complete |
-| Shared Error Models | `libs/shared/error-models/src/lib/problem-details.ts` | ✅ Complete |
-| Frontend Error Interceptor | `libs/client/core/src/lib/services/error.interceptor.ts` | ✅ Complete |
+| Component                   | Location                                                          | Status      |
+| --------------------------- | ----------------------------------------------------------------- | ----------- |
+| Backend Error Handler       | `apps/backend/src/lib/error-handler.ts`                           | ✅ Complete |
+| Shared Error Models         | `libs/shared/error-models/src/lib/problem-details.ts`             | ✅ Complete |
+| Frontend Error Interceptor  | `libs/client/core/src/lib/services/error.interceptor.ts`          | ✅ Complete |
 | Frontend Error Notification | `libs/client/core/src/lib/services/error-notification.service.ts` | ✅ Complete |
 
 **Evidence:**
+
 ```typescript
 // Backend returns RFC 7807 format
 export interface ProblemDetails {
@@ -111,15 +115,16 @@ import { ProblemDetails } from '@assetsim/shared/error-models';
 
 **Architecture:** Azure Static Web Apps with Entra ID
 
-| Step | Backend | Frontend | Status |
-|------|---------|----------|--------|
-| Session Check | `.auth/me` endpoint (SWA built-in) | `azure-auth.service.ts:checkSession()` | ✅ Aligned |
-| Login Redirect | `.auth/login/aad` (SWA) | `azure-auth.service.ts:login()` | ✅ Aligned |
-| Logout | `.auth/logout` (SWA) | `azure-auth.service.ts:logout()` | ✅ Aligned |
-| Auth Validation | `requireAuthentication()` in `auth.ts` | Role-based guards (planned) | ⚠️ Guards needed |
-| Role Mapping | Session context in functions | `roles` computed signal | ✅ Aligned |
+| Step            | Backend                                | Frontend                               | Status           |
+| --------------- | -------------------------------------- | -------------------------------------- | ---------------- |
+| Session Check   | `.auth/me` endpoint (SWA built-in)     | `azure-auth.service.ts:checkSession()` | ✅ Aligned       |
+| Login Redirect  | `.auth/login/aad` (SWA)                | `azure-auth.service.ts:login()`        | ✅ Aligned       |
+| Logout          | `.auth/logout` (SWA)                   | `azure-auth.service.ts:logout()`       | ✅ Aligned       |
+| Auth Validation | `requireAuthentication()` in `auth.ts` | Role-based guards (planned)            | ⚠️ Guards needed |
+| Role Mapping    | Session context in functions           | `roles` computed signal                | ✅ Aligned       |
 
 **Evidence:**
+
 ```typescript
 // Backend: apps/backend/src/lib/auth.ts (Line 19-32)
 export function requireAuthentication(request: HttpRequest): ClientPrincipal {
@@ -143,32 +148,34 @@ public async checkSession(): Promise<void> {
 **Backend:** OpenAPI spec via zod-to-openapi (`/api/docs`)
 **Frontend:** Type-safe HTTP clients (planned)
 
-| API Endpoint | Backend Function | Frontend Client | Status |
-|--------------|------------------|-----------------|--------|
-| `POST /api/v1/exchanges` | `createExchange.ts` | Not implemented | ❌ Missing |
-| `POST /api/v1/orders` | `createOrder.ts` | Not implemented | ❌ Missing |
-| `GET /api/v1/exchange/rules` | Not implemented | `feature.service.ts` expects it | ❌ Missing |
-| `GET /api/docs` | `apiDocs.ts` | Not consumed | ⚠️ Unused |
+| API Endpoint                 | Backend Function    | Frontend Client                 | Status     |
+| ---------------------------- | ------------------- | ------------------------------- | ---------- |
+| `POST /api/v1/exchanges`     | `createExchange.ts` | Not implemented                 | ❌ Missing |
+| `POST /api/v1/orders`        | `createOrder.ts`    | Not implemented                 | ❌ Missing |
+| `GET /api/v1/exchange/rules` | Not implemented     | `feature.service.ts` expects it | ❌ Missing |
+| `GET /api/docs`              | `apiDocs.ts`        | Not consumed                    | ⚠️ Unused  |
 
 **Gap Analysis:**
+
 1. **Missing API Client Library:** No shared HTTP client library for type-safe API calls
 2. **Missing Exchange Rules Endpoint:** Frontend expects `/api/v1/exchange/rules` but backend doesn't implement it
 3. **OpenAPI Spec Not Consumed:** Backend generates OpenAPI spec but frontend doesn't leverage it
 
 **Recommendation:**
+
 ```typescript
 // Proposed: libs/shared/api-client/src/lib/exchange-api.service.ts
 @Injectable({ providedIn: 'root' })
 export class ExchangeApiService {
   constructor(private http: HttpClient) {}
-  
+
   createExchange(name: string): Observable<ExchangeResponse> {
     return this.http.post<ExchangeResponse>('/api/v1/exchanges', { name });
   }
-  
+
   getExchangeRules(exchangeId: string): Observable<FeatureFlagResponse> {
     return this.http.get<FeatureFlagResponse>('/api/v1/exchange/rules', {
-      params: { exchangeId }
+      params: { exchangeId },
     });
   }
 }
@@ -183,16 +190,17 @@ export class ExchangeApiService {
 **Backend:** SignalR broadcasting via `signalr-broadcast.ts`
 **Frontend:** SignalR client (planned)
 
-| Component | Backend | Frontend | Status |
-|-----------|---------|----------|--------|
-| SignalR Service | ✅ Complete (`lib/signalr-broadcast.ts`) | ❌ Not implemented | ❌ Missing |
-| Price Updates | ✅ Broadcasting to groups | ❌ No listener | ❌ Missing |
-| Group Management | ✅ `ticker:{ExchangeId}` groups | ❌ No subscription | ❌ Missing |
-| MessagePack Protocol | ✅ Enabled | ❌ Not configured | ❌ Missing |
+| Component            | Backend                                  | Frontend           | Status     |
+| -------------------- | ---------------------------------------- | ------------------ | ---------- |
+| SignalR Service      | ✅ Complete (`lib/signalr-broadcast.ts`) | ❌ Not implemented | ❌ Missing |
+| Price Updates        | ✅ Broadcasting to groups                | ❌ No listener     | ❌ Missing |
+| Group Management     | ✅ `ticker:{ExchangeId}` groups          | ❌ No subscription | ❌ Missing |
+| MessagePack Protocol | ✅ Enabled                               | ❌ Not configured  | ❌ Missing |
 
 **Gap:** Frontend lacks SignalR client integration for real-time market data.
 
 **Recommendation:**
+
 ```typescript
 // Proposed: libs/client/core/src/lib/signalr/signalr.service.ts
 import * as signalR from '@microsoft/signalr';
@@ -201,17 +209,17 @@ import { MessagePackHubProtocol } from '@microsoft/signalr-protocol-msgpack';
 @Injectable({ providedIn: 'root' })
 export class SignalRService {
   private connection: signalR.HubConnection;
-  
+
   async connect(exchangeId: string): Promise<void> {
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl('/api')
       .withHubProtocol(new MessagePackHubProtocol())
       .build();
-    
+
     await this.connection.start();
     await this.connection.invoke('JoinGroup', `ticker:${exchangeId}`);
   }
-  
+
   onPriceUpdate(callback: (data: PriceUpdateData) => void): void {
     this.connection.on('PriceUpdate', callback);
   }
@@ -227,15 +235,16 @@ export class SignalRService {
 **Backend:** Azure Functions built-in logging
 **Frontend:** Application Insights via LoggerService
 
-| Feature | Backend | Frontend | Status |
-|---------|---------|----------|--------|
-| Application Insights | ✅ Function App built-in | ✅ `LoggerService` | ✅ Aligned |
-| Event Tracking | ✅ `context.log()` | ✅ `logEvent()` | ✅ Aligned |
-| Exception Tracking | ✅ Automatic | ✅ `logException()` | ✅ Aligned |
-| CORS Correlation | ✅ Function App config | ✅ `enableCorsCorrelation: true` | ✅ Aligned |
-| Trace Linking | ✅ Operation ID propagation | ✅ AJAX correlation enabled | ✅ Aligned |
+| Feature              | Backend                     | Frontend                         | Status     |
+| -------------------- | --------------------------- | -------------------------------- | ---------- |
+| Application Insights | ✅ Function App built-in    | ✅ `LoggerService`               | ✅ Aligned |
+| Event Tracking       | ✅ `context.log()`          | ✅ `logEvent()`                  | ✅ Aligned |
+| Exception Tracking   | ✅ Automatic                | ✅ `logException()`              | ✅ Aligned |
+| CORS Correlation     | ✅ Function App config      | ✅ `enableCorsCorrelation: true` | ✅ Aligned |
+| Trace Linking        | ✅ Operation ID propagation | ✅ AJAX correlation enabled      | ✅ Aligned |
 
 **Evidence:**
+
 ```typescript
 // Frontend: libs/client/core/src/lib/logger/logger.service.ts (Line 45-51)
 this.appInsights = new ApplicationInsights({
@@ -243,8 +252,8 @@ this.appInsights = new ApplicationInsights({
     connectionString: connectionString,
     enableAutoRouteTracking: true,
     enableCorsCorrelation: true, // Links Frontend traces to Backend functions
-    enableAjaxErrorLookup: true
-  }
+    enableAjaxErrorLookup: true,
+  },
 });
 ```
 
@@ -260,18 +269,18 @@ this.appInsights = new ApplicationInsights({
 
 **Note:** These 83 tests represent the backend tests directly relevant to Phase 5 frontend integration work. The broader Phase 3-4 backend evaluation documented in `PHASE_3_4_EVALUATION.md` reflects 105 tests passed with all core backend functionality verified.
 
-| Module | Tests Passing | Coverage | Status |
-|--------|---------------|----------|--------|
-| `cache.spec.ts` | 17 | High | ✅ Pass |
-| `signalr-broadcast.spec.ts` | 13 | High | ✅ Pass |
-| `error-handler.spec.ts` | 19 | 94.44% | ✅ Pass |
-| `event-hub.spec.ts` | 9 | High | ✅ Pass |
-| `auth.spec.ts` | 6 | High | ✅ Pass |
-| `database.spec.ts` | 6 | High | ✅ Pass |
-| `apiDocs.spec.ts` | 5 | 100% | ✅ Pass |
-| `ohlcAggregation.spec.ts` | 4 | High | ✅ Pass |
-| `hotPathCleanup.spec.ts` | 4 | High | ✅ Pass |
-| **Integration Tests** | 13 | N/A | ⏭️ Skipped (require live Azure) |
+| Module                      | Tests Passing | Coverage | Status                          |
+| --------------------------- | ------------- | -------- | ------------------------------- |
+| `cache.spec.ts`             | 17            | High     | ✅ Pass                         |
+| `signalr-broadcast.spec.ts` | 13            | High     | ✅ Pass                         |
+| `error-handler.spec.ts`     | 19            | 94.44%   | ✅ Pass                         |
+| `event-hub.spec.ts`         | 9             | High     | ✅ Pass                         |
+| `auth.spec.ts`              | 6             | High     | ✅ Pass                         |
+| `database.spec.ts`          | 6             | High     | ✅ Pass                         |
+| `apiDocs.spec.ts`           | 5             | 100%     | ✅ Pass                         |
+| `ohlcAggregation.spec.ts`   | 4             | High     | ✅ Pass                         |
+| `hotPathCleanup.spec.ts`    | 4             | High     | ✅ Pass                         |
+| **Integration Tests**       | 13            | N/A      | ⏭️ Skipped (require live Azure) |
 
 **Overall Backend Coverage:** 89.52% statements | 92.24% branches | 91.11% functions
 
@@ -281,25 +290,27 @@ this.appInsights = new ApplicationInsights({
 
 **Test Results:** 68 passed | 9 failed (animation provider issues)
 
-| Library | Tests Passing | Tests Failing | Status |
-|---------|---------------|---------------|--------|
-| `logger.service.spec.ts` | 8 | 0 | ✅ Pass |
-| `feature.service.spec.ts` | 8 | 0 | ✅ Pass |
-| `azure-auth.service.spec.ts` | 6 | 0 | ✅ Pass |
-| `mock-auth.service.spec.ts` | 6 | 0 | ✅ Pass |
-| `auth.factory.spec.ts` | 6 | 0 | ✅ Pass |
-| `error.interceptor.spec.ts` | 10 | 0 | ✅ Pass |
-| `error-notification.service.spec.ts` | 8 | 0 | ✅ Pass |
-| `problem-details.spec.ts` | 8 | 0 | ✅ Pass |
-| `app-shell.component.spec.ts` | 0 | 8 | ❌ Fail |
-| `app.spec.ts` (client app) | 0 | 1 | ❌ Fail (TypeScript error) |
+| Library                              | Tests Passing | Tests Failing | Status                     |
+| ------------------------------------ | ------------- | ------------- | -------------------------- |
+| `logger.service.spec.ts`             | 8             | 0             | ✅ Pass                    |
+| `feature.service.spec.ts`            | 8             | 0             | ✅ Pass                    |
+| `azure-auth.service.spec.ts`         | 6             | 0             | ✅ Pass                    |
+| `mock-auth.service.spec.ts`          | 6             | 0             | ✅ Pass                    |
+| `auth.factory.spec.ts`               | 6             | 0             | ✅ Pass                    |
+| `error.interceptor.spec.ts`          | 10            | 0             | ✅ Pass                    |
+| `error-notification.service.spec.ts` | 8             | 0             | ✅ Pass                    |
+| `problem-details.spec.ts`            | 8             | 0             | ✅ Pass                    |
+| `app-shell.component.spec.ts`        | 0             | 8             | ❌ Fail                    |
+| `app.spec.ts` (client app)           | 0             | 1             | ❌ Fail (TypeScript error) |
 
 **Issues:**
+
 1. **Animation Provider Missing:** `app-shell.component.spec.ts` (8 tests) fails because tests don't provide `provideAnimations()`
 2. **Protected Property Access:** `app.spec.ts` (1 test) fails accessing protected `title()` method
 3. **Integration Tests:** No end-to-end tests for API integration
 
 **Fixes Required:**
+
 ```typescript
 // Fix for app-shell.component.spec.ts
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -308,7 +319,7 @@ TestBed.configureTestingModule({
   providers: [
     provideAnimations(), // Add this
     // ... other providers
-  ]
+  ],
 });
 ```
 
@@ -394,6 +405,7 @@ TestBed.configureTestingModule({
 **Priority:** 🔴 CRITICAL
 
 **Structure:**
+
 ```
 libs/shared/api-client/
 ├── src/
@@ -406,6 +418,7 @@ libs/shared/api-client/
 ```
 
 **Benefits:**
+
 - Type-safe API calls using shared models
 - Centralized error handling
 - Consistent HTTP configuration (base URL, headers)
@@ -418,6 +431,7 @@ libs/shared/api-client/
 **Priority:** 🔴 CRITICAL
 
 **Implementation:**
+
 ```typescript
 // libs/client/core/src/lib/signalr/signalr.service.ts
 import { Injectable, signal } from '@angular/core';
@@ -429,19 +443,19 @@ export class SignalRService {
   #connection: signalR.HubConnection | null = null;
   #isConnected = signal<boolean>(false);
   public readonly isConnected = this.#isConnected.asReadonly();
-  
+
   async connect(exchangeId: string): Promise<void> {
     this.#connection = new signalR.HubConnectionBuilder()
       .withUrl('/api')
       .withHubProtocol(new MessagePackHubProtocol())
       .withAutomaticReconnect()
       .build();
-    
+
     await this.#connection.start();
     await this.#connection.invoke('JoinGroup', `ticker:${exchangeId}`);
     this.#isConnected.set(true);
   }
-  
+
   onPriceUpdate(callback: (data: PriceUpdateData) => void): void {
     this.#connection?.on('PriceUpdate', callback);
   }
@@ -449,6 +463,7 @@ export class SignalRService {
 ```
 
 **Benefits:**
+
 - Real-time market data in frontend
 - Automatic reconnection handling
 - Group-based subscription matching backend
@@ -465,60 +480,63 @@ export class SignalRService {
 ```typescript
 /**
  * GET /api/v1/exchange/rules
- * 
+ *
  * Returns feature flags and configuration for the user's exchange
  * Implements ADR-021: Feature Flag Engine
- * 
+ *
  * Security: Validates that user has access to the requested exchange via ExchangeRoles
  */
 export async function getExchangeRules(
   request: HttpRequest,
-  context: InvocationContext
+  context: InvocationContext,
 ): Promise<HttpResponseInit> {
   const user = requireAuthentication(request);
   const exchangeId = request.query.get('exchangeId');
-  
+
   if (!exchangeId) {
     return createValidationErrorResponse({ message: 'exchangeId is required' });
   }
-  
+
   // Validate that user has access to this exchange
   const pool = await getConnectionPool();
-  
+
   // Check if user is assigned to this exchange via ExchangeRoles
-  const roleCheck = await pool.request()
+  const roleCheck = await pool
+    .request()
     .input('userId', sql.UniqueIdentifier, user.userId)
-    .input('exchangeId', sql.UniqueIdentifier, exchangeId)
-    .query(`
+    .input('exchangeId', sql.UniqueIdentifier, exchangeId).query(`
       SELECT 1 FROM [Trade].[ExchangeRoles]
       WHERE UserId = @userId AND ExchangeId = @exchangeId
     `);
-  
+
   if (roleCheck.recordset.length === 0) {
-    return createForbiddenResponse('User does not have access to this exchange');
+    return createForbiddenResponse(
+      'User does not have access to this exchange',
+    );
   }
-  
+
   // Fetch configuration from database (now with validated access)
-  const result = await pool.request()
-    .input('exchangeId', sql.UniqueIdentifier, exchangeId)
-    .query(`
+  const result = await pool
+    .request()
+    .input('exchangeId', sql.UniqueIdentifier, exchangeId).query(`
       SELECT 
         InitialAUM, CommissionBps, AllowMargin, VolatilityMultiplier, DashboardLayout
       FROM [Trade].[ExchangeConfigurations]
       WHERE ExchangeId = @exchangeId
     `);
-  
+
   return {
     status: 200,
     jsonBody: {
       flags: {},
-      configuration: result.recordset[0]
-    }
+      configuration: result.recordset[0],
+    },
   };
 }
 ```
 
 **Registration:** `apps/backend/src/main.ts`
+
 ```typescript
 app.http('getExchangeRules', {
   methods: ['GET'],
@@ -545,7 +563,7 @@ export function roleGuard(requiredRole: string): CanActivateFn {
   return () => {
     const auth = inject(AuthService);
     const router = inject(Router);
-    
+
     if (auth.hasRole(requiredRole)) {
       return true;
     } else {
@@ -556,6 +574,7 @@ export function roleGuard(requiredRole: string): CanActivateFn {
 ```
 
 **Usage in routes:**
+
 ```typescript
 {
   path: 'admin',
@@ -639,22 +658,15 @@ describe('AppShellComponent', () => {
 ### Recommendations for Phase 5 Completion
 
 **Immediate Actions (Sprint 1):**
+
 1. Fix animation provider in component tests
 2. Create API client library in `libs/shared/api-client`
 3. Implement `getExchangeRules` backend endpoint
 4. Integrate SignalR client service
 
-**Short Term (Sprint 2):**
-5. Implement route guards for RBAC
-6. Add E2E tests for critical paths
-7. Document environment configuration
-8. Generate TypeScript client from OpenAPI spec
+**Short Term (Sprint 2):** 5. Implement route guards for RBAC 6. Add E2E tests for critical paths 7. Document environment configuration 8. Generate TypeScript client from OpenAPI spec
 
-**Medium Term (Phase 6):**
-9. Build trading UI components (order entry, blotter)
-10. Implement Kendo financial charts
-11. Add portfolio dashboard
-12. Create admin console for Risk Managers
+**Medium Term (Phase 6):** 9. Build trading UI components (order entry, blotter) 10. Implement Kendo financial charts 11. Add portfolio dashboard 12. Create admin console for Risk Managers
 
 ---
 

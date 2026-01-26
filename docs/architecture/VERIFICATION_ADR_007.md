@@ -29,11 +29,13 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
 ### ✅ 1. Frontend: Azure Static Web Apps (Standard)
 
 **Infrastructure (Terraform):**
+
 - File: `terraform/modules/compute/main.tf` (lines 95-106)
 - Resource: `azurerm_static_web_app.frontend`
 - SKU: `sku_tier = "Standard"`, `sku_size = "Standard"`
 
 **Configuration:**
+
 - File: `apps/client/staticwebapp.config.json`
 - Features:
   - SPA routing with navigation fallback
@@ -43,6 +45,7 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
   - Node.js 20 runtime
 
 **Build Integration:**
+
 - File: `apps/client/project.json`
 - staticwebapp.config.json included in build output
 - Verified in: `dist/apps/client/browser/staticwebapp.config.json`
@@ -50,6 +53,7 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
 ### ✅ 2. Backend: Azure Function App (Premium Plan - EP1)
 
 **Infrastructure (Terraform):**
+
 - File: `terraform/modules/compute/main.tf` (lines 1-13, 57-86)
 - Resource: `azurerm_service_plan.plan`
 - SKU: `sku_name = "EP1"` (Elastic Premium Plan 1)
@@ -57,6 +61,7 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
 - Runtime: Node.js 20
 
 **VNet Integration:**
+
 - Resource: `azurerm_app_service_virtual_network_swift_connection.vnet_integration`
 - Connected to private subnet for data service access
 - All traffic routed through VNet (`vnet_route_all_enabled = true`)
@@ -64,6 +69,7 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
 ### ✅ 3. BYOB (Bring Your Own Backend) - SWA → Function App Linking
 
 **Infrastructure (Terraform):**
+
 - File: `terraform/modules/compute/main.tf` (lines 109-112)
 - Resource: `azurerm_static_web_app_function_app_registration.link`
 - Links: `azurerm_static_web_app.frontend.id` → `azurerm_linux_function_app.backend.id`
@@ -95,6 +101,7 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
 **Timer Trigger Function:**
 
 **marketEngineTick.ts** (New)
+
 - Schedule: Every 5 seconds (`*/5 * * * * *`)
 - Purpose: Simulate market activity
 - Functions:
@@ -133,6 +140,7 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
    - Used by: `marketEngineTick.ts`
 
 **Validation Coverage:**
+
 - ✅ All HTTP endpoints validate request bodies with Zod
 - ✅ All timer triggers validate data before database operations
 - ✅ Type-safe request/response handling with TypeScript inference
@@ -141,10 +149,12 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
 ## Test Coverage
 
 **Test Files Created:**
+
 1. `apps/backend/src/functions/createOrder.spec.ts` (4 tests)
 2. `apps/backend/src/functions/marketEngineTick.spec.ts` (5 tests)
 
 **Test Results:**
+
 - All existing tests pass (12 passed)
 - New tests follow existing patterns (skipped until Azure Functions runtime configured)
 - Tests verify:
@@ -156,16 +166,20 @@ Use Azure Static Web Apps (SWA) for the frontend and a dedicated Azure Function 
 ## Build Verification
 
 **Backend Build:**
+
 ```bash
 cd apps/backend && npm run build
 ```
+
 ✅ TypeScript compilation successful
 ✅ No errors or warnings
 
 **Frontend Build:**
+
 ```bash
 npm run build
 ```
+
 ✅ Build successful
 ✅ staticwebapp.config.json included in output
 ✅ Production bundle size within limits
@@ -173,6 +187,7 @@ npm run build
 ## Documentation
 
 **Updated Files:**
+
 - `apps/backend/README.md` - Complete API documentation with ADR-007 section
   - Transaction API endpoints documented
   - Market Engine behavior documented
@@ -182,6 +197,7 @@ npm run build
 ## Files Changed Summary
 
 **New Files (8):**
+
 1. `apps/client/staticwebapp.config.json` - Azure SWA configuration
 2. `apps/backend/src/types/transaction.ts` - Transaction API Zod schemas
 3. `apps/backend/src/types/market-engine.ts` - Market Engine Zod schemas
@@ -192,11 +208,13 @@ npm run build
 8. `VERIFICATION_ADR_007.md` - This verification document
 
 **Modified Files (3):**
+
 1. `apps/client/project.json` - Include SWA config in build
 2. `apps/backend/README.md` - Complete documentation update
 3. `apps/backend/src/lib/database.spec.ts` - Fix TypeScript types
 
 **Infrastructure Files (Existing - No Changes Required):**
+
 - `terraform/modules/compute/main.tf` - Already implements ADR-007 requirements
 - All infrastructure components already deployed correctly
 
@@ -220,6 +238,7 @@ npm run build
 ✅ **ADR-007 is FULLY IMPLEMENTED**
 
 All requirements from the Architecture Decision Record have been satisfied:
+
 - Frontend configured with Azure Static Web Apps (Standard)
 - Backend deployed on Azure Function App (Premium Plan - EP1)
 - BYOB linking established

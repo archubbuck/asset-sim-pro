@@ -11,6 +11,7 @@ AssetSim Pro serves as a high-fidelity **Simulation Sandbox** where Associates a
 ## 🚀 Quick Start
 
 **New to AssetSim Pro?** Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)** for a streamlined setup guide that covers:
+
 - Local development setup (Docker + npm)
 - Azure deployment path (Bootstrap → Deploy → Verify)
 - Common troubleshooting and next steps
@@ -35,6 +36,7 @@ asset-sim-pro/
 ```
 
 **Quick Start:**
+
 ```bash
 npm install           # Install dependencies
 npm start            # Start Angular dev server
@@ -46,19 +48,23 @@ See **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)** for de
 ## Documentation
 
 ### Getting Started
+
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)**: 🚀 **Start here!** Quick setup guide for local dev and Azure deployment
 
 ### Project Status
+
 - **[EVALUATION_SUMMARY.md](./docs/evaluation/EVALUATION_SUMMARY.md)**: Phase 1 & 2 evaluation - ✅ **100% COMPLETE**
 - **[PHASE_1_2_EVALUATION.md](./docs/evaluation/PHASE_1_2_EVALUATION.md)**: Comprehensive evaluation report for all ADRs
 
 ### Architecture & Development
+
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Complete architectural decisions and technical specifications
 - **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)**: Nx workspace structure and development workflow
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines, git workflows, and contribution process
 - **[TESTING.md](./docs/development/TESTING.md)**: Testing strategy and quality gates (92.59% coverage)
 
 ### Infrastructure & Security
+
 - **[BOOTSTRAP_GUIDE.md](./docs/deployment/BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures (Terraform state, Entra ID, DevOps) - ADR-012
 - **[scripts/README.md](./scripts/README.md)**: Automated bootstrap scripts for Phases 1-2 - ADR-013
 - **[DEPLOYMENT_GUIDE.md](./docs/deployment/DEPLOYMENT_GUIDE.md)**: Terraform deployment and application configuration
@@ -78,12 +84,14 @@ See **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)** for de
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/archubbuck/asset-sim-pro.git
    cd asset-sim-pro
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -97,21 +105,25 @@ AssetSim Pro follows a **Zero Trust** architecture that prevents developers from
 #### Starting Local Services
 
 1. Start all required services (SQL Server, Redis, Azurite, SignalR):
+
    ```bash
    docker compose up -d
    ```
 
 2. Verify services are running:
+
    ```bash
    docker compose ps
    ```
 
 3. Initialize the database with the schema:
+
    ```bash
    npm run db:init
    ```
 
 4. Seed the database with demo data (ADR-024):
+
    ```bash
    npm run seed:local
    ```
@@ -179,16 +191,19 @@ docker compose down -v
 #### Backend Development
 
 1. Navigate to the backend directory:
+
    ```bash
    cd backend
    ```
 
 2. Install backend dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create your local settings file:
+
    ```bash
    cp local.settings.json.example local.settings.json
    ```
@@ -211,6 +226,7 @@ This project enforces strict source control governance (ADR-001):
 All commits are automatically validated. Invalid commit messages will be rejected.
 
 **Example of valid commit:**
+
 ```bash
 git commit -m "feat(backend): implement multi-tenant ticker generator"
 ```
@@ -232,16 +248,19 @@ asset-sim-pro/
 ## Development Workflow
 
 1. **Create a feature branch** from `main`:
+
    ```bash
    git checkout -b feat/your-feature-name
    ```
 
 2. **Make changes** and commit using Conventional Commits format:
+
    ```bash
    git commit -m "feat(scope): description of changes"
    ```
 
 3. **Push and create a Pull Request**:
+
    ```bash
    git push origin feat/your-feature-name
    ```
@@ -253,6 +272,7 @@ asset-sim-pro/
 Based on the architectural definitions in ARCHITECTURE.md:
 
 ### Phase 1: Governance & Foundations
+
 - **ADR-001**: Source Control Governance (Conventional Commits, Trunk-Based Development) ✅ Implemented
 - **ADR-002**: Zero Trust Network Architecture ✅ Implemented
 - **ADR-003**: Docker Compose for Local Development ✅ Implemented
@@ -261,6 +281,7 @@ Based on the architectural definitions in ARCHITECTURE.md:
 - **ADR-006**: GitHub Copilot Enterprise for AI-Assisted Development ✅ Implemented
 
 ### Phase 2: Core Architecture
+
 - Azure Static Web Apps for frontend
 - Azure Function App (Premium Plan) for backend
 - Azure SQL Database with Row-Level Security
@@ -268,6 +289,7 @@ Based on the architectural definitions in ARCHITECTURE.md:
 - Azure SignalR Service with MessagePack
 
 ### Phase 3: Infrastructure
+
 - Terraform for Infrastructure as Code
 - Private Endpoints for all data services
 - VNet integration for secure communication
@@ -284,17 +306,20 @@ Based on the architectural definitions in ARCHITECTURE.md:
 ## Technology Stack
 
 ### Frontend
+
 - Angular 21+ (Signals-first, Zoneless-ready)
 - Kendo UI for Angular
 - TypeScript
 - Nx Build System
 
 ### Backend
+
 - Azure Functions (Node.js 20)
 - TypeScript
 - Zod for validation
 
 ### Infrastructure
+
 - Azure Static Web Apps
 - Azure Function App (Premium)
 - Azure SQL Database
@@ -311,6 +336,7 @@ AssetSim Pro uses **GitHub Copilot Enterprise** with custom instructions to acce
 Custom coding guidance is configured in [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) and automatically applies to all Copilot suggestions in supported IDEs and GitHub.com.
 
 **Key Focus Areas:**
+
 - **Kendo Financial Charts**: Mandatory for all data visualizations and charting
 - **Decimal.js**: Required for all financial calculations to ensure precision
 - **RxJS Throttling**: Enforced for real-time data streams to prevent UI performance issues
@@ -329,6 +355,7 @@ For complete AI-assisted development guidelines, see the [custom instructions fi
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 All contributions must follow:
+
 - Conventional Commits specification
 - Trunk-Based Development workflow
 - Code quality standards (80% test coverage)

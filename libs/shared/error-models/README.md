@@ -306,8 +306,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
 ## Related Documentation
 
-- [PHASE_3_4_EVALUATION.md - Error Models Library](../../PHASE_3_4_EVALUATION.md#L317-L341)
-- [BACKEND_FRONTEND_INTEGRATION.md - Integration Point 2](../../BACKEND_FRONTEND_INTEGRATION.md#L82-L138)
+- [PHASE_3_4_EVALUATION.md - Error Models Library](../../docs/evaluation/PHASE_3_4_EVALUATION.md#L317-L341)
+- [BACKEND_FRONTEND_INTEGRATION.md - Integration Point 2](../../docs/architecture/BACKEND_FRONTEND_INTEGRATION.md#L82-L138)
 - [RFC 7807 Specification](https://tools.ietf.org/html/rfc7807)
 - [ADR-018: Standardized Error Handling](../../docs/adrs/adr-018-standardized-error-handling.md) _(if available)_
 

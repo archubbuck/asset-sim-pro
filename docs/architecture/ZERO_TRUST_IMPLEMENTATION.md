@@ -13,25 +13,31 @@ This document describes the implementation of ADR-002 (Security & Network Isolat
 ### 1. Network Topology (Zero Trust)
 
 #### Virtual Network
+
 - **VNet CIDR**: 10.0.0.0/16
 - **Integration Subnet**: 10.0.1.0/24 (for Function App outbound)
 - **Endpoints Subnet**: 10.0.2.0/24 (for private endpoints inbound)
 
 #### Private Endpoints
+
 All data services are accessible ONLY via private endpoints:
+
 - ✅ Azure SQL Database
 - ✅ Azure Cache for Redis
 - ✅ Azure Event Hubs
 - ✅ Azure Key Vault
 
 #### Public Access Disabled
+
 Public network access is **explicitly disabled** for:
+
 - `azurerm_mssql_server.public_network_access_enabled = false`
 - `azurerm_redis_cache.public_network_access_enabled = false`
 - `azurerm_eventhub_namespace.public_network_access_enabled = false`
 - `azurerm_key_vault.public_network_access_enabled = false`
 
 #### VNet Integration
+
 - Function App (Premium Plan) has **Outbound VNet Integration** enabled
 - `vnet_route_all_enabled = true` routes all outbound traffic through VNet
 - Function App connects to data services via private endpoints only
@@ -39,17 +45,21 @@ Public network access is **explicitly disabled** for:
 ### 2. Identity Management
 
 #### Microsoft Entra ID (Single Tenant)
+
 - **Provider**: Microsoft Entra ID
 - **Tenant Mode**: Single Tenant
 - **Authentication**: Handled by Azure Static Web Apps authentication
 - **Token Flow**: Entra ID → Static Web Apps → Function App
 
 #### User Principal Extraction
+
 ```typescript
 // backend/src/lib/auth.ts
 export function getUserFromRequest(req: HttpRequest): UserPrincipal | null {
   const principalHeader = req.headers.get('x-ms-client-principal');
-  const principal = JSON.parse(Buffer.from(principalHeader, 'base64').toString('utf-8'));
+  const principal = JSON.parse(
+    Buffer.from(principalHeader, 'base64').toString('utf-8'),
+  );
   return {
     userId: principal.userId,
     userDetails: principal.userDetails,
@@ -62,9 +72,11 @@ export function getUserFromRequest(req: HttpRequest): UserPrincipal | null {
 ### 3. Exchange-Scoped RBAC
 
 #### Database Schema
+
 Implements multi-tenant architecture with Exchange-level isolation:
 
 **Key Tables**:
+
 - `Trade.Exchanges`: Simulation venues (tenants)
 - `Trade.ExchangeRoles`: User role assignments per exchange
 - `Trade.ExchangeConfigurations`: Exchange-specific settings
@@ -72,11 +84,13 @@ Implements multi-tenant architecture with Exchange-level isolation:
 - `Trade.Orders`: Order history (RLS enforced)
 
 **Roles**:
+
 - `RiskManager`: Admin role with full exchange access
 - `PortfolioManager`: Portfolio management access
 - `Analyst`: Read-only access
 
 #### Row-Level Security (RLS)
+
 SQL Server Row-Level Security enforces access control:
 
 ```sql
@@ -100,11 +114,13 @@ AS
 ```
 
 **Applied to**:
+
 - `Trade.Portfolios`
 - `Trade.Orders`
 - `Trade.OHLC_1M`
 
 #### Session Context
+
 Backend sets session context for RLS enforcement:
 
 ```typescript
@@ -113,14 +129,13 @@ export async function setSessionContext(
   request: sql.Request,
   userId: string,
   exchangeId: string,
-  isSuperAdmin: boolean = false
+  isSuperAdmin: boolean = false,
 ): Promise<void> {
   // Using parameterized approach to prevent SQL injection
   await request
     .input('userId', sql.UniqueIdentifier, userId)
     .input('exchangeId', sql.UniqueIdentifier, exchangeId)
-    .input('isSuperAdmin', sql.Bit, isSuperAdmin ? 1 : 0)
-    .query(`
+    .input('isSuperAdmin', sql.Bit, isSuperAdmin ? 1 : 0).query(`
       EXEC sp_set_session_context @key = N'UserId', @value = @userId;
       EXEC sp_set_session_context @key = N'ExchangeId', @value = @exchangeId;
       EXEC sp_set_session_context @key = N'IsSuperAdmin', @value = @isSuperAdmin;
@@ -140,30 +155,36 @@ Implements the ADR-002 provisioning workflow:
 
 ```typescript
 // backend/src/functions/createExchange.ts
-export async function createExchange(request: HttpRequest, context: InvocationContext) {
+export async function createExchange(
+  request: HttpRequest,
+  context: InvocationContext,
+) {
   const user = requireAuthentication(request);
   const { name } = validationResult.data;
-  
+
   await transaction.begin();
-  
+
   // Step 1: Create Exchange
-  const exchange = await transaction.request()
+  const exchange = await transaction
+    .request()
     .input('name', name)
     .input('createdBy', user.userId)
     .query(`INSERT INTO [Trade].[Exchanges] ([Name], [CreatedBy]) ...`);
-  
+
   // Step 2: Create default configuration
-  await transaction.request()
+  await transaction
+    .request()
     .input('exchangeId', exchange.ExchangeId)
     .query(`INSERT INTO [Trade].[ExchangeConfigurations] ([ExchangeId]) ...`);
-  
+
   // Step 3: Assign RiskManager role to creator
-  await transaction.request()
+  await transaction
+    .request()
     .input('exchangeId', exchange.ExchangeId)
     .input('userId', user.userId)
     .input('role', 'RiskManager')
     .query(`INSERT INTO [Trade].[ExchangeRoles] ...`);
-  
+
   await transaction.commit();
 }
 ```
@@ -173,6 +194,7 @@ export async function createExchange(request: HttpRequest, context: InvocationCo
 ### Terraform Modules
 
 **Module Structure**:
+
 ```
 terraform/
 ├── main.tf                    # Root configuration
@@ -188,28 +210,33 @@ terraform/
 ### Key Resources
 
 **Network Module** (`modules/network/main.tf`):
+
 - Virtual Network with 2 subnets
 - Private DNS zones for all services
 - VNet links for DNS resolution
 
 **Data Module** (`modules/data/main.tf`):
+
 - SQL Server with `public_network_access_enabled = false`
 - Elastic Pool for multi-tenant databases
 - Private endpoint for SQL Server
 - System-assigned managed identity
 
 **Cache Module** (`modules/cache/main.tf`):
+
 - Redis Cache with `public_network_access_enabled = false`
 - TLS 1.2 minimum
 - Private endpoint for Redis
 
 **Messaging Module** (`modules/messaging/main.tf`):
+
 - Event Hubs with `public_network_access_enabled = false`
 - Key Vault with `public_network_access_enabled = false`
 - Private endpoints for both services
 - Soft delete and purge protection enabled
 
 **Compute Module** (`modules/compute/main.tf`):
+
 - Premium Function App (EP1 SKU) for VNet support
 - VNet integration via Swift connection
 - Storage account for Function App runtime
@@ -219,6 +246,7 @@ terraform/
 ## Security Validation
 
 ### Network Isolation ✅
+
 - [x] SQL Server public access disabled
 - [x] Redis public access disabled
 - [x] Event Hubs public access disabled
@@ -228,12 +256,14 @@ terraform/
 - [x] All outbound traffic routed through VNet
 
 ### Identity & Authentication ✅
+
 - [x] Microsoft Entra ID configured as identity provider
 - [x] Single-tenant authentication enforced
 - [x] User principal extracted from Entra ID tokens
 - [x] Unauthorized requests rejected (401)
 
 ### Authorization & RBAC ✅
+
 - [x] Exchange-scoped roles defined (RiskManager, PortfolioManager, Analyst)
 - [x] Row-Level Security policies applied
 - [x] Session context set for RLS enforcement
@@ -241,6 +271,7 @@ terraform/
 - [x] Users can only access their authorized exchanges
 
 ### Provisioning Workflow ✅
+
 - [x] POST /api/v1/exchanges endpoint implemented
 - [x] Exchange creation in transaction
 - [x] Default configuration created
@@ -260,6 +291,7 @@ terraform/
 ### Deployment Steps
 
 1. **Bootstrap infrastructure** (ADR-012):
+
    ```bash
    # Create Terraform state storage
    az group create --name rg-tfstate --location eastus2
@@ -268,6 +300,7 @@ terraform/
    ```
 
 2. **Deploy infrastructure**:
+
    ```bash
    cd terraform
    terraform init
@@ -276,6 +309,7 @@ terraform/
    ```
 
 3. **Deploy database schema**:
+
    ```bash
    # Connect via private endpoint (from VNet-connected machine)
    sqlcmd -S sql-assetsim-prod.database.windows.net -d sqldb-assetsim -i database/schema.sql
@@ -291,19 +325,19 @@ terraform/
 
 ## Compliance Matrix
 
-| ADR-002 Requirement | Implementation | Status |
-|---------------------|----------------|--------|
-| Public Access DISABLED for SQL | `azurerm_mssql_server.public_network_access_enabled = false` | ✅ |
-| Public Access DISABLED for Key Vault | `azurerm_key_vault.public_network_access_enabled = false` | ✅ |
-| Public Access DISABLED for Event Hubs | `azurerm_eventhub_namespace.public_network_access_enabled = false` | ✅ |
-| Public Access DISABLED for Redis | `azurerm_redis_cache.public_network_access_enabled = false` | ✅ |
-| Private Endpoints for Inbound | All data services have private endpoints | ✅ |
-| VNet Integration for Outbound | `azurerm_app_service_virtual_network_swift_connection` | ✅ |
-| Premium Function App | `azurerm_service_plan.sku_name = "EP1"` | ✅ |
-| Microsoft Entra ID (Single Tenant) | Static Web Apps authentication | ✅ |
-| POST /api/v1/exchanges endpoint | `backend/src/functions/createExchange.ts` | ✅ |
-| Exchange creation workflow | Transaction-based creation | ✅ |
-| ExchangeRoles assignment | RiskManager role assigned to creator | ✅ |
+| ADR-002 Requirement                   | Implementation                                                     | Status |
+| ------------------------------------- | ------------------------------------------------------------------ | ------ |
+| Public Access DISABLED for SQL        | `azurerm_mssql_server.public_network_access_enabled = false`       | ✅     |
+| Public Access DISABLED for Key Vault  | `azurerm_key_vault.public_network_access_enabled = false`          | ✅     |
+| Public Access DISABLED for Event Hubs | `azurerm_eventhub_namespace.public_network_access_enabled = false` | ✅     |
+| Public Access DISABLED for Redis      | `azurerm_redis_cache.public_network_access_enabled = false`        | ✅     |
+| Private Endpoints for Inbound         | All data services have private endpoints                           | ✅     |
+| VNet Integration for Outbound         | `azurerm_app_service_virtual_network_swift_connection`             | ✅     |
+| Premium Function App                  | `azurerm_service_plan.sku_name = "EP1"`                            | ✅     |
+| Microsoft Entra ID (Single Tenant)    | Static Web Apps authentication                                     | ✅     |
+| POST /api/v1/exchanges endpoint       | `backend/src/functions/createExchange.ts`                          | ✅     |
+| Exchange creation workflow            | Transaction-based creation                                         | ✅     |
+| ExchangeRoles assignment              | RiskManager role assigned to creator                               | ✅     |
 
 ## References
 

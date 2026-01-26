@@ -11,15 +11,20 @@ This document validates the implementation of ADR-011, which establishes Terrafo
 ## ADR-011 Requirements
 
 ### 1. Naming Convention
+
 **Specification:** `st-assetsim-prod-useast2` format
+
 - Pattern: `{resourcetype}-assetsim-{environment}-{region}`
 - Example: Storage account "st-assetsim-prod-useast2"
 
 ### 2. Tagging
+
 **Specification:** All resources must be tagged with `Service = "AssetSim"`
 
 ### 3. Module Structure
+
 **Specification:** Five core modules:
+
 - network
 - data
 - cache
@@ -27,6 +32,7 @@ This document validates the implementation of ADR-011, which establishes Terrafo
 - compute
 
 ### 4. Database Requirements
+
 **Specification:** SQL Database **must use Elastic Pool** (mandatory)
 
 ## Implementation Status
@@ -52,6 +58,7 @@ terraform/
 **File:** `terraform/main.tf`
 
 #### Terraform Backend Configuration
+
 ```hcl
 terraform {
   required_providers {
@@ -67,6 +74,7 @@ terraform {
 ```
 
 #### Provider Configuration
+
 ```hcl
 provider "azurerm" {
   features {
@@ -78,6 +86,7 @@ provider "azurerm" {
 ```
 
 #### Naming Convention Implementation
+
 ```hcl
 locals {
   region_suffix = lower(replace(var.location, " ", ""))
@@ -96,6 +105,7 @@ resource "azurerm_resource_group" "rg" {
 **File:** `terraform/modules/network/main.tf`
 
 #### Resources Provisioned
+
 - Virtual Network: `vnet-assetsim-${environment}`
 - Integration Subnet: `snet-integration` (for Function App VNet integration)
 - Endpoints Subnet: `snet-endpoints` (for Private Endpoints)
@@ -107,6 +117,7 @@ resource "azurerm_resource_group" "rg" {
   - `privatelink.blob.core.windows.net` (Blob Storage)
 
 #### Key Features
+
 - ✅ Subnet delegation for `Microsoft.Web/serverFarms`
 - ✅ Private DNS zones linked to VNet
 - ✅ Separate subnets for integration vs. endpoints
@@ -116,6 +127,7 @@ resource "azurerm_resource_group" "rg" {
   - Private DNS zone virtual network links are connector resources and are not separately tagged
 
 #### Outputs
+
 - `subnet_integration_id`
 - `subnet_endpoints_id`
 - `vnet_id`
@@ -130,34 +142,35 @@ resource "azurerm_resource_group" "rg" {
 **File:** `terraform/modules/data/main.tf`
 
 #### Resources Provisioned
+
 - **SQL Server:** `sql-assetsim-${environment}`
   - Version: 12.0
   - Public network access: **DISABLED** ✅
   - System-assigned managed identity enabled
-  
 - **Elastic Pool:** `ep-assetsim-${environment}` ✅ **MANDATORY REQUIREMENT MET**
   - SKU: StandardPool (50 DTU)
   - License: LicenseIncluded
   - Max size: 50 GB
   - Per-database settings: min 0, max 50 DTU
-  
 - **SQL Database:** `sqldb-assetsim`
   - Assigned to Elastic Pool ✅
-  
 - **Private Endpoint:** `pe-sql`
   - Subresource: sqlServer
   - Connected to private DNS zone
 
 #### Tags Applied
+
 ```hcl
 tags = {
   Service     = "AssetSim"
   Environment = var.environment
 }
 ```
+
 ✅ All data resources properly tagged
 
 #### Outputs
+
 - `sql_server_id`
 - `sql_server_name`
 - `sql_database_id`
@@ -168,26 +181,29 @@ tags = {
 **File:** `terraform/modules/cache/main.tf`
 
 #### Resources Provisioned
+
 - **Redis Cache:** `redis-assetsim-${environment}`
   - SKU: Standard C1
   - TLS version: 1.2 minimum
   - SSL-only port enabled
   - Public network access: **DISABLED** ✅
-  
 - **Private Endpoint:** `pe-redis`
   - Subresource: redisCache
   - Connected to private DNS zone
 
 #### Tags Applied
+
 ```hcl
 tags = {
   Service     = "AssetSim"
   Environment = var.environment
 }
 ```
+
 ✅ All cache resources properly tagged
 
 #### Outputs
+
 - `redis_id`
 - `redis_name`
 - `redis_hostname`
@@ -197,16 +213,15 @@ tags = {
 **File:** `terraform/modules/messaging/main.tf`
 
 #### Resources Provisioned
+
 - **Event Hub Namespace:** `ehns-assetsim-${environment}`
   - SKU: Standard
   - Capacity: 1
   - Public network access: **DISABLED** ✅
-  
 - **Event Hub:** `market-ticks`
   - Partition count: 2
   - Message retention: 1 day
   - **Event Hubs Capture enabled** (ADR-010)
-  
 - **Storage Account (Cold Path):** `stassetsim${environment}`
   - Account tier: Standard
   - Replication: LRS
@@ -214,34 +229,33 @@ tags = {
   - TLS version: 1.2 minimum
   - Blob versioning enabled
   - 90-day delete retention policy
-  
 - **Storage Container:** `market-data-archive`
-  
 - **Storage Management Policy:** Lifecycle tiering
   - Cool tier: after 30 days
   - Archive tier: after 90 days
-  
 - **Key Vault:** `kv-assetsim-${environment}`
   - SKU: Standard
   - Public network access: **DISABLED** ✅
   - Purge protection: enabled
   - Soft delete: 90 days
-  
 - **Private Endpoints:**
   - `pe-storage-blob` (Blob Storage)
   - `pe-eventhub` (Event Hub Namespace)
   - `pe-keyvault` (Key Vault)
 
 #### Tags Applied
+
 ```hcl
 tags = {
   Service     = "AssetSim"
   Environment = var.environment
 }
 ```
+
 ✅ All messaging resources properly tagged
 
 #### Outputs
+
 - `eventhub_namespace_id`
 - `eventhub_namespace_name`
 - `eventhub_id`
@@ -258,44 +272,42 @@ tags = {
 **File:** `terraform/modules/compute/main.tf`
 
 #### Resources Provisioned
+
 - **App Service Plan:** `asp-assetsim-${environment}`
   - OS: Linux
   - SKU: EP1 (Elastic Premium)
-  
 - **Storage Account (Function):** `stfuncassetsim${environment}`
   - Account tier: Standard
   - Replication: LRS
   - TLS version: 1.2 minimum
   - Public network access: **DISABLED** ✅
-  
 - **Linux Function App:** `func-assetsim-backend-${environment}`
   - Node.js version: 20
   - VNet route all: enabled
   - System-assigned managed identity
   - Connected to App Service Plan
-  
 - **VNet Integration:** Swift connection to integration subnet
-  
 - **Static Web App:** `stapp-assetsim-${environment}`
   - SKU: Standard
   - Location: Central US (SWA-supported region)
-  
 - **SWA-Function App Registration:** BYOB (Bring Your Own Backend) linking
-  
 - **Private Endpoint:** `pe-func-storage`
   - Subresource: blob
   - Connected to private DNS zone
 
 #### Tags Applied
+
 ```hcl
 tags = {
   Service     = "AssetSim"
   Environment = var.environment
 }
 ```
+
 ✅ All compute resources properly tagged
 
 #### Outputs
+
 - `function_app_id`
 - `function_app_name`
 - `function_app_principal_id`
@@ -314,6 +326,7 @@ The Terraform configuration uses a **dynamic naming strategy** with the followin
 ```
 
 **Examples:**
+
 - SQL Server: `sql-assetsim-prod`
 - Redis Cache: `redis-assetsim-prod`
 - Event Hub Namespace: `ehns-assetsim-prod`
@@ -333,6 +346,7 @@ locals {
 This converts locations like `"East US 2"` → `"eastus2"`.
 
 **Current Usage:**
+
 - ✅ Resource Group: `rg-assetsim-${var.environment}-${local.region_suffix}`
 - ❌ Module resources: Do **not** include region suffix
 
@@ -357,6 +371,7 @@ The modules **intentionally omit the region suffix** for the following reasons:
 ### Alignment with ADR-011
 
 The **spirit of ADR-011** is met:
+
 - ✅ Consistent naming pattern across all resources
 - ✅ Includes application name (`assetsim`)
 - ✅ Includes environment (`prod`, `staging`, `dev`)
@@ -370,6 +385,7 @@ The example `st-assetsim-prod-useast2` serves as an **illustration** of the nami
 ### Current Status
 
 **Modules with Complete Tagging:** ✅
+
 - network (Virtual Network, Private DNS Zones)
 - data (SQL Server, Elastic Pool, Database, Private Endpoint)
 - cache (Redis, Private Endpoint)
@@ -379,6 +395,7 @@ The example `st-assetsim-prod-useast2` serves as an **illustration** of the nami
 ### Tag Structure
 
 All tagged resources use:
+
 ```hcl
 tags = {
   Service     = "AssetSim"
@@ -387,6 +404,7 @@ tags = {
 ```
 
 **Benefits:**
+
 - ✅ Cost allocation by service
 - ✅ Environment segregation
 - ✅ Resource filtering in Azure Portal
@@ -445,6 +463,7 @@ resource "azurerm_mssql_database" "db" {
 ```
 
 **Verification:**
+
 - ✅ Elastic Pool resource exists
 - ✅ Database explicitly references `elastic_pool_id`
 - ✅ No standalone database SKU configuration
@@ -462,6 +481,7 @@ resource "azurerm_mssql_database" "db" {
 All modules implement **ADR-002 Zero Trust** requirements:
 
 ### Public Network Access ✅
+
 - ✅ SQL Server: `public_network_access_enabled = false`
 - ✅ Redis Cache: `public_network_access_enabled = false`
 - ✅ Event Hub Namespace: `public_network_access_enabled = false`
@@ -470,7 +490,9 @@ All modules implement **ADR-002 Zero Trust** requirements:
 - ✅ Key Vault: `public_network_access_enabled = false`
 
 ### Private Endpoints ✅
+
 Every data service has a private endpoint:
+
 - ✅ SQL Server → `pe-sql`
 - ✅ Redis Cache → `pe-redis`
 - ✅ Event Hub Namespace → `pe-eventhub`
@@ -479,11 +501,13 @@ Every data service has a private endpoint:
 - ✅ Key Vault → `pe-keyvault`
 
 ### VNet Integration ✅
+
 - ✅ Function App has VNet integration via `subnet_integration_id`
 - ✅ VNet route all enabled: `vnet_route_all_enabled = true`
 - ✅ All outbound traffic routed through VNet
 
 ### TLS Requirements ✅
+
 - ✅ Redis: `minimum_tls_version = "1.2"`
 - ✅ Storage Accounts: `min_tls_version = "TLS1_2"`
 - ✅ Key Vault: TLS 1.2 enforced by default
@@ -529,6 +553,7 @@ variable "static_web_app_location" {
 ### Module Variables
 
 Each module accepts:
+
 - `resource_group_name` (from root resource group)
 - `location` (from root variable)
 - `environment` (from root variable, default: "prod")
@@ -550,6 +575,7 @@ terraform apply -var="environment=dev"
 ```
 
 This generates environment-specific resource names:
+
 - Production: `sql-assetsim-prod`
 - Staging: `sql-assetsim-staging`
 - Development: `sql-assetsim-dev`
@@ -571,6 +597,7 @@ network module
 ```
 
 **Dependency Graph:**
+
 1. Network module provisions networking infrastructure first
 2. Data, cache, messaging modules deploy in parallel (no interdependencies)
 3. Compute module can deploy in parallel with data/cache/messaging
@@ -621,6 +648,7 @@ terraform apply tfplan
 ### Deployment Time
 
 Approximate deployment times:
+
 - Network module: 2-3 minutes
 - Data module: 5-7 minutes (SQL Server + Elastic Pool)
 - Cache module: 10-15 minutes (Redis provisioning)
@@ -657,6 +685,7 @@ Approximate deployment times:
 ### Current SKU Configuration
 
 **Production SKUs:**
+
 - SQL Elastic Pool: Standard 50 DTU (~$75/month)
 - Redis Cache: Standard C1 (~$100/month)
 - Event Hub Namespace: Standard (~$100/month)
@@ -669,6 +698,7 @@ Approximate deployment times:
 ### Cost Reduction Strategies
 
 **Development/Staging Environments:**
+
 - SQL: Basic tier (5 DTU) - ~$5/month
 - Redis: Basic C0 - ~$17/month
 - Event Hub: Basic tier - ~$11/month
@@ -676,6 +706,7 @@ Approximate deployment times:
 - Static Web App: Free tier (if <100 GB bandwidth)
 
 **Storage Optimization:**
+
 - Lifecycle management automatically tiers blob storage:
   - Hot → Cool (30 days): 50% savings
   - Cool → Archive (90 days): 80% savings

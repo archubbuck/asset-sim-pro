@@ -25,6 +25,7 @@ Per ADR-012, the following steps must be completed manually:
 ## Document Purpose
 
 This document serves as:
+
 - **Reference**: Detailed manual procedures for each bootstrap step
 - **Fallback**: When automation scripts fail or are not suitable
 - **Understanding**: Explanation of what the scripts do under the hood
@@ -55,6 +56,7 @@ This document serves as:
 - Therefore, the initial state storage must be created manually
 
 Similarly:
+
 - Deployment agents need VNet access to deploy to private resources
 - The VNet doesn't exist until Terraform runs
 - Therefore, self-hosted agents must be provisioned after VNet creation but configured before deployment
@@ -67,6 +69,7 @@ Similarly:
 ### Overview
 
 Terraform requires a remote backend to store state files. This ensures:
+
 - State persistence across team members and CI/CD pipelines
 - State locking to prevent concurrent modifications
 - State versioning and backup
@@ -86,6 +89,7 @@ az account show --output table
 ```
 
 **Verification:**
+
 - Ensure you're logged in with an account that has **Owner** or **Contributor** role on the subscription
 - Note the subscription ID for later use
 
@@ -107,6 +111,7 @@ az group show --name $RG_NAME --output table
 ```
 
 **Expected Output:**
+
 ```
 Name         Location    Status
 -----------  ----------  ---------
@@ -144,6 +149,7 @@ az storage account show \
 ```
 
 **Expected Output:**
+
 ```
 Name                Location    Sku            PublicAccess
 ------------------  ----------  -------------  --------------
@@ -171,6 +177,7 @@ az storage container show \
 ```
 
 **Expected Output:**
+
 ```
 Name     PublicAccess
 -------  --------------
@@ -208,6 +215,7 @@ cat terraform-backend-config.txt
 ```
 
 **Action Required:**
+
 - Save the storage account name for Terraform initialization
 - Store this information securely (e.g., in Azure Key Vault or your password manager)
 - Do NOT commit this file to source control
@@ -292,6 +300,7 @@ echo "APP_ID=$APP_ID" > entra-app-config.txt
 ### Step 2.2: Grant Admin Consent for API Permissions
 
 **Understanding `GroupMember.Read.All`:**
+
 - **Type:** Application permission (not delegated)
 - **Permission ID:** `98830695-27a2-44f7-8c18-0c3ebc9698f6`
 - **Purpose:** Allows the app to read group memberships without a signed-in user
@@ -309,6 +318,7 @@ echo "APP_ID=$APP_ID" > entra-app-config.txt
 8. Confirm consent in the dialog
 
 **Verification:**
+
 - The permission should show **Status: Granted for [Your Organization]** with a green checkmark
 
 **Option B: Using Azure CLI and Graph API**
@@ -350,6 +360,7 @@ az ad app permission list \
 ```
 
 **Expected Output:**
+
 ```
 ResourceAppId                         ResourceAccess
 ------------------------------------  ----------------
@@ -381,6 +392,7 @@ echo "====================================="
 ```
 
 **Security Warning:**
+
 - **SAVE THE SECRET IMMEDIATELY** - Azure will never show it again
 - Store in Azure Key Vault or secure password manager
 - Never commit secrets to source control
@@ -410,6 +422,7 @@ az ad app update \
 Due to the Zero Trust architecture with private endpoints, deployment operations (Terraform apply, Function App deployment, database schema updates) require network access to resources within the VNet. Azure DevOps self-hosted agents provide this capability.
 
 **Timing:**
+
 1. **Before VNet exists**: Configure the agent pool in Azure DevOps (this section)
 2. **After VNet deployment**: Provision a VM inside the VNet and register it with the pool (see post-deployment steps)
 
@@ -457,6 +470,7 @@ az pipelines pool list --output table
 ```
 
 **Expected Output:**
+
 ```
 ID    Name                      IsHosted    PoolType
 ----  ------------------------  ----------  ----------
@@ -493,10 +507,11 @@ chmod 600 ado-agent-config.txt
 The actual agent VM provisioning happens **after** Terraform deploys the VNet. Document the following for later:
 
 **Agent VM Requirements:**
+
 - **OS:** Ubuntu 22.04 LTS or Windows Server 2022
 - **VM Size:** Standard_B2s (2 vCPU, 4 GB RAM) minimum
 - **Network:** Must be in the VNet `snet-agents` subnet (create during Terraform deployment)
-- **Outbound Access:** 
+- **Outbound Access:**
   - Azure DevOps: `*.dev.azure.com`, `*.visualstudio.com`
   - Package managers: `packages.microsoft.com`, `archive.ubuntu.com`
 - **Installed Software:**
@@ -540,6 +555,7 @@ sudo ./svc.sh start
 ```
 
 **Security Recommendations:**
+
 - Use **Azure Managed Identity** for agent authentication to Azure (no service principal credentials needed)
 - Implement **Azure Bastion** for secure remote access to agent VM
 - Configure **NSG rules** to restrict agent VM outbound access to only required services
@@ -555,33 +571,33 @@ After agent setup, update your Azure Pipelines YAML to use the pool:
 trigger:
   branches:
     include:
-    - main
+      - main
 
 pool:
-  name: 'Self-Hosted-VNet-Pool'  # Use VNet-connected agent
+  name: 'Self-Hosted-VNet-Pool' # Use VNet-connected agent
 
 stages:
-- stage: TerraformDeploy
-  jobs:
-  - job: DeployInfrastructure
-    steps:
-    - task: TerraformInstaller@0
-      inputs:
-        terraformVersion: '1.5.0'
-    
-    - task: TerraformTaskV4@4
-      inputs:
-        command: 'init'
-        backendServiceArm: 'Azure-Connection'
-        backendAzureRmResourceGroupName: 'rg-tfstate'
-        backendAzureRmStorageAccountName: 'sttfstate<uniqueid>'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'prod.terraform.tfstate'
-    
-    - task: TerraformTaskV4@4
-      inputs:
-        command: 'apply'
-        environmentServiceNameAzureRM: 'Azure-Connection'
+  - stage: TerraformDeploy
+    jobs:
+      - job: DeployInfrastructure
+        steps:
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: '1.5.0'
+
+          - task: TerraformTaskV4@4
+            inputs:
+              command: 'init'
+              backendServiceArm: 'Azure-Connection'
+              backendAzureRmResourceGroupName: 'rg-tfstate'
+              backendAzureRmStorageAccountName: 'sttfstate<uniqueid>'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'prod.terraform.tfstate'
+
+          - task: TerraformTaskV4@4
+            inputs:
+              command: 'apply'
+              environmentServiceNameAzureRM: 'Azure-Connection'
 ```
 
 ## Phase 4: Verification Checklist
@@ -598,6 +614,7 @@ Before proceeding to Terraform deployment (see DEPLOYMENT_GUIDE.md), verify all 
 - [ ] Optional: Delete lock applied to prevent accidental deletion
 
 **Verification Command:**
+
 ```bash
 az storage account show \
   --name $STORAGE_NAME \
@@ -617,6 +634,7 @@ az storage account show \
 - [ ] Secret stored in Azure Key Vault or password manager
 
 **Verification Command:**
+
 ```bash
 az ad app permission list --id $APP_ID --output table
 ```
@@ -633,6 +651,7 @@ az ad app permission list --id $APP_ID --output table
 - [ ] Pipeline YAML updated to use the pool
 
 **Verification:**
+
 - Navigate to Azure DevOps → Organization settings → Agent pools
 - Verify `Self-Hosted-VNet-Pool` exists and is listed as self-hosted
 - Note: Agents will show as "Offline" until VNet deployment and agent provisioning
@@ -657,11 +676,13 @@ After completing all bootstrap steps:
 ## Related Documentation
 
 ### Primary Documents
+
 - **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Quick setup guide (recommended starting point)
 - **[scripts/README.md](../../scripts/README.md)**: Automation scripts for Phases 1-2
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Infrastructure deployment with Terraform
 
 ### Reference Documents
+
 - **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: ADR-012 specification (lines 249-259), ADR-013 automation (lines 261-299)
 - **[IMPLEMENTATION_ADR_012.md](../implementation/IMPLEMENTATION_ADR_012.md)**: Detailed ADR-012 implementation documentation
 - **[IMPLEMENTATION_ADR_013.md](../implementation/IMPLEMENTATION_ADR_013.md)**: Automation script implementation details
@@ -674,6 +695,7 @@ After completing all bootstrap steps:
 **Error:** `The storage account named 'sttfstate123' is already taken.`
 
 **Solution:** Storage account names must be globally unique. Use a different suffix:
+
 ```bash
 STORAGE_NAME="sttfstateassetsim$(date +%s)"
 ```
@@ -682,7 +704,8 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 
 **Error:** `Insufficient privileges to complete the operation.`
 
-**Solution:** 
+**Solution:**
+
 - Admin consent requires **Global Administrator** role
 - Alternative: Request consent from your organization's Global Admin
 - Provide them with the Application ID and permission name (`GroupMember.Read.All`)
@@ -692,6 +715,7 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 **Error:** `You do not have permissions to manage this agent pool.`
 
 **Solution:**
+
 - Requires **Project Collection Administrator** or **Organization Administrator** role in Azure DevOps
 - Request permission from your Azure DevOps organization admin
 - Alternative: Have admin create the pool and grant you access
@@ -701,6 +725,7 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 **Error:** `Error: Failed to get existing workspaces: storage: service returned error: StatusCode=403`
 
 **Solution:**
+
 - Verify Azure CLI is authenticated: `az account show`
 - Grant your user account **Storage Blob Data Contributor** role on the storage account:
   ```bash
@@ -771,6 +796,7 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 **Maintained By:** AssetSim Pro DevOps Team
 
 **Related Documents:**
+
 - [GETTING_STARTED.md](../../GETTING_STARTED.md) - Quick setup guide
 - [scripts/README.md](../../scripts/README.md) - Automation scripts
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Next steps after bootstrap

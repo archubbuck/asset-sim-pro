@@ -56,17 +56,20 @@ asset-sim-pro/
 ## 🎯 ADR-004 Implementation
 
 ### ✅ Nx Workspace
+
 - Monorepo structure with apps and libs
 - Cacheable builds and tasks
 - Dependency graph management
 
 ### ✅ Angular Configuration
+
 - **Version**: Angular 21.1.0
 - **Change Detection**: Zoneless (`provideZonelessChangeDetection()`)
 - **Reactivity**: Signals-first approach
 - **Standalone Components**: All components are standalone
 
 ### ✅ Kendo UI for Angular
+
 - **Theme**: Institutional Slate (custom dark theme)
 - **Components Available**:
   - Buttons, Charts, Grid, Inputs
@@ -75,6 +78,7 @@ asset-sim-pro/
   - And more...
 
 ### ✅ Build System
+
 - **Bundler**: esbuild (fast, modern)
 - **Test Runner**: Vitest (shared libs), Jest (Angular libs)
 - **Linter**: ESLint
@@ -134,16 +138,19 @@ nx lint trading
 ## 📦 Key Dependencies
 
 ### Angular & Nx
+
 - `@angular/core`: 21.1.0 (with Signals support)
 - `nx`: 22.3.3
 - `@nx/angular`: 22.3.3
 
 ### Kendo UI for Angular
+
 - `@progress/kendo-angular-*`: 22.0.1
 - `@progress/kendo-theme-default`: 12.3.0
 - `@progress/kendo-svg-icons`: 4.6.2
 
 ### Backend (Azure Functions)
+
 - `@azure/functions`: 4.0.0
 - `mssql`: 10.0.0
 - `zod`: 3.22.0
@@ -189,13 +196,13 @@ import { Component, signal, computed } from '@angular/core';
 export class App {
   // Signal-based state
   protected clickCount = signal(0);
-  
+
   // Computed signal
   protected doubleCount = computed(() => this.clickCount() * 2);
-  
+
   // Update signal
   onIncrement(): void {
-    this.clickCount.update(count => count + 1);
+    this.clickCount.update((count) => count + 1);
   }
 }
 ```

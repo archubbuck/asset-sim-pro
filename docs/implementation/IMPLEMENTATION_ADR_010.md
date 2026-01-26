@@ -11,6 +11,7 @@ This implementation establishes a hot/cold data path for market data retention a
 ## Architecture
 
 ### Hot Path (SQL Database)
+
 - **Purpose:** Real-time aggregated data for recent trading activity
 - **Storage:** Azure SQL Database `OHLC_1M` table
 - **Data:** 1-minute OHLC (Open-High-Low-Close) candles
@@ -18,6 +19,7 @@ This implementation establishes a hot/cold data path for market data retention a
 - **Use Case:** Real-time charting, recent trade analysis, portfolio performance
 
 ### Cold Path (Blob Storage)
+
 - **Purpose:** Long-term archival of raw market data
 - **Storage:** Azure Blob Storage via Event Hubs Capture
 - **Data Format:** AVRO (configured in Event Hubs Capture)
@@ -44,6 +46,7 @@ CREATE TABLE [Trade].[MarketData] (
 ```
 
 **Purpose:**
+
 - Source table for aggregation into OHLC candles
 - Receives raw tick data from market engine
 - Automatically archived to blob storage via Event Hubs Capture
@@ -51,6 +54,7 @@ CREATE TABLE [Trade].[MarketData] (
 ### 2. OHLC_1M Table (Aggregated Candles)
 
 Already existed in schema, updated documentation to reflect ADR-010 purpose:
+
 - Hot path storage with 7-day retention
 - Aggregated 1-minute candles for performance
 - Used by frontend charting components
@@ -58,11 +62,13 @@ Already existed in schema, updated documentation to reflect ADR-010 purpose:
 ### 3. Stored Procedures
 
 #### sp_AggregateOHLC_1M
+
 ```sql
 CREATE PROCEDURE [Trade].[sp_AggregateOHLC_1M]
 ```
 
 **Function:**
+
 - Aggregates raw tick data into 1-minute OHLC candles
 - Processes only new data since last aggregation
 - Uses windowing functions for efficient first/last tick selection
@@ -70,11 +76,13 @@ CREATE PROCEDURE [Trade].[sp_AggregateOHLC_1M]
 **Execution:** Timer trigger every minute (ohlcAggregation function)
 
 #### sp_CleanupHotPath
+
 ```sql
 CREATE PROCEDURE [Trade].[sp_CleanupHotPath]
 ```
 
 **Function:**
+
 - Deletes OHLC_1M records older than 7 days
 - Enforces hot path retention policy
 
@@ -89,11 +97,13 @@ CREATE PROCEDURE [Trade].[sp_CleanupHotPath]
 **Schedule:** `0 * * * * *` (Every minute at :00 seconds)
 
 **Operation:**
+
 1. Calls `sp_AggregateOHLC_1M` stored procedure
 2. Aggregates raw ticks into 1-minute candles
 3. Logs aggregation count for monitoring
 
 **Error Handling:**
+
 - Logs errors but doesn't block market engine
 - Throws error for alerting/monitoring
 
@@ -104,11 +114,13 @@ CREATE PROCEDURE [Trade].[sp_CleanupHotPath]
 **Schedule:** `0 0 2 * * *` (Daily at 2:00 AM UTC)
 
 **Operation:**
+
 1. Calls `sp_CleanupHotPath` stored procedure
 2. Deletes OHLC data older than 7 days
 3. Logs deletion count for audit trail
 
 **Benefits:**
+
 - Runs during low-traffic period
 - Prevents hot path table growth
 - Maintains query performance
@@ -129,6 +141,7 @@ resource "azurerm_storage_account" "cold_storage" {
 ```
 
 **Features:**
+
 - Blob versioning enabled
 - 90-day delete retention policy
 - Private endpoint connection
@@ -144,7 +157,7 @@ capture_description {
   encoding            = "Avro"
   interval_in_seconds = 300    # 5 minutes
   size_limit_in_bytes = 314572800  # 300 MB
-  
+
   destination {
     archive_name_format = "{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}"
     blob_container_name = "market-data-archive"
@@ -153,6 +166,7 @@ capture_description {
 ```
 
 **Configuration Details:**
+
 - **Format:** AVRO (standard for Event Hubs Capture)
 - **Capture Interval:** 5 minutes or 300 MB (whichever comes first)
 - **Path Structure:** Hierarchical by time for efficient querying
@@ -177,6 +191,7 @@ resource "azurerm_storage_management_policy" "cold_path_lifecycle" {
 ```
 
 **Tiering Strategy:**
+
 - **Hot (0-30 days):** Frequent access, fast retrieval
 - **Cool (30-90 days):** Infrequent access, lower cost
 - **Archive (90+ days):** Rare access, lowest cost
@@ -195,11 +210,13 @@ resource "azurerm_storage_management_policy" "cold_path_lifecycle" {
 ### Read Path
 
 **Recent Data (Last 7 Days):**
+
 - Query `OHLC_1M` table directly
 - Fast response from SQL database
 - Used by frontend charts and real-time analytics
 
 **Historical Data (> 7 Days):**
+
 - Query archived AVRO files in Blob Storage
 - Use Azure Data Lake analytics or Databricks
 - Used for backtesting, compliance, long-term analysis
@@ -209,10 +226,12 @@ resource "azurerm_storage_management_policy" "cold_path_lifecycle" {
 ### Unit Tests
 
 **Files:**
+
 - `apps/backend/src/functions/ohlcAggregation.spec.ts`
 - `apps/backend/src/functions/hotPathCleanup.spec.ts`
 
 **Coverage:**
+
 - ✅ Successful aggregation/cleanup
 - ✅ No data to process
 - ✅ Database errors
@@ -220,6 +239,7 @@ resource "azurerm_storage_management_policy" "cold_path_lifecycle" {
 - ✅ 100% code coverage for new functions
 
 **Test Results:**
+
 ```
 ✓ backend src/functions/hotPathCleanup.spec.ts (4 tests)
 ✓ backend src/functions/ohlcAggregation.spec.ts (4 tests)
@@ -233,7 +253,7 @@ Both tables enforce exchange-scoped access:
 
 ```sql
 CREATE SECURITY POLICY [Security].[MarketDataPolicy]
-    ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId]) 
+    ADD FILTER PREDICATE [Security].[fn_securitypredicate]([ExchangeId])
     ON [Trade].[MarketData]
 ```
 
@@ -242,6 +262,7 @@ CREATE SECURITY POLICY [Security].[MarketDataPolicy]
 ### Private Endpoints
 
 All services use private endpoints:
+
 - ✅ Azure SQL Database
 - ✅ Event Hubs
 - ✅ Blob Storage
@@ -259,17 +280,20 @@ All services use private endpoints:
 ### Key Metrics
 
 **Aggregation Function:**
+
 - Execution frequency: Every minute
 - Success rate: Monitor for failures
 - Rows aggregated per execution
 - Execution duration
 
 **Cleanup Function:**
+
 - Execution frequency: Daily at 2 AM UTC
 - Rows deleted per execution
 - Hot path table size trend
 
 **Storage:**
+
 - Blob storage growth rate
 - Capture lag (Event Hubs → Blob)
 - Lifecycle policy transitions
@@ -284,11 +308,13 @@ All services use private endpoints:
 ## Cost Optimization
 
 ### Hot Path (SQL)
+
 - **Current:** Elastic Pool with 7-day retention
 - **Savings:** ~85% reduction vs. storing all raw ticks
 - **Query Performance:** Aggregated data is faster to query
 
 ### Cold Path (Blob Storage)
+
 - **Lifecycle Tiering:** Automatic cost reduction over time
   - Hot: First 30 days
   - Cool: 30-90 days (~50% savings)
@@ -296,6 +322,7 @@ All services use private endpoints:
 - **AVRO Format:** Compact binary format reduces storage size
 
 ### Event Hubs
+
 - **Capture Enabled:** No additional data egress charges
 - **Retention:** 1 day (minimal as Capture handles archival)
 
@@ -312,12 +339,14 @@ All services use private endpoints:
 ### Alternative Formats (ADR-010 mentions both)
 
 The specification mentions AVRO/Parquet. Current implementation uses AVRO because:
+
 - ✅ Native support in Event Hubs Capture
 - ✅ Schema evolution support
 - ✅ Compact binary format
 - ❌ Parquet would require additional processing step
 
 To add Parquet support, consider:
+
 - Azure Data Factory pipeline: AVRO → Parquet conversion
 - Apache Spark job for batch conversion
 - Azure Synapse Analytics for direct Parquet writing

@@ -31,7 +31,8 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 
 ### 2. Redis Caching Infrastructure
 
-**Files**: 
+**Files**:
+
 - `apps/backend/src/lib/cache.ts` (267 lines)
 - `apps/backend/src/lib/cache.spec.ts` (293 lines, 15 tests)
 
@@ -65,11 +66,13 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 **File**: `apps/backend/src/functions/createExchange.ts`
 
 **Changes**:
+
 - Imports `cacheExchangeConfig` from cache module
 - After successful transaction commit, caches default exchange configuration
 - Uses graceful error handling (logs warning but doesn't fail request)
 
 **Cache Data**:
+
 ```typescript
 {
   volatilityIndex: 1.0,
@@ -86,11 +89,13 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 **File**: `apps/backend/src/functions/marketEngineTick.ts`
 
 **Changes**:
+
 - Imports `cacheQuote` from cache module
 - After generating and validating price updates, caches quote data
 - Uses graceful error handling (logs warning but doesn't fail tick)
 
 **Cache Data**:
+
 ```typescript
 {
   price: number,
@@ -107,6 +112,7 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 **Coverage**: 79.62% lines, 87.5% branches, 70% functions
 
 **Test Scenarios**:
+
 - Redis client initialization and connection reuse (3 tests)
 - Quote caching with correct key patterns and TTLs (2 tests)
 - Quote retrieval and null handling (3 tests)
@@ -122,10 +128,12 @@ CREATE TABLE [Trade].[ExchangeFeatureFlags] (
 ### 5. Configuration
 
 **Files Updated**:
+
 - `.env.local.example` (already had Redis config)
 - `apps/backend/local.settings.json.example` (already had Redis config)
 
 **Required Environment Variable**:
+
 ```
 REDIS_CONNECTION_STRING=localhost:6379
 ```
@@ -153,6 +161,7 @@ REDIS_CONNECTION_STRING=localhost:6379
 ## Testing Results
 
 ### Unit Tests
+
 ```
 ✓  backend  src/lib/cache.spec.ts (15 tests) 16ms
 ✓  backend  src/lib/auth.spec.ts (6 tests) 9ms
@@ -165,7 +174,7 @@ Tests  27 passed (27)
 ### Integration Considerations
 
 1. **Graceful Degradation**: Cache failures don't break core functionality
-2. **TTL Strategy**: 
+2. **TTL Strategy**:
    - Quotes: 60s (ephemeral market data)
    - Config: 300s (infrequently changing)
 3. **Memory Management**: SCAN-based bulk deletion to avoid blocking
@@ -207,6 +216,7 @@ Tests  27 passed (27)
 ## Dependencies
 
 ### NPM Packages Added
+
 ```json
 {
   "ioredis": "^5.9.2"
@@ -214,6 +224,7 @@ Tests  27 passed (27)
 ```
 
 ### Infrastructure (Already Provisioned)
+
 - Azure Cache for Redis (Standard tier, C1)
 - Private Endpoint for Redis
 - DNS Private Zone for privatelink.redis.cache.windows.net

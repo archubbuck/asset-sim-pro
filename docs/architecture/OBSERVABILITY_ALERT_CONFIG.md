@@ -9,6 +9,7 @@ This document provides the configuration guide for setting up Application Insigh
 The ticker generator and SignalR broadcast system emits the following custom metrics to Application Insights:
 
 ### 1. UpdatesBroadcasted (Primary Heartbeat Metric)
+
 - **Description**: Total number of price updates successfully broadcast via SignalR
 - **Type**: Counter (increments by 1 for each broadcast)
 - **Properties**:
@@ -18,6 +19,7 @@ The ticker generator and SignalR broadcast system emits the following custom met
 - **Alert Threshold**: < 100 updates in 5 minutes triggers Sev1 alert
 
 ### 2. BroadcastFailures
+
 - **Description**: Number of failed broadcast attempts
 - **Type**: Counter (increments by 1 for each failure)
 - **Properties**:
@@ -27,6 +29,7 @@ The ticker generator and SignalR broadcast system emits the following custom met
 - **Purpose**: Detect and diagnose broadcasting issues
 
 ### 3. DeadbandFiltered
+
 - **Description**: Number of price updates filtered out by the deadband threshold (<$0.01 price change)
 - **Type**: Counter (increments by 1 for each filtered update)
 - **Properties**:
@@ -35,6 +38,7 @@ The ticker generator and SignalR broadcast system emits the following custom met
 - **Purpose**: Insights into optimization effectiveness and market activity levels
 
 ### 4. BroadcastLatency
+
 - **Description**: Time taken to broadcast a price update (in milliseconds)
 - **Type**: Gauge (duration value)
 - **Properties**:
@@ -184,7 +188,7 @@ resource "azurerm_monitor_metric_alert" "ticker_heartbeat_failure" {
 ```kusto
 customMetrics
 | where name in ("UpdatesBroadcasted", "BroadcastFailures", "DeadbandFiltered")
-| summarize 
+| summarize
     TotalBroadcasts = sumif(value, name == "UpdatesBroadcasted"),
     TotalFailures = sumif(value, name == "BroadcastFailures"),
     TotalFiltered = sumif(value, name == "DeadbandFiltered")
@@ -199,7 +203,7 @@ customMetrics
 ```kusto
 customMetrics
 | where name == "BroadcastLatency"
-| summarize 
+| summarize
     P50 = percentile(value, 50),
     P90 = percentile(value, 90),
     P99 = percentile(value, 99),
@@ -223,7 +227,7 @@ customMetrics
 ```kusto
 customMetrics
 | where name == "UpdatesBroadcasted"
-| extend 
+| extend
     symbol = tostring(customDimensions.symbol),
     exchangeId = tostring(customDimensions.exchangeId)
 | summarize BroadcastCount = sum(value) by symbol, exchangeId
@@ -274,6 +278,7 @@ Navigate to Azure Portal → Application Insights → Alerts → Alert history t
    - Check that the connection string is valid
 
 2. **Check Function App is running**:
+
    ```bash
    az functionapp show \
      --name "$FUNCTION_APP_NAME" \
@@ -289,6 +294,7 @@ Navigate to Azure Portal → Application Insights → Alerts → Alert history t
 ### Alert Not Triggering
 
 1. **Verify alert rule is enabled**:
+
    ```bash
    az monitor metrics alert show \
      --name "AssetSim-Ticker-Heartbeat-Failure" \
@@ -321,11 +327,13 @@ Navigate to Azure Portal → Application Insights → Alerts → Alert history t
 ### Threshold Tuning
 
 The alert threshold of 100 updates per 5 minutes is based on:
+
 - Ticker runs every 1 second (60 ticks per minute, 300 ticks per 5 minutes)
 - Multiple symbols per exchange
 - Deadband filtering reducing actual broadcasts by ~50%
 
 Adjust the threshold based on:
+
 - Number of active exchanges
 - Number of symbols per exchange
 - Observed deadband filtering rate

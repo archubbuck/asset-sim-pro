@@ -19,13 +19,16 @@ This guide provides the essential steps to get AssetSim Pro running locally or d
 Before starting, ensure you have:
 
 ### For Local Development
+
 - **Node.js 20.x** or higher
 - **Docker & Docker Compose** (for local services)
 - **Git**
 - **npm** package manager
 
 ### For Azure Deployment
+
 All of the above, plus:
+
 - **Azure Subscription** with Contributor or Owner role
 - **Azure CLI 2.50.0+** installed and configured
 - **Microsoft Entra ID Global Administrator** role (for API consent only)
@@ -141,6 +144,7 @@ export APP_ID="your-application-client-id"
 #### Option B: Manual Bootstrap
 
 Follow the comprehensive manual steps in [BOOTSTRAP_GUIDE.md](./docs/deployment/BOOTSTRAP_GUIDE.md), which covers:
+
 - Phase 1: Terraform State Storage
 - Phase 2: Entra ID API Consent
 - Phase 3: Azure DevOps Self-Hosted Agent Pool
@@ -219,17 +223,20 @@ curl https://<your-static-web-app>.azurestaticapps.net
 ## Next Steps
 
 ### After Local Setup
+
 - **Explore the codebase:** [NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)
 - **Understand architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md)
 - **Review testing strategy:** [TESTING.md](./docs/development/TESTING.md)
 - **Contribution guidelines:** [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ### After Azure Deployment
+
 - **Configure monitoring:** Set up Application Insights
 - **Review security:** [ZERO_TRUST_IMPLEMENTATION.md](./docs/architecture/ZERO_TRUST_IMPLEMENTATION.md)
 - **Set up CI/CD:** Review [azure-pipelines.yml](./azure-pipelines.yml)
 
 ### Understanding the Project
+
 - **Architecture decisions:** [ARCHITECTURE.md](./ARCHITECTURE.md) contains all ADRs
 - **Implementation status:** [EVALUATION_DOCS_README.md](./docs/evaluation/EVALUATION_DOCS_README.md)
 - **Backend-frontend integration:** [BACKEND_FRONTEND_INTEGRATION.md](./docs/architecture/BACKEND_FRONTEND_INTEGRATION.md)
@@ -241,6 +248,7 @@ curl https://<your-static-web-app>.azurestaticapps.net
 ### Issue: "Docker services not starting"
 
 **Solution:**
+
 ```bash
 # Check Docker is running
 docker ps
@@ -258,6 +266,7 @@ docker compose up -d
 **Cause:** This project uses [Conventional Commits](https://www.conventionalcommits.org/)
 
 **Solution:**
+
 ```bash
 # Valid format: type(scope): description
 git commit -m "feat(backend): add new feature"
@@ -269,6 +278,7 @@ git commit -m "fix(frontend): resolve bug"
 ### Issue: "Azure authentication failed"
 
 **Solution:**
+
 ```bash
 # Login to Azure
 az login
@@ -289,6 +299,7 @@ az account show
 ### Issue: "npm install fails"
 
 **Solution:**
+
 ```bash
 # Clear npm cache
 npm cache clean --force
@@ -322,6 +333,7 @@ GETTING_STARTED.md (you are here) ← Start here for quick setup
 ```
 
 ### Architecture & Evaluation Documents
+
 - **ARCHITECTURE.md** - All architectural decision records (ADRs)
 - **docs/evaluation/EVALUATION_DOCS_README.md** - Navigation for evaluation reports
 - **docs/evaluation/PHASE_1_2_EVALUATION.md** - Phase 1 & 2 verification
@@ -330,6 +342,7 @@ GETTING_STARTED.md (you are here) ← Start here for quick setup
 - **docs/architecture/BACKEND_FRONTEND_INTEGRATION.md** - Integration architecture
 
 ### Implementation Documents (ADR-Specific)
+
 - **docs/implementation/IMPLEMENTATION_ADR_004.md** through **IMPLEMENTATION_ADR_013.md** - Detailed ADR implementations
 
 ---

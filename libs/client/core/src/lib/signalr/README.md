@@ -412,8 +412,8 @@ Angular Signals efficiently batch UI updates.
 - **ADR-009**: Event-Driven Architecture (SignalR integration)
 - **Backend Implementation**: `apps/backend/src/lib/signalr-broadcast.ts`
 - **Backend Tests**: `apps/backend/src/lib/signalr-broadcast.spec.ts`
-- **Documentation**: `BACKEND_FRONTEND_INTEGRATION.md`
-- **Evaluation**: `PHASE_5_EVALUATION.md`
+- **Documentation**: `../../../../../docs/architecture/BACKEND_FRONTEND_INTEGRATION.md`
+- **Evaluation**: `../../../../../docs/evaluation/PHASE_5_EVALUATION.md`
 
 ---
 
