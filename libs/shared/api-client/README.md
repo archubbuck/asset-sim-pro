@@ -154,10 +154,10 @@ import {
 
 ## Error Handling
 
-All API calls automatically use the error interceptor configured in `libs/client/core/src/lib/services/error.interceptor.ts`. Errors are:
+All API calls automatically use the error interceptor configured in `libs/client/core/src/lib/error-handling/error.interceptor.ts`. Errors are:
 1. Intercepted by the error interceptor
 2. Parsed as RFC 7807 Problem Details if available (see ADR-018)
-3. Displayed to users via the error notification service (`libs/client/core/src/lib/services/error-notification.service.ts`)
+3. Displayed to users via the error notification service (`libs/client/core/src/lib/error-handling/error-notification.service.ts`)
 4. Logged to Application Insights
 
 No additional error handling is required in components unless specific behavior is needed.
