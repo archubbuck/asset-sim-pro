@@ -5,6 +5,7 @@ import { SignalRService } from '@assetsim/client/core';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 /**
  * OrderEntryComponent tests
@@ -43,6 +44,7 @@ describe('OrderEntryComponent', () => {
     await TestBed.configureTestingModule({
       imports: [OrderEntryComponent],
       providers: [
+        provideAnimations(),
         { provide: OrderApiService, useValue: mockOrderApiService },
         { provide: SignalRService, useValue: mockSignalRService }
       ],
@@ -64,6 +66,21 @@ describe('OrderEntryComponent', () => {
     expect(component.orderForm().quantity).toBe(100);
   });
 
+  it('should use default exchangeId and portfolioId', () => {
+    expect(component.exchangeId()).toBe('00000000-0000-0000-0000-000000000000');
+    expect(component.portfolioId()).toBe('11111111-1111-1111-1111-111111111111');
+  });
+
+  it('should accept custom exchangeId and portfolioId inputs', () => {
+    // Set custom IDs via component inputs
+    fixture.componentRef.setInput('exchangeId', 'custom-exchange-123');
+    fixture.componentRef.setInput('portfolioId', 'custom-portfolio-456');
+    fixture.detectChanges();
+
+    expect(component.exchangeId()).toBe('custom-exchange-123');
+    expect(component.portfolioId()).toBe('custom-portfolio-456');
+  });
+
   it('should display current price from SignalR', () => {
     const currentPrice = component.currentPrice();
     expect(currentPrice).toBe(178.50);
@@ -82,6 +99,38 @@ describe('OrderEntryComponent', () => {
     // Invalid - missing symbol
     component.orderForm.update(form => ({ ...form, symbol: '' }));
     expect(component.isFormValid()).toBe(false);
+  });
+
+  it('should submit order with dynamic exchangeId and portfolioId', async () => {
+    // Set custom IDs
+    fixture.componentRef.setInput('exchangeId', 'test-exchange-999');
+    fixture.componentRef.setInput('portfolioId', 'test-portfolio-888');
+    fixture.detectChanges();
+
+    // Set valid form data
+    component.orderForm.set({
+      symbol: 'MSFT',
+      side: 'SELL',
+      orderType: 'LIMIT',
+      quantity: 50,
+      price: 350.00
+    });
+
+    // Submit the order
+    await component.submitOrder();
+
+    // Verify the API was called with the correct dynamic IDs
+    expect(mockOrderApiService.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exchangeId: 'test-exchange-999',
+        portfolioId: 'test-portfolio-888',
+        symbol: 'MSFT',
+        side: 'SELL',
+        orderType: 'LIMIT',
+        quantity: 50,
+        price: 350.00
+      })
+    );
   });
 
   it('should reset form', () => {

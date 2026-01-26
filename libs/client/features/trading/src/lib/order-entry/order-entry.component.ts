@@ -9,8 +9,9 @@
  * - Real-time price display from SignalR
  * - Integration with OrderApiService
  * - Kendo UI form controls
+ * - Dynamic exchangeId and portfolioId via inputs
  */
-import { Component, inject, signal, computed, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed, DestroyRef, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -243,6 +244,20 @@ export class OrderEntryComponent {
   private logger = inject(LoggerService);
   private resetTimeoutId: number | null = null;
 
+  /**
+   * Exchange ID for the trading environment
+   * Defaults to a demo exchange ID for backwards compatibility
+   * In production, this should be provided from user context or routing
+   */
+  exchangeId = input<string>('00000000-0000-0000-0000-000000000000');
+
+  /**
+   * Portfolio ID for the user's trading portfolio
+   * Defaults to a demo portfolio ID for backwards compatibility
+   * In production, this should be provided from user context or state management
+   */
+  portfolioId = input<string>('11111111-1111-1111-1111-111111111111');
+
   // Form data as a signal for reactivity
   orderForm = signal<OrderForm>({
     symbol: 'AAPL',
@@ -327,11 +342,10 @@ export class OrderEntryComponent {
 
     try {
       const form = this.orderForm();
-      // Note: In a real implementation, exchangeId and portfolioId would come from user context
-      // Using valid UUIDs for demo compatibility with backend Zod validation
+      // Use dynamic exchangeId and portfolioId from input properties
       const request: CreateOrderRequest = {
-        exchangeId: '00000000-0000-0000-0000-000000000000',
-        portfolioId: '11111111-1111-1111-1111-111111111111',
+        exchangeId: this.exchangeId(),
+        portfolioId: this.portfolioId(),
         symbol: form.symbol.toUpperCase(),
         side: form.side,
         orderType: form.orderType,
