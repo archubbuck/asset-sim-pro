@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { AzureAuthService } from './azure-auth.service';
 import { LoggerService } from '../logger/logger.service';
-import { AuthResponse, ClientPrincipal, ExchangeRole } from '@assetsim/shared/finance-models';
+import { AuthResponse, ClientPrincipal, ExchangeRole } from '@assetsim/shared/auth-models';
 
 describe('AzureAuthService', () => {
   let service: AzureAuthService;

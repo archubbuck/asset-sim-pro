@@ -6,7 +6,7 @@
  * Following ADR-003: Local Development Strategy
  */
 import { Injectable, signal, computed } from '@angular/core';
-import { ClientPrincipal, ExchangeRole } from '@assetsim/shared/finance-models';
+import { ClientPrincipal, ExchangeRole } from '@assetsim/shared/auth-models';
 import { IAuthService } from './auth.interface';
 import { LoggerService } from '../logger/logger.service';
 

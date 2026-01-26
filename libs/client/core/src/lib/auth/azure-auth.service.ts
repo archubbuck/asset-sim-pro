@@ -7,7 +7,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { AuthResponse, ClientPrincipal } from '@assetsim/shared/finance-models';
+import { AuthResponse, ClientPrincipal } from '@assetsim/shared/auth-models';
 import { LoggerService } from '../logger/logger.service';
 import { IAuthService } from './auth.interface';
 

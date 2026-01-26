@@ -1,0 +1,19 @@
+{
+  "name": "auth-models",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/auth-models/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/shared/auth-models",
+        "main": "libs/shared/auth-models/src/index.ts",
+        "tsConfig": "libs/shared/auth-models/tsconfig.lib.json",
+        "assets": ["libs/shared/auth-models/*.md"]
+      }
+    }
+  }
+}
