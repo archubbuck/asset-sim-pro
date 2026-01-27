@@ -286,12 +286,14 @@ test.describe('Input Validation', () => {
     await page.locator('h3:has-text("Order Entry")').click();
     await page.waitForTimeout(500);
     
-    // Check for validation message
+    // Check for validation message - if present, it should be visible
     const validationMessages = page.locator('.error, .invalid, .validation-error, kendo-formerror');
     const messageCount = await validationMessages.count();
     
-    // Validation may or may not show depending on implementation
-    expect(messageCount).toBeGreaterThanOrEqual(0);
+    // Validation may be shown or field may accept empty (use default)
+    if (messageCount > 0) {
+      await expect(validationMessages.first()).toBeVisible();
+    }
   });
 });
 
