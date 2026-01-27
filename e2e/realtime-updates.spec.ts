@@ -94,13 +94,15 @@ test.describe('Live Ticker Updates', () => {
     // Wait for potential ticker updates
     await page.waitForTimeout(3000);
     
-    // If connected, prices may be displayed in UI
+    // If connected, prices should be displayed in UI
     // Check for price-related elements in chart or widgets
-    const priceElements = page.locator('text=/\\$\\d+/, text=/Price/, span, div');
+    const priceElements = page.locator('text=/\\$\\d+/');
     const elementCount = await priceElements.count();
     
-    // Price elements may or may not be present depending on connection
-    expect(elementCount).toBeGreaterThanOrEqual(0);
+    // If price elements exist, at least one should be visible
+    if (elementCount > 0) {
+      await expect(priceElements.first()).toBeVisible();
+    }
   });
 
   test('should handle ticker updates without UI flicker', async ({ page }) => {
@@ -173,11 +175,13 @@ test.describe('Market Data Streaming', () => {
     
     // Check if any dynamic content is updating
     // Chart or price displays may update
-    const dynamicContent = page.locator('kendo-chart, app-financial-chart, .price, .ticker');
+    const dynamicContent = page.locator('kendo-chart, app-financial-chart');
     const contentCount = await dynamicContent.count();
     
-    // Content may or may not be present
-    expect(contentCount).toBeGreaterThanOrEqual(0);
+    // If dynamic content exists, verify it's rendered properly
+    if (contentCount > 0) {
+      await expect(dynamicContent.first()).toBeVisible();
+    }
   });
 
   test('should handle data stream interruptions gracefully', async ({ page }) => {
@@ -222,12 +226,14 @@ test.describe('Connection Error Handling', () => {
     // Wait for connection attempt
     await page.waitForTimeout(3000);
     
-    // Check for error indicators (may or may not appear)
-    const errorMessages = page.locator('.error, .alert, [role="alert"], text=/error/i, text=/failed/i');
+    // Check for error indicators - if present, verify they're visible
+    const errorMessages = page.locator('.error, .alert, [role="alert"]');
     const errorCount = await errorMessages.count();
     
-    // Errors may or may not be shown depending on implementation
-    expect(errorCount).toBeGreaterThanOrEqual(0);
+    // If error messages exist, at least one should be visible
+    if (errorCount > 0) {
+      await expect(errorMessages.first()).toBeVisible();
+    }
   });
 
   test('should log connection errors to console', async ({ page }) => {

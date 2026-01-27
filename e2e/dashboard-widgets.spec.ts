@@ -228,15 +228,15 @@ test.describe('Dynamic Widget Layout', () => {
     await page.waitForSelector('h2:has-text("Trading Desk")', { timeout: 10000 });
     
     // Widgets should stack vertically on mobile
+    // At least market depth widget should be visible
     await expect(page.locator('app-market-depth')).toBeVisible();
     
-    // Check if widgets are stacked (may need to scroll)
-    const riskMatrix = page.locator('app-risk-matrix');
-    const newsTerminal = page.locator('app-news-terminal');
-    
-    // At least market depth widget should be visible on mobile
-    // Other widgets may require scrolling
-    await expect(page.locator('app-market-depth')).toBeVisible();
+    // Risk Matrix and News Terminal may require scrolling on mobile
+    // Verify they exist in the DOM
+    const riskMatrixCount = await page.locator('app-risk-matrix').count();
+    const newsTerminalCount = await page.locator('app-news-terminal').count();
+    expect(riskMatrixCount).toBeGreaterThan(0);
+    expect(newsTerminalCount).toBeGreaterThan(0);
   });
 
   test('should maintain widget layout after navigation', async ({ page }) => {

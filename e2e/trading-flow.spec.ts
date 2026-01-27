@@ -278,13 +278,15 @@ test.describe('Trading Page Layout', () => {
     await expect(page.locator('h3:has-text("Position Blotter")')).toBeVisible({ timeout: 5000 });
   });
 
-  test('should display financial chart component', async ({ page }) => {
-    // Financial chart component should be present
+  test('should display financial chart component if present', async ({ page }) => {
+    // Financial chart component may be present depending on layout
     const financialChart = page.locator('app-financial-chart');
     const count = await financialChart.count();
     
-    // Chart may or may not be visible depending on layout
-    expect(count).toBeGreaterThanOrEqual(0);
+    // If chart exists, it should be at least one instance
+    if (count > 0) {
+      await expect(financialChart.first()).toBeVisible();
+    }
   });
 
   test('should maintain layout after order submission', async ({ page }) => {

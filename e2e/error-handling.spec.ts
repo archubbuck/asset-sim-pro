@@ -17,15 +17,9 @@ test.describe('API Error Responses', () => {
     // Submit an order
     await page.click('button:has-text("Place Order")');
     
-    // Wait for response
-    await page.waitForTimeout(3000);
-    
-    // Either success or error message should appear
+    // Wait for response - either success or error message should appear
     const statusMessage = page.locator('.status-message, .message, .alert, [role="alert"]');
-    const messageCount = await statusMessage.count();
-    
-    // Some feedback should be provided
-    expect(messageCount).toBeGreaterThanOrEqual(0);
+    await expect(statusMessage.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should display error message when API call fails', async ({ page }) => {
@@ -49,14 +43,10 @@ test.describe('API Error Responses', () => {
     // When API returns error, details should be shown
     // Submit order and wait for response
     await page.click('button:has-text("Place Order")');
-    await page.waitForTimeout(2000);
     
-    // Check for error or success message
+    // Either error or success message should be displayed
     const messages = page.locator('.status-message, .message');
-    const count = await messages.count();
-    
-    // Some feedback should be displayed
-    expect(count).toBeGreaterThanOrEqual(0);
+    await expect(messages.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should handle 400 Bad Request errors', async ({ page }) => {
@@ -192,10 +182,19 @@ test.describe('Input Validation', () => {
     
     // Try to submit
     await page.click('button:has-text("Place Order")');
-    await page.waitForTimeout(1000);
     
-    // Validation error or default behavior should occur
-    await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
+    // Either validation error or default symbol should be used
+    // Wait for either error message or success message
+    await page.waitForTimeout(2000);
+    
+    const errorMessage = page.locator('.error, .validation-error, kendo-formerror');
+    const successMessage = page.locator('.status-message.success, .status-message');
+    
+    const errorCount = await errorMessage.count();
+    const successCount = await successMessage.count();
+    
+    // Either validation error appears or order succeeds with default value
+    expect(errorCount + successCount).toBeGreaterThan(0);
   });
 
   test('should validate invalid symbol characters', async ({ page }) => {
@@ -363,32 +362,34 @@ test.describe('User-Friendly Error Messages', () => {
     // Warnings may appear for non-critical issues
     await page.waitForTimeout(2000);
     
-    // Check for warning messages
+    // Check for warning messages - if present, they should be readable
     const warnings = page.locator('.warning, .alert-warning, [role="alert"]');
     const warningCount = await warnings.count();
     
-    // Warnings are optional
-    expect(warningCount).toBeGreaterThanOrEqual(0);
+    if (warningCount > 0) {
+      const firstWarning = warnings.first();
+      await expect(firstWarning).toBeVisible();
+      const warningText = await firstWarning.textContent();
+      expect(warningText).toBeTruthy();
+      expect(warningText!.length).toBeGreaterThan(0);
+    }
   });
 
   test('should use consistent styling for error messages', async ({ page }) => {
     // Submit order to trigger message
     await page.click('button:has-text("Place Order")');
-    await page.waitForTimeout(2000);
     
-    // Check for status messages
+    // Wait for status message to appear
     const messages = page.locator('.status-message, .message, .alert');
-    const messageCount = await messages.count();
+    await expect(messages.first()).toBeVisible({ timeout: 10000 });
     
-    if (messageCount > 0) {
-      // Messages should have consistent class names and styling
-      const firstMessage = messages.first();
-      await expect(firstMessage).toBeVisible();
-      
-      // Should have styling classes
-      const classes = await firstMessage.getAttribute('class');
-      expect(classes).toBeTruthy();
-    }
+    // Messages should have consistent class names and styling
+    const firstMessage = messages.first();
+    
+    // Should have styling classes
+    const classes = await firstMessage.getAttribute('class');
+    expect(classes).toBeTruthy();
+    expect(classes!.length).toBeGreaterThan(0);
   });
 
   test('should provide actionable error messages', async ({ page }) => {

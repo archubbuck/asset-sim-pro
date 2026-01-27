@@ -104,12 +104,13 @@ test.describe('Exchange Rules Retrieval', () => {
     // Exchange rules may be displayed to users
     await page.waitForTimeout(2000);
     
-    // Check for any rules display
+    // Check for any rules display - if present, verify it's visible
     const rulesDisplay = page.locator('text=/Rules/i, text=/Configuration/i, text=/Settings/i');
     const rulesCount = await rulesDisplay.count();
     
-    // Rules display is optional
-    expect(rulesCount).toBeGreaterThanOrEqual(0);
+    if (rulesCount > 0) {
+      await expect(rulesDisplay.first()).toBeVisible();
+    }
   });
 });
 
@@ -127,12 +128,13 @@ test.describe('Market Regime Configuration', () => {
     // Market regime may be displayed in UI
     await page.waitForTimeout(2000);
     
-    // Look for regime indicators
+    // Look for regime indicators - if present, verify visibility
     const regimeIndicators = page.locator('text=/Regime/i, text=/Volatility/i, text=/Market Conditions/i');
     const indicatorCount = await regimeIndicators.count();
     
-    // Regime display is optional depending on implementation
-    expect(indicatorCount).toBeGreaterThanOrEqual(0);
+    if (indicatorCount > 0) {
+      await expect(regimeIndicators.first()).toBeVisible();
+    }
   });
 
   test('should handle regime-specific trading rules', async ({ page }) => {
@@ -278,24 +280,27 @@ test.describe('Exchange Creation Flow', () => {
     await page.goto('/');
     await page.waitForSelector('text=AssetSim Pro', { timeout: 10000 });
     
-    // Look for exchange creation buttons or links
+    // Look for exchange creation buttons or links - if present, verify they're interactive
     const createExchangeLinks = page.locator('text=/Create Exchange/i, text=/New Exchange/i, text=/Add Exchange/i, button:has-text("Create")');
     const linkCount = await createExchangeLinks.count();
     
-    // Exchange creation UI is optional for MVP
-    expect(linkCount).toBeGreaterThanOrEqual(0);
+    if (linkCount > 0) {
+      await expect(createExchangeLinks.first()).toBeVisible();
+    }
   });
 
   test('should handle exchange creation workflow if implemented', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('text=AssetSim Pro', { timeout: 10000 });
     
-    // Check for exchange management features
+    // Check for exchange management features - if present, verify basic functionality
     const exchangeFeatures = page.locator('text=/Exchange/i, text=/Venue/i');
     const featureCount = await exchangeFeatures.count();
     
-    // Features may or may not be present
-    expect(featureCount).toBeGreaterThanOrEqual(0);
+    if (featureCount > 0) {
+      // At least one exchange-related feature should be visible
+      await expect(exchangeFeatures.first()).toBeVisible();
+    }
   });
 
   test('should assign RiskManager role to exchange creator', async ({ page }) => {

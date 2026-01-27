@@ -92,10 +92,8 @@ test.describe('Navigation Drawer', () => {
     await expect(page.locator('text=Terminal')).toBeVisible();
     await expect(page.locator('text=Execution')).toBeVisible();
     
-    // Fund Performance may be visible as well
-    const fundPerformance = page.locator('text=Fund Performance');
-    const fundPerfCount = await fundPerformance.count();
-    expect(fundPerfCount).toBeGreaterThanOrEqual(0);
+    // Fund Performance link may or may not be visible depending on configuration
+    // No assertion needed - its presence is optional
   });
 
   test('should navigate to Dashboard when Terminal is clicked', async ({ page }) => {
