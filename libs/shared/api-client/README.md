@@ -21,6 +21,7 @@ This library provides type-safe Angular services for communicating with the Asse
 Base service that provides common HTTP operations. All other services extend this class.
 
 **Methods:**
+
 - `protected get<T>(url: string): Observable<T>`
 - `protected post<T>(url: string, body: unknown): Observable<T>`
 - `protected put<T>(url: string, body: unknown): Observable<T>`
@@ -31,6 +32,7 @@ Base service that provides common HTTP operations. All other services extend thi
 Service for exchange-related operations.
 
 **Methods:**
+
 - `createExchange(request: CreateExchangeRequest): Observable<ExchangeResponse>` - Create a new exchange ✅ **Implemented**
 - `getExchange(exchangeId: string): Observable<ExchangeResponse>` - Get exchange by ID ⚠️ **Backend pending**
 - `listExchanges(): Observable<ExchangeResponse[]>` - List all exchanges for the current user ⚠️ **Backend pending**
@@ -38,10 +40,12 @@ Service for exchange-related operations.
 - `deleteExchange(exchangeId: string): Observable<void>` - Delete exchange ⚠️ **Backend pending**
 
 **Backend Status:**
+
 - ✅ `POST /api/v1/exchanges` - Fully implemented in `apps/backend/src/functions/createExchange.ts`
 - ⚠️ Other endpoints planned but not yet implemented in backend
 
 **Example:**
+
 ```typescript
 import { ExchangeApiService } from '@assetsim/shared/api-client';
 
@@ -63,16 +67,19 @@ export class ExchangeComponent {
 Service for order-related operations.
 
 **Methods:**
+
 - `createOrder(request: CreateOrderRequest): Observable<OrderResponse>` - Create a new order ✅ **Implemented**
 - `getOrder(orderId: string): Observable<OrderResponse>` - Get order by ID ⚠️ **Backend pending**
 - `listOrders(query: ListOrdersQuery): Observable<OrderResponse[]>` - List orders with filters ⚠️ **Backend pending**
 - `cancelOrder(orderId: string, exchangeId: string): Observable<OrderResponse>` - Cancel an order ⚠️ **Backend pending**
 
 **Backend Status:**
+
 - ✅ `POST /api/v1/orders` - Fully implemented in `apps/backend/src/functions/createOrder.ts`
 - ⚠️ Other endpoints planned but not yet implemented in backend
 
 **Example:**
+
 ```typescript
 import { OrderApiService } from '@assetsim/shared/api-client';
 
@@ -102,14 +109,17 @@ export class TradingComponent {
 Service for fetching exchange rules and feature flags.
 
 **Methods:**
+
 - `getExchangeRules(exchangeId: string): Observable<FeatureFlagResponse>` - Get exchange rules ✅ **Implemented**
 - `updateExchangeRules(exchangeId: string, configuration: Partial<FeatureFlagResponse>): Observable<FeatureFlagResponse>` - Update exchange rules ⚠️ **Backend pending**
 
 **Backend Status:**
+
 - ✅ `GET /api/v1/exchange/rules?exchangeId={uuid}` - Fully implemented in `apps/backend/src/functions/getExchangeRules.ts`
 - ⚠️ `PUT /api/v1/exchange/rules` - Planned but not yet implemented in backend
 
 **Example:**
+
 ```typescript
 import { FeatureFlagApiService } from '@assetsim/shared/api-client';
 
@@ -136,6 +146,7 @@ All request and response models are exported from the library:
 - **Feature Flag Models**: `FeatureFlagResponse`, `ExchangeConfig`, `ExchangeFeatureFlags` (all imported from `@assetsim/shared/finance-models`)
 
 These models align with:
+
 - Backend types in `apps/backend/src/types/`
 - Shared finance models in `@assetsim/shared/finance-models`
 - OpenAPI specifications (available at `GET /api/docs` in dev/staging)
@@ -145,16 +156,17 @@ These models align with:
 This library is already included in the Nx monorepo. To use it in a project:
 
 ```typescript
-import { 
-  ExchangeApiService, 
-  OrderApiService, 
-  FeatureFlagApiService 
+import {
+  ExchangeApiService,
+  OrderApiService,
+  FeatureFlagApiService,
 } from '@assetsim/shared/api-client';
 ```
 
 ## Error Handling
 
 All API calls automatically use the error interceptor configured in `libs/client/core/src/lib/error-handling/error.interceptor.ts`. Errors are:
+
 1. Intercepted by the error interceptor
 2. Parsed as RFC 7807 Problem Details if available (see ADR-018)
 3. Displayed to users via the error notification service (`libs/client/core/src/lib/error-handling/error-notification.service.ts`)
@@ -163,6 +175,7 @@ All API calls automatically use the error interceptor configured in `libs/client
 No additional error handling is required in components unless specific behavior is needed.
 
 **RFC 7807 Problem Details Format:**
+
 ```json
 {
   "type": "https://assetsim.com/errors/insufficient-funds",
@@ -179,7 +192,10 @@ All services can be easily tested using Angular's `HttpClientTestingModule`:
 
 ```typescript
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+  HttpClientTestingModule,
+  HttpTestingController,
+} from '@angular/common/http/testing';
 import { ExchangeApiService } from '@assetsim/shared/api-client';
 
 describe('MyComponent', () => {
@@ -189,19 +205,24 @@ describe('MyComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [ExchangeApiService]
+      providers: [ExchangeApiService],
     });
     service = TestBed.inject(ExchangeApiService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
   it('should create exchange', () => {
-    service.createExchange({ name: 'Test' }).subscribe(response => {
+    service.createExchange({ name: 'Test' }).subscribe((response) => {
       expect(response.name).toBe('Test');
     });
 
     const req = httpMock.expectOne('/api/v1/exchanges');
-    req.flush({ exchangeId: '123', name: 'Test', createdAt: '2026-01-24', createdBy: '456' });
+    req.flush({
+      exchangeId: '123',
+      name: 'Test',
+      createdAt: '2026-01-24',
+      createdBy: '456',
+    });
   });
 });
 ```
@@ -231,25 +252,24 @@ The library follows these architectural patterns:
 
 ### Currently Implemented (Backend + Frontend)
 
-| Method | Endpoint | Service Method | Backend Function | Status |
-|--------|----------|---------------|------------------|--------|
-| POST | `/api/v1/exchanges` | `createExchange()` | `createExchange.ts` | ✅ Production Ready |
-| POST | `/api/v1/orders` | `createOrder()` | `createOrder.ts` | ✅ Production Ready |
-| GET | `/api/v1/exchange/rules` | `getExchangeRules()` | `getExchangeRules.ts` | ✅ Production Ready |
-| GET | `/api/docs` | N/A | `apiDocs.ts` | ✅ Dev/Staging Only |
+| Method | Endpoint                 | Service Method       | Backend Function      | Status              |
+| ------ | ------------------------ | -------------------- | --------------------- | ------------------- |
+| POST   | `/api/v1/exchanges`      | `createExchange()`   | `createExchange.ts`   | ✅ Production Ready |
+| POST   | `/api/v1/orders`         | `createOrder()`      | `createOrder.ts`      | ✅ Production Ready |
+| GET    | `/api/v1/exchange/rules` | `getExchangeRules()` | `getExchangeRules.ts` | ✅ Production Ready |
+| GET    | `/api/docs`              | N/A                  | `apiDocs.ts`          | ✅ Dev/Staging Only |
 
 ### Planned (Frontend Ready, Backend Pending)
 
-| Method | Endpoint | Service Method | Status |
-|--------|----------|---------------|--------|
-| GET | `/api/v1/exchanges/:id` | `getExchange()` | ⚠️ Backend pending |
-| GET | `/api/v1/exchanges` | `listExchanges()` | ⚠️ Backend pending |
-| PUT | `/api/v1/exchanges/:id` | `updateExchange()` | ⚠️ Backend pending |
-| DELETE | `/api/v1/exchanges/:id` | `deleteExchange()` | ⚠️ Backend pending |
-| GET | `/api/v1/orders/:id` | `getOrder()` | ⚠️ Backend pending |
-| GET | `/api/v1/orders` | `listOrders()` | ⚠️ Backend pending |
-| DELETE | `/api/v1/orders/:id` | `cancelOrder()` | ⚠️ Backend pending |
-| PUT | `/api/v1/exchange/rules` | `updateExchangeRules()` | ⚠️ Backend pending |
+| Method | Endpoint                 | Service Method          | Status             |
+| ------ | ------------------------ | ----------------------- | ------------------ |
+| GET    | `/api/v1/exchanges/:id`  | `getExchange()`         | ⚠️ Backend pending |
+| GET    | `/api/v1/exchanges`      | `listExchanges()`       | ⚠️ Backend pending |
+| PUT    | `/api/v1/exchanges/:id`  | `updateExchange()`      | ⚠️ Backend pending |
+| DELETE | `/api/v1/exchanges/:id`  | `deleteExchange()`      | ⚠️ Backend pending |
+| GET    | `/api/v1/orders/:id`     | `getOrder()`            | ⚠️ Backend pending |
+| GET    | `/api/v1/orders`         | `listOrders()`          | ⚠️ Backend pending |
+| DELETE | `/api/v1/orders/:id`     | `cancelOrder()`         | ⚠️ Backend pending |
+| PUT    | `/api/v1/exchange/rules` | `updateExchangeRules()` | ⚠️ Backend pending |
 
 **Note:** The frontend API client services are designed to work with all endpoints. Calling methods for pending endpoints will result in 404 errors until the backend implementations are added.
-

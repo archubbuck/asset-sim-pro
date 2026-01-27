@@ -238,7 +238,6 @@ curl https://<your-static-web-app>.azurestaticapps.net
 ### Understanding the Project
 
 - **Architecture decisions:** [ARCHITECTURE.md](./ARCHITECTURE.md) contains all ADRs
-- **Implementation status:** [EVALUATION_DOCS_README.md](./docs/evaluation/EVALUATION_DOCS_README.md)
 - **Backend-frontend integration:** [BACKEND_FRONTEND_INTEGRATION.md](./docs/architecture/BACKEND_FRONTEND_INTEGRATION.md)
 
 ---
@@ -332,18 +331,10 @@ GETTING_STARTED.md (you are here) ← Start here for quick setup
     └── docs/architecture/ZERO_TRUST_IMPLEMENTATION.md ← Security architecture details
 ```
 
-### Architecture & Evaluation Documents
+### Architecture Documents
 
 - **ARCHITECTURE.md** - All architectural decision records (ADRs)
-- **docs/evaluation/EVALUATION_DOCS_README.md** - Navigation for evaluation reports
-- **docs/evaluation/PHASE_1_2_EVALUATION.md** - Phase 1 & 2 verification
-- **docs/evaluation/PHASE_3_4_EVALUATION.md** - Phase 3 & 4 verification
-- **docs/evaluation/PHASE_5_EVALUATION.md** - Phase 5 (Frontend) status
 - **docs/architecture/BACKEND_FRONTEND_INTEGRATION.md** - Integration architecture
-
-### Implementation Documents (ADR-Specific)
-
-- **docs/implementation/IMPLEMENTATION_ADR_004.md** through **IMPLEMENTATION_ADR_013.md** - Detailed ADR implementations
 
 ---
 

@@ -23,7 +23,7 @@ import {
   ValidationProblemDetails,
   ValidationError,
   ErrorTypes,
-  ErrorTitles
+  ErrorTitles,
 } from '@assetsim/shared/error-models';
 ```
 
@@ -37,19 +37,19 @@ The core RFC 7807-compliant error response interface. All error responses in Ass
 export interface ProblemDetails {
   /** URI identifying the problem type (e.g., "https://assetsim.com/errors/not-found") */
   type: string;
-  
+
   /** Short, human-readable summary (e.g., "Not Found") */
   title: string;
-  
+
   /** HTTP status code (e.g., 404) */
   status: number;
-  
+
   /** Human-readable explanation specific to this occurrence */
   detail: string;
-  
+
   /** Optional URI identifying the specific occurrence (e.g., "/api/v1/exchanges/123") */
   instance?: string;
-  
+
   /** Additional extensibility fields */
   [key: string]: unknown;
 }
@@ -65,10 +65,10 @@ Represents a single field-level validation error, used in validation problem det
 export interface ValidationError {
   /** Error code (e.g., "invalid_type", "too_small") */
   code: string;
-  
+
   /** Human-readable error message */
   message: string;
-  
+
   /** JSON path to the field with the error (e.g., ["orders", 0, "quantity"]) */
   path: (string | number)[];
 }
@@ -139,33 +139,33 @@ import {
   ErrorTypes,
   ErrorTitles,
 } from '@assetsim/shared/error-models';
-import { createNotFoundResponse, createValidationErrorResponse } from './error-handler';
+import {
+  createNotFoundResponse,
+  createValidationErrorResponse,
+} from './error-handler';
 
 // Not Found Error
 export async function getExchange(id: string) {
   const exchange = await db.getExchange(id);
-  
+
   if (!exchange) {
     return createNotFoundResponse(
       'Exchange not found',
-      `/api/v1/exchanges/${id}`
+      `/api/v1/exchanges/${id}`,
     );
   }
-  
+
   return { status: 200, jsonBody: exchange };
 }
 
 // Validation Error (using Zod)
 export async function createOrder(body: unknown) {
   const result = OrderSchema.safeParse(body);
-  
+
   if (!result.success) {
-    return createValidationErrorResponse(
-      result.error,
-      '/api/v1/orders'
-    );
+    return createValidationErrorResponse(result.error, '/api/v1/orders');
   }
-  
+
   // Process valid order...
 }
 ```
@@ -196,19 +196,19 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         'title' in error.error
       ) {
         const problemDetails = error.error as ProblemDetails;
-        
+
         // Display notification to user
         errorNotificationService.showError(
           problemDetails.title,
-          problemDetails.detail
+          problemDetails.detail,
         );
-        
+
         return throwError(() => problemDetails);
       }
-      
+
       // Fallback for non-RFC 7807 errors
       // ...
-    })
+    }),
   );
 };
 ```
@@ -306,10 +306,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
 ## Related Documentation
 
-- [PHASE_3_4_EVALUATION.md - Error Models Library](../../docs/evaluation/PHASE_3_4_EVALUATION.md#L317-L341)
-- [BACKEND_FRONTEND_INTEGRATION.md - Integration Point 2](../../docs/architecture/BACKEND_FRONTEND_INTEGRATION.md#L82-L138)
+- [BACKEND_FRONTEND_INTEGRATION.md - Integration Point 2](../../docs/architecture/BACKEND_FRONTEND_INTEGRATION.md)
 - [RFC 7807 Specification](https://tools.ietf.org/html/rfc7807)
-- [ADR-018: Standardized Error Handling](../../docs/adrs/adr-018-standardized-error-handling.md) _(if available)_
 
 ## Code References
 

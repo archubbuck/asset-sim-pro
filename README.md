@@ -53,8 +53,7 @@ See **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)** for de
 
 ### Project Status
 
-- **[EVALUATION_SUMMARY.md](./docs/evaluation/EVALUATION_SUMMARY.md)**: Phase 1 & 2 evaluation - ✅ **100% COMPLETE**
-- **[PHASE_1_2_EVALUATION.md](./docs/evaluation/PHASE_1_2_EVALUATION.md)**: Comprehensive evaluation report for all ADRs
+- All phases 1-5 complete and verified ✅
 
 ### Architecture & Development
 
@@ -70,7 +69,6 @@ See **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)** for de
 - **[DEPLOYMENT_GUIDE.md](./docs/deployment/DEPLOYMENT_GUIDE.md)**: Terraform deployment and application configuration
 - **[VERIFICATION.md](./docs/architecture/VERIFICATION.md)**: Post-deployment verification and testing
 - **[ZERO_TRUST_IMPLEMENTATION.md](./docs/architecture/ZERO_TRUST_IMPLEMENTATION.md)**: Zero Trust architecture implementation details
-- **[ADR_002_IMPLEMENTATION_SUMMARY.md](./docs/implementation/ADR_002_IMPLEMENTATION_SUMMARY.md)**: Complete summary of ADR-002 implementation
 
 ## Getting Started
 

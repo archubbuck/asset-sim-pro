@@ -7,6 +7,7 @@ This Angular library provides a comprehensive trading interface for AssetSim Pro
 The Trading feature library is an Angular module that implements the core trading user interface for the AssetSim Pro platform. It provides essential trading functionality through modular, standalone components that work together to create a complete trading desk experience.
 
 **Key capabilities:**
+
 - Real-time order entry and execution
 - Live position and order history tracking
 - Interactive financial charts for price visualization
@@ -45,9 +46,7 @@ import { Trading } from '@assetsim/client/features/trading';
   selector: 'app-dashboard',
   standalone: true,
   imports: [Trading],
-  template: `
-    <lib-trading />
-  `
+  template: ` <lib-trading /> `,
 })
 export class DashboardComponent {}
 ```
@@ -63,11 +62,11 @@ export class DashboardComponent {}
 
 The Trading component integrates with the following services:
 
-| Service | Purpose | Usage |
-|---------|---------|-------|
-| `SignalRService` | Real-time market data | Establishes connection to receive live price updates for all widgets |
-| `LoggerService` | Error management | Logs connection errors and exceptions with appropriate severity levels |
-| `TRADING_STUB_CONFIG` | Configuration | Provides exchangeId and portfolioId for API calls and stub data |
+| Service               | Purpose               | Usage                                                                  |
+| --------------------- | --------------------- | ---------------------------------------------------------------------- |
+| `SignalRService`      | Real-time market data | Establishes connection to receive live price updates for all widgets   |
+| `LoggerService`       | Error management      | Logs connection errors and exceptions with appropriate severity levels |
+| `TRADING_STUB_CONFIG` | Configuration         | Provides exchangeId and portfolioId for API calls and stub data        |
 
 #### Test Coverage
 
@@ -89,6 +88,7 @@ All tests use Jest with mocked dependencies to ensure isolated unit testing.
 Order entry form widget for placing trading orders. Supports BUY/SELL operations with all order types (MARKET/LIMIT/STOP/STOP_LIMIT).
 
 #### Features
+
 - Signal-based state with template-driven form validation
 - Real-time price display from SignalR
 - Integration with OrderApiService
@@ -98,28 +98,29 @@ Order entry form widget for placing trading orders. Supports BUY/SELL operations
 #### Usage
 
 ##### Basic Usage with Default IDs
+
 ```typescript
 import { OrderEntryComponent } from '@assetsim/client/features/trading';
 
 @Component({
-  template: `
-    <app-order-entry />
-  `
+  template: ` <app-order-entry /> `,
 })
 export class TradingDashboard {}
 ```
 
 ##### Usage with Custom Exchange and Portfolio IDs
+
 ```typescript
 import { Component, signal } from '@angular/core';
 import { OrderEntryComponent } from '@assetsim/client/features/trading';
 
 @Component({
   template: `
-    <app-order-entry 
-      [exchangeId]="selectedExchangeId()" 
-      [portfolioId]="userPortfolioId()" />
-  `
+    <app-order-entry
+      [exchangeId]="selectedExchangeId()"
+      [portfolioId]="userPortfolioId()"
+    />
+  `,
 })
 export class TradingDashboard {
   // These would typically come from user context or state management
@@ -130,9 +131,9 @@ export class TradingDashboard {
 
 #### Inputs
 
-| Input | Type | Default | Description |
-|-------|------|---------|-------------|
-| `exchangeId` | `string` | `'00000000-0000-0000-0000-000000000000'` | Exchange ID for the trading environment. In production, should be provided from user context or routing. |
+| Input         | Type     | Default                                  | Description                                                                                                             |
+| ------------- | -------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `exchangeId`  | `string` | `'00000000-0000-0000-0000-000000000000'` | Exchange ID for the trading environment. In production, should be provided from user context or routing.                |
 | `portfolioId` | `string` | `'11111111-1111-1111-1111-111111111111'` | Portfolio ID for the user's trading portfolio. In production, should be provided from user context or state management. |
 
 ### PositionBlotterComponent
@@ -140,6 +141,7 @@ export class TradingDashboard {
 Position blotter widget displaying order history and positions using Kendo Grid. Shows FILLED, OPEN (PENDING/PARTIAL), and CANCELLED orders.
 
 #### Features
+
 - Kendo Grid for tabular data display
 - Real-time order updates
 - Filtering by status
@@ -149,36 +151,36 @@ Position blotter widget displaying order history and positions using Kendo Grid.
 #### Usage
 
 ##### Basic Usage with Default Configuration
+
 ```typescript
 import { PositionBlotterComponent } from '@assetsim/client/features/trading';
 
 @Component({
-  template: `
-    <app-position-blotter />
-  `
+  template: ` <app-position-blotter /> `,
 })
 export class TradingDashboard {}
 ```
 
 ##### Usage with Custom Configuration
+
 ```typescript
 import { Component } from '@angular/core';
-import { PositionBlotterComponent, TRADING_STUB_CONFIG, TradingStubConfig } from '@assetsim/client/features/trading';
+import {
+  PositionBlotterComponent,
+  TRADING_STUB_CONFIG,
+  TradingStubConfig,
+} from '@assetsim/client/features/trading';
 
 // Custom configuration for production environment
 const productionConfig: TradingStubConfig = {
   exchangeId: '550e8400-e29b-41d4-a716-446655440000',
   portfolioId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-  orderIdPrefix: 'prod-order'
+  orderIdPrefix: 'prod-order',
 };
 
 @Component({
-  template: `
-    <app-position-blotter />
-  `,
-  providers: [
-    { provide: TRADING_STUB_CONFIG, useValue: productionConfig }
-  ]
+  template: ` <app-position-blotter /> `,
+  providers: [{ provide: TRADING_STUB_CONFIG, useValue: productionConfig }],
 })
 export class TradingDashboard {}
 ```
@@ -187,11 +189,11 @@ export class TradingDashboard {}
 
 The component uses the `TRADING_STUB_CONFIG` injection token for configuration:
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `exchangeId` | `string` | `'00000000-0000-0000-0000-000000000000'` | Exchange ID used for API calls and stub data |
-| `portfolioId` | `string` | `'00000000-0000-0000-0000-000000000001'` | Portfolio ID used for stub data |
-| `orderIdPrefix` | `string` | `'demo-order'` | Prefix for generating stub order IDs |
+| Property        | Type     | Default                                  | Description                                  |
+| --------------- | -------- | ---------------------------------------- | -------------------------------------------- |
+| `exchangeId`    | `string` | `'00000000-0000-0000-0000-000000000000'` | Exchange ID used for API calls and stub data |
+| `portfolioId`   | `string` | `'00000000-0000-0000-0000-000000000001'` | Portfolio ID used for stub data              |
+| `orderIdPrefix` | `string` | `'demo-order'`                           | Prefix for generating stub order IDs         |
 
 ## Configuration
 
@@ -275,10 +277,10 @@ export const appConfig: ApplicationConfig = {
       provide: TRADING_STUB_CONFIG,
       useValue: {
         exchangeId: 'your-exchange-id',
-        portfolioId: 'your-portfolio-id'
-      }
-    }
-  ]
+        portfolioId: 'your-portfolio-id',
+      },
+    },
+  ],
 };
 ```
 
@@ -294,6 +296,7 @@ The Trading library follows a modular architecture where each widget is a standa
 - **Trading (Container)**: Orchestrates the widgets and provides shared services
 
 This design allows:
+
 - Individual widgets to be used independently in different contexts
 - Easier testing with isolated component tests
 - Better code organization and maintainability
