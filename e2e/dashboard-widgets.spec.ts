@@ -234,12 +234,9 @@ test.describe('Dynamic Widget Layout', () => {
     const riskMatrix = page.locator('app-risk-matrix');
     const newsTerminal = page.locator('app-news-terminal');
     
-    // At least some widgets should be in viewport or accessible via scroll
-    const riskMatrixVisible = await riskMatrix.isVisible();
-    const newsTerminalVisible = await newsTerminal.isVisible();
-    
-    // At least the first widget should be visible
-    expect(riskMatrixVisible || newsTerminalVisible || true).toBeTruthy();
+    // At least market depth widget should be visible on mobile
+    // Other widgets may require scrolling
+    await expect(page.locator('app-market-depth')).toBeVisible();
   });
 
   test('should maintain widget layout after navigation', async ({ page }) => {
