@@ -36,15 +36,16 @@
 
 ### Type Library: `@assetsim/shared/finance-models`
 
-| Type | Backend Usage | Frontend Usage | Alignment |
-|------|---------------|----------------|-----------|
-| `ClientPrincipal` | `auth.ts` - User validation | `azure-auth.service.ts` - State management | ✅ Perfect |
-| `AuthResponse` | N/A (API Gateway) | `checkSession()` HTTP call | ✅ Perfect |
-| `ExchangeRole` enum | RLS policies, RBAC | Role guards, UI permissions | ✅ Perfect |
-| `ExchangeConfig` | Database model | Feature service config | ✅ Perfect |
-| `FeatureFlagResponse` | API response (planned) | `feature.service.ts` state | ✅ Perfect |
+| Type                  | Backend Usage               | Frontend Usage                             | Alignment  |
+| --------------------- | --------------------------- | ------------------------------------------ | ---------- |
+| `ClientPrincipal`     | `auth.ts` - User validation | `azure-auth.service.ts` - State management | ✅ Perfect |
+| `AuthResponse`        | N/A (API Gateway)           | `checkSession()` HTTP call                 | ✅ Perfect |
+| `ExchangeRole` enum   | RLS policies, RBAC          | Role guards, UI permissions                | ✅ Perfect |
+| `ExchangeConfig`      | Database model              | Feature service config                     | ✅ Perfect |
+| `FeatureFlagResponse` | API response (planned)      | `feature.service.ts` state                 | ✅ Perfect |
 
 **File Locations:**
+
 ```
 libs/shared/finance-models/
 ├── src/
@@ -55,6 +56,7 @@ libs/shared/finance-models/
 ```
 
 **Usage Examples:**
+
 ```typescript
 // Backend: apps/backend/src/lib/auth.ts
 import { ClientPrincipal } from '@assetsim/shared/finance-models';
@@ -83,14 +85,15 @@ public async checkSession(): Promise<void> {
 
 ### Shared Error Library: `@assetsim/shared/error-models`
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| `ProblemDetails` interface | `libs/shared/error-models/src/lib/problem-details.ts` | RFC 7807 base type |
-| Backend error handler | `apps/backend/src/lib/error-handler.ts` | Creates Problem Details responses |
-| Frontend error interceptor | `libs/client/core/src/lib/services/error.interceptor.ts` | Parses Problem Details |
-| Frontend error notification | `libs/client/core/src/lib/services/error-notification.service.ts` | Displays errors to user |
+| Component                   | Location                                                          | Purpose                           |
+| --------------------------- | ----------------------------------------------------------------- | --------------------------------- |
+| `ProblemDetails` interface  | `libs/shared/error-models/src/lib/problem-details.ts`             | RFC 7807 base type                |
+| Backend error handler       | `apps/backend/src/lib/error-handler.ts`                           | Creates Problem Details responses |
+| Frontend error interceptor  | `libs/client/core/src/lib/services/error.interceptor.ts`          | Parses Problem Details            |
+| Frontend error notification | `libs/client/core/src/lib/services/error-notification.service.ts` | Displays errors to user           |
 
 **Data Flow:**
+
 ```
 Backend Error                Frontend Handling
 ─────────────                ─────────────────
@@ -110,6 +113,7 @@ createProblemDetailsResponse()
 ```
 
 **Backend Error Types:**
+
 - `VALIDATION_ERROR` (400)
 - `UNAUTHORIZED` (401)
 - `FORBIDDEN` (403)
@@ -120,6 +124,7 @@ createProblemDetailsResponse()
 - `INTERNAL_ERROR` (500)
 
 **Frontend Error Display:**
+
 ```typescript
 // libs/client/core/src/lib/services/error.interceptor.ts
 intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
@@ -167,14 +172,15 @@ intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<un
 
 ### Role-Based Access Control
 
-| Backend | Frontend | Status |
-|---------|----------|--------|
-| `requireAuthentication()` extracts user | `checkSession()` loads user into signal | ✅ Aligned |
-| SQL RLS uses `SESSION_CONTEXT('UserId')` | Auth service exposes `user` signal | ✅ Aligned |
-| ExchangeRoles table stores RBAC | `hasRole()` method checks roles | ✅ Aligned |
-| Three roles: RiskManager, PortfolioManager, Analyst | Same three roles used in UI logic | ✅ Aligned |
+| Backend                                             | Frontend                                | Status     |
+| --------------------------------------------------- | --------------------------------------- | ---------- |
+| `requireAuthentication()` extracts user             | `checkSession()` loads user into signal | ✅ Aligned |
+| SQL RLS uses `SESSION_CONTEXT('UserId')`            | Auth service exposes `user` signal      | ✅ Aligned |
+| ExchangeRoles table stores RBAC                     | `hasRole()` method checks roles         | ✅ Aligned |
+| Three roles: RiskManager, PortfolioManager, Analyst | Same three roles used in UI logic       | ✅ Aligned |
 
 **Frontend Role Guard (Planned):**
+
 ```typescript
 // libs/client/core/src/lib/auth/role.guard.ts
 export function roleGuard(requiredRole: string): CanActivateFn {
@@ -200,26 +206,28 @@ export function roleGuard(requiredRole: string): CanActivateFn {
 
 ### Distributed Tracing
 
-| Component | Telemetry | Correlation |
-|-----------|-----------|-------------|
-| **Frontend** | `LoggerService` → App Insights | Operation ID in request headers |
-| **Backend** | Azure Functions built-in → App Insights | Operation ID from headers |
-| **Result** | End-to-end trace from browser to database | ✅ Full correlation |
+| Component    | Telemetry                                 | Correlation                     |
+| ------------ | ----------------------------------------- | ------------------------------- |
+| **Frontend** | `LoggerService` → App Insights            | Operation ID in request headers |
+| **Backend**  | Azure Functions built-in → App Insights   | Operation ID from headers       |
+| **Result**   | End-to-end trace from browser to database | ✅ Full correlation             |
 
 **Frontend Configuration:**
+
 ```typescript
 // libs/client/core/src/lib/logger/logger.service.ts
 this.appInsights = new ApplicationInsights({
   config: {
     connectionString: connectionString,
-    enableAutoRouteTracking: true,      // Tracks page views
-    enableCorsCorrelation: true,        // Links frontend to backend traces
-    enableAjaxErrorLookup: true        // Tracks HTTP errors
-  }
+    enableAutoRouteTracking: true, // Tracks page views
+    enableCorsCorrelation: true, // Links frontend to backend traces
+    enableAjaxErrorLookup: true, // Tracks HTTP errors
+  },
 });
 ```
 
 **Backend Configuration:**
+
 ```json
 // apps/backend/host.json (Azure Functions)
 {
@@ -234,6 +242,7 @@ this.appInsights = new ApplicationInsights({
 ```
 
 **Trace Correlation Example:**
+
 ```
 Frontend Request:
   Operation ID: 12345
@@ -255,21 +264,22 @@ SQL Query:
 
 ### Existing Backend APIs
 
-| Method | Endpoint | Function | Zod Schema | OpenAPI | Frontend Client |
-|--------|----------|----------|------------|---------|-----------------|
-| POST | `/api/v1/exchanges` | `createExchange.ts` | ✅ Yes | ✅ Yes | ❌ Missing |
-| POST | `/api/v1/orders` | `createOrder.ts` | ✅ Yes | ✅ Yes | ❌ Missing |
-| GET | `/api/docs` | `apiDocs.ts` | N/A | ✅ Returns spec | ⚠️ Not consumed |
+| Method | Endpoint            | Function            | Zod Schema | OpenAPI         | Frontend Client |
+| ------ | ------------------- | ------------------- | ---------- | --------------- | --------------- |
+| POST   | `/api/v1/exchanges` | `createExchange.ts` | ✅ Yes     | ✅ Yes          | ❌ Missing      |
+| POST   | `/api/v1/orders`    | `createOrder.ts`    | ✅ Yes     | ✅ Yes          | ❌ Missing      |
+| GET    | `/api/docs`         | `apiDocs.ts`        | N/A        | ✅ Returns spec | ⚠️ Not consumed |
 
 ### Missing Endpoints
 
-| Expected By | Endpoint | Purpose | Status |
-|-------------|----------|---------|--------|
+| Expected By          | Endpoint                     | Purpose                        | Status             |
+| -------------------- | ---------------------------- | ------------------------------ | ------------------ |
 | `feature.service.ts` | `GET /api/v1/exchange/rules` | Fetch feature flags and config | ❌ Not implemented |
 
 ### Proposed API Client Library
 
 **Structure:**
+
 ```
 libs/shared/api-client/
 ├── src/
@@ -285,6 +295,7 @@ libs/shared/api-client/
 ```
 
 **Example Implementation:**
+
 ```typescript
 // libs/shared/api-client/src/lib/exchange-api.service.ts
 import { Injectable } from '@angular/core';
@@ -294,22 +305,25 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class ExchangeApiService {
   private readonly baseUrl = '/api/v1';
-  
+
   constructor(private http: HttpClient) {}
-  
+
   createExchange(name: string): Observable<ExchangeResponse> {
-    return this.http.post<ExchangeResponse>(`${this.baseUrl}/exchanges`, { name });
+    return this.http.post<ExchangeResponse>(`${this.baseUrl}/exchanges`, {
+      name,
+    });
   }
-  
+
   getExchangeRules(exchangeId: string): Observable<FeatureFlagResponse> {
     return this.http.get<FeatureFlagResponse>(
-      `${this.baseUrl}/exchange/rules?exchangeId=${exchangeId}`
+      `${this.baseUrl}/exchange/rules?exchangeId=${exchangeId}`,
     );
   }
 }
 ```
 
 **Benefits:**
+
 1. ✅ Type-safe API calls using shared models
 2. ✅ Centralized error handling via interceptor
 3. ✅ Consistent HTTP configuration (base URL, headers)
@@ -324,31 +338,32 @@ export class ExchangeApiService {
 
 ### Backend SignalR Implementation ✅
 
-| Component | Location | Status |
-|-----------|----------|--------|
-| SignalR broadcast utility | `apps/backend/src/lib/signalr-broadcast.ts` | ✅ Complete |
-| Connection management | Azure SignalR Service | ✅ Provisioned |
-| Message protocol | MessagePack | ✅ Enabled |
-| Group targeting | `ticker:{ExchangeId}` | ✅ Implemented |
-| Data source | `tickerGenerator.ts` (every 1 second) | ✅ Broadcasting |
+| Component                 | Location                                    | Status          |
+| ------------------------- | ------------------------------------------- | --------------- |
+| SignalR broadcast utility | `apps/backend/src/lib/signalr-broadcast.ts` | ✅ Complete     |
+| Connection management     | Azure SignalR Service                       | ✅ Provisioned  |
+| Message protocol          | MessagePack                                 | ✅ Enabled      |
+| Group targeting           | `ticker:{ExchangeId}`                       | ✅ Implemented  |
+| Data source               | `tickerGenerator.ts` (every 1 second)       | ✅ Broadcasting |
 
 **Backend Broadcasting:**
+
 ```typescript
 // apps/backend/src/lib/signalr-broadcast.ts
 export async function broadcastPriceUpdate(
   priceUpdate: PriceUpdateData,
   basePrice: number,
-  context: InvocationContext
+  context: InvocationContext,
 ): Promise<void> {
   const signalRMessage = {
     target: 'PriceUpdate',
-    arguments: [priceUpdate]
+    arguments: [priceUpdate],
   };
 
   // Broadcast to exchange-specific group
   context.extraOutputs.set(signalROutput, {
     groupName: `ticker:${priceUpdate.exchangeId}`,
-    ...signalRMessage
+    ...signalRMessage,
   });
 }
 ```
@@ -356,6 +371,7 @@ export async function broadcastPriceUpdate(
 ### Frontend SignalR Integration ❌ MISSING
 
 **Proposed Implementation:**
+
 ```typescript
 // libs/client/core/src/lib/signalr/signalr.service.ts
 import { Injectable, signal, DestroyRef } from '@angular/core';
@@ -374,39 +390,42 @@ export class SignalRService {
   #connection: signalR.HubConnection | null = null;
   #isConnected = signal<boolean>(false);
   #latestPrices = signal<Map<string, PriceUpdateData>>(new Map());
-  
+
   public readonly isConnected = this.#isConnected.asReadonly();
   public readonly latestPrices = this.#latestPrices.asReadonly();
-  
+
   constructor(
     private logger: LoggerService,
-    private destroyRef: DestroyRef
+    private destroyRef: DestroyRef,
   ) {}
-  
+
   async connect(exchangeId: string): Promise<void> {
     this.#connection = new signalR.HubConnectionBuilder()
       .withUrl('/api')
       .withHubProtocol(new MessagePackHubProtocol())
       .withAutomaticReconnect()
       .build();
-    
+
     this.#connection.on('PriceUpdate', (data: PriceUpdateData) => {
       const prices = new Map(this.#latestPrices());
       prices.set(data.symbol, data);
       this.#latestPrices.set(prices);
-      this.logger.logTrace('Price update received', { symbol: data.symbol, price: data.price });
+      this.logger.logTrace('Price update received', {
+        symbol: data.symbol,
+        price: data.price,
+      });
     });
-    
+
     await this.#connection.start();
     await this.#connection.invoke('JoinGroup', `ticker:${exchangeId}`);
     this.#isConnected.set(true);
-    
+
     this.logger.logEvent('SignalRConnected', { exchangeId });
-    
+
     // Auto-cleanup on component destruction
     this.destroyRef.onDestroy(() => this.disconnect());
   }
-  
+
   async disconnect(): Promise<void> {
     if (this.#connection) {
       await this.#connection.stop();
@@ -419,6 +438,7 @@ export class SignalRService {
 ```
 
 **Usage in Components:**
+
 ```typescript
 // Example trading terminal component
 @Component({
@@ -432,12 +452,12 @@ export class SignalRService {
         </div>
       }
     </div>
-  `
+  `,
 })
 export class TradingTerminalComponent {
   protected signalR = inject(SignalRService);
   private auth = inject(AuthService);
-  
+
   async ngOnInit() {
     const exchangeId = this.auth.user()?.exchangeId;
     if (exchangeId) {
@@ -532,14 +552,14 @@ export class TradingTerminalComponent {
 
 ## Success Metrics
 
-| Metric | Current | Target | Status |
-|--------|---------|--------|--------|
-| Backend-Frontend Type Safety | 60% | 100% | 🔄 In Progress |
-| API Integration Completeness | 40% | 100% | 🔄 In Progress |
-| Real-Time Data Flow | 0% | 100% | ❌ Not Started |
-| Test Coverage (Frontend) | 88% passing | 100% passing | ⚠️ Test failures |
-| E2E Test Coverage | 0% | 80% critical paths | ❌ Not Started |
-| Documentation Completeness | 70% | 100% | 🔄 In Progress |
+| Metric                       | Current     | Target             | Status           |
+| ---------------------------- | ----------- | ------------------ | ---------------- |
+| Backend-Frontend Type Safety | 60%         | 100%               | 🔄 In Progress   |
+| API Integration Completeness | 40%         | 100%               | 🔄 In Progress   |
+| Real-Time Data Flow          | 0%          | 100%               | ❌ Not Started   |
+| Test Coverage (Frontend)     | 88% passing | 100% passing       | ⚠️ Test failures |
+| E2E Test Coverage            | 0%          | 80% critical paths | ❌ Not Started   |
+| Documentation Completeness   | 70%         | 100%               | 🔄 In Progress   |
 
 ---
 

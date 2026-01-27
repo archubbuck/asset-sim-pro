@@ -15,6 +15,7 @@ Real-time price update service for AssetSim Pro frontend, implementing ADR-009 E
 ## Installation
 
 The required dependencies are already installed:
+
 - `@microsoft/signalr` - SignalR client library
 - `@microsoft/signalr-protocol-msgpack` - MessagePack protocol for efficiency
 
@@ -32,7 +33,7 @@ import { SignalRService } from '@assetsim/client/core';
 })
 export class MyComponent {
   private signalR = inject(SignalRService);
-  
+
   async ngOnInit() {
     // Automatically uses emulation mode
     await this.signalR.connect('test-exchange-id');
@@ -54,10 +55,10 @@ export const appConfig: ApplicationConfig = {
       provide: SIGNALR_CONFIG,
       useValue: {
         enableProduction: true,
-        hubUrl: '/api' // Azure Functions SignalR endpoint
-      }
-    }
-  ]
+        hubUrl: '/api', // Azure Functions SignalR endpoint
+      },
+    },
+  ],
 };
 ```
 
@@ -80,7 +81,7 @@ import { SignalRService } from '@assetsim/client/core';
             <span class="symbol">{{ price.value.symbol }}</span>
             <span class="price">{{ price.value.price | currency }}</span>
             <span class="change" [class.positive]="price.value.change > 0">
-              {{ price.value.changePercent | number:'1.2-2' }}%
+              {{ price.value.changePercent | number: '1.2-2' }}%
             </span>
           </div>
         }
@@ -88,11 +89,11 @@ import { SignalRService } from '@assetsim/client/core';
         <span class="status disconnected">Disconnected</span>
       }
     </div>
-  `
+  `,
 })
 export class PriceTickerComponent {
   protected signalR = inject(SignalRService);
-  
+
   async ngOnInit() {
     const exchangeId = 'your-exchange-id';
     await this.signalR.connect(exchangeId);
@@ -113,12 +114,12 @@ import { LoggerService } from '@assetsim/client/core';
     <div class="indicator" [attr.data-state]="signalR.connectionState()">
       {{ signalR.connectionState() }}
     </div>
-  `
+  `,
 })
 export class ConnectionIndicatorComponent {
   protected signalR = inject(SignalRService);
   private logger = inject(LoggerService);
-  
+
   constructor() {
     // React to connection state changes
     effect(() => {
@@ -147,18 +148,20 @@ import { SignalRService } from '@assetsim/client/core';
         <h2>{{ symbol }}</h2>
         <p class="price">{{ currentPrice()!.price | currency }}</p>
         <p class="volume">Volume: {{ currentPrice()!.volume | number }}</p>
-        <p class="timestamp">{{ currentPrice()!.timestamp | date:'medium' }}</p>
+        <p class="timestamp">
+          {{ currentPrice()!.timestamp | date: 'medium' }}
+        </p>
       </div>
     }
-  `
+  `,
 })
 export class SymbolDetailComponent {
   private signalR = inject(SignalRService);
-  
+
   @Input() symbol = 'AAPL';
-  
-  protected currentPrice = computed(() => 
-    this.signalR.latestPrices().get(this.symbol)
+
+  protected currentPrice = computed(() =>
+    this.signalR.latestPrices().get(this.symbol),
   );
 }
 ```
@@ -265,12 +268,14 @@ npx jest libs/client/core/src/lib/signalr --coverage
 The frontend SignalR service integrates with the backend implementation:
 
 **Backend** (`apps/backend/src/lib/signalr-broadcast.ts`):
+
 - Broadcasts via Azure Web PubSub
 - Uses MessagePack encoding
 - Groups: `ticker:{ExchangeId}`
 - Message: Raw MessagePack-encoded `PriceUpdateEvent` payload
 
 **Frontend** (this service):
+
 - Connects to Azure Web PubSub hub
 - Group subscription requires backend HTTP endpoint (calls `addToTickerGroup` server-side)
 - Processes decoded `PriceUpdateEvent` payloads
@@ -302,10 +307,12 @@ UI automatically updates (Angular Signals)
 ### 1. Connect Early, Disconnect Automatically
 
 ```typescript
-@Component({/* ... */})
+@Component({
+  /* ... */
+})
 export class TradingComponent {
   private signalR = inject(SignalRService);
-  
+
   async ngOnInit() {
     // Connect early in component lifecycle
     await this.signalR.connect(this.exchangeId);
@@ -354,7 +361,8 @@ protected connectionClass = computed(() => ({
 
 **Problem**: Service fails to connect in production
 
-**Solution**: 
+**Solution**:
+
 1. Verify `SIGNALR_CONFIG` is provided with `enableProduction: true`
 2. Check Azure SignalR connection string in backend
 3. Ensure Azure Functions are running
@@ -365,6 +373,7 @@ protected connectionClass = computed(() => ({
 **Problem**: Connected but no price updates received
 
 **Solution**:
+
 1. Check `exchangeId` is correct
 2. Verify backend is broadcasting to correct group
 3. Check browser console for SignalR errors
@@ -375,6 +384,7 @@ protected connectionClass = computed(() => ({
 **Problem**: No mock data in local development
 
 **Solution**:
+
 1. Ensure `enableProduction` is NOT set (or set to false)
 2. Check browser console for JavaScript errors
 3. Verify the component calls `connect()` method
@@ -385,6 +395,7 @@ protected connectionClass = computed(() => ({
 ### Memory Management
 
 The service stores latest prices in a Map, which grows with symbol count:
+
 - **Typical**: 50-200 symbols (~10-40 KB)
 - **Large**: 1000+ symbols (~200+ KB)
 
@@ -412,8 +423,7 @@ Angular Signals efficiently batch UI updates.
 - **ADR-009**: Event-Driven Architecture (SignalR integration)
 - **Backend Implementation**: `apps/backend/src/lib/signalr-broadcast.ts`
 - **Backend Tests**: `apps/backend/src/lib/signalr-broadcast.spec.ts`
-- **Documentation**: `BACKEND_FRONTEND_INTEGRATION.md`
-- **Evaluation**: `PHASE_5_EVALUATION.md`
+- **Documentation**: `../../../../../docs/architecture/BACKEND_FRONTEND_INTEGRATION.md`
 
 ---
 

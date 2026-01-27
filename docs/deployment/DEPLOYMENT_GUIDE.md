@@ -16,7 +16,7 @@ This guide covers deploying the AssetSim Pro Zero Trust Architecture to Azure.
 # 2. Continue with this deployment guide
 ```
 
-See **[GETTING_STARTED.md](./GETTING_STARTED.md)** for the complete quick start path.
+See **[GETTING_STARTED.md](../../GETTING_STARTED.md)** for the complete quick start path.
 
 ### Option B: Manual Bootstrap Path
 
@@ -27,12 +27,14 @@ Complete the manual bootstrap steps documented in **[BOOTSTRAP_GUIDE.md](./BOOTS
 3. **Azure DevOps Agent Pool**: Create `Self-Hosted-VNet-Pool` for VNet deployments
 
 If you haven't completed bootstrap, see:
-- **[scripts/README.md](./scripts/README.md)** for automated bootstrap
+
+- **[scripts/README.md](../../scripts/README.md)** for automated bootstrap
 - **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)** for manual bootstrap procedures
 
 ## Prerequisites
 
 ### Required Tools
+
 - Azure CLI (2.50.0+)
 - Terraform (1.5.0+)
 - Azure Functions Core Tools (4.x)
@@ -40,10 +42,12 @@ If you haven't completed bootstrap, see:
 - SQL Server Management Studio or sqlcmd (for schema deployment)
 
 ### Azure Permissions
+
 - Owner or Contributor role on target subscription
 - Completed bootstrap steps per [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) (ADR-012)
 
 ### Network Access
+
 - Self-hosted agent in VNet (for deployment to private resources) - configured per BOOTSTRAP_GUIDE.md
 - Or jumpbox/bastion host in VNet for manual operations
 
@@ -225,13 +229,13 @@ az cloud-shell create \
 
 ```sql
 -- Check tables created
-SELECT TABLE_SCHEMA, TABLE_NAME 
-FROM INFORMATION_SCHEMA.TABLES 
+SELECT TABLE_SCHEMA, TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Trade'
 ORDER BY TABLE_NAME;
 
 -- Check RLS policies
-SELECT 
+SELECT
     p.name AS PolicyName,
     o.name AS TableName,
     t.predicate_definition
@@ -380,6 +384,7 @@ Create `staticwebapp.config.json` in frontend:
 ## Phase 6: Production Checklist
 
 ### Security
+
 - [ ] SQL admin password rotated and stored in Key Vault
 - [ ] TLS 1.2 minimum enforced on all services
 - [ ] Network Security Groups configured for subnets
@@ -389,6 +394,7 @@ Create `staticwebapp.config.json` in frontend:
 - [ ] Entra ID conditional access policies configured
 
 ### Monitoring
+
 - [ ] Application Insights configured
 - [ ] Log Analytics workspace linked
 - [ ] Alerts configured for:
@@ -399,12 +405,14 @@ Create `staticwebapp.config.json` in frontend:
 - [ ] Diagnostic logs enabled for all services
 
 ### Backup & DR
+
 - [ ] SQL Database automated backups enabled
 - [ ] Geo-redundant backup configured
 - [ ] Disaster recovery plan documented
 - [ ] RPO/RTO requirements defined
 
 ### Cost Optimization
+
 - [ ] Right-size SQL Elastic Pool capacity
 - [ ] Configure Function App scaling rules
 - [ ] Review Redis cache tier
@@ -413,6 +421,7 @@ Create `staticwebapp.config.json` in frontend:
 ## Troubleshooting
 
 ### Cannot Connect to SQL Server
+
 ```bash
 # Verify private endpoint DNS resolution
 nslookup sql-assetsim-prod.database.windows.net
@@ -421,6 +430,7 @@ nslookup sql-assetsim-prod.database.windows.net
 ```
 
 ### Function App Cannot Access Data Services
+
 ```bash
 # Check VNet integration status
 az functionapp vnet-integration list \
@@ -435,6 +445,7 @@ az functionapp config show \
 ```
 
 ### Authentication Issues
+
 ```bash
 # Check Static Web App auth configuration
 az staticwebapp show \
@@ -502,6 +513,7 @@ git push origin main
 ```
 
 Manual trigger via Azure DevOps:
+
 1. Navigate to Pipelines → asset-sim-pro
 2. Click "Run pipeline"
 3. Select branch and click "Run"
@@ -538,6 +550,7 @@ terraform apply -auto-approve
 ```
 
 **Prerequisites:**
+
 - Terraform state storage (see BOOTSTRAP_GUIDE.md Phase 1)
 - `Self-Hosted-VNet-Pool` configured (see BOOTSTRAP_GUIDE.md Phase 3)
 - Service connection with appropriate permissions
@@ -564,11 +577,13 @@ npx prisma migrate deploy
 ### Monitoring Pipeline Runs
 
 #### Via Azure DevOps UI
+
 1. Navigate to Pipelines → asset-sim-pro
 2. View recent runs and their status
 3. Click a run to see stage details and logs
 
 #### Via Azure CLI
+
 ```bash
 # List recent pipeline runs
 az pipelines runs list \
@@ -588,6 +603,7 @@ az pipelines runs show \
 #### Build Stage Failures
 
 **Problem:** Client build fails
+
 ```bash
 # Check Nx cache and dependencies
 npx nx reset
@@ -596,6 +612,7 @@ npx nx run client:build:production
 ```
 
 **Problem:** Backend build fails
+
 ```bash
 cd apps/backend
 npm ci
@@ -606,11 +623,13 @@ npm test
 #### Infrastructure Stage Failures
 
 **Problem:** Terraform init fails
+
 - Verify `Self-Hosted-VNet-Pool` is online
 - Check service connection permissions
 - Ensure Terraform state storage exists (BOOTSTRAP_GUIDE.md Phase 1)
 
 **Problem:** Terraform apply fails
+
 - Review Terraform plan output in pipeline logs
 - Verify service principal has Contributor role
 - Check for resource name conflicts or quota limits
@@ -618,6 +637,7 @@ npm test
 #### Deploy Stage Failures
 
 **Problem:** Function App deployment fails
+
 ```bash
 # Verify Function App exists
 az functionapp show \
@@ -631,10 +651,12 @@ az functionapp deployment list-publishing-credentials \
 ```
 
 **Problem:** Static Web App deployment fails
+
 - Verify SWA_DEPLOYMENT_TOKEN is set correctly in variable group
 - Check Static Web App exists and is accessible
 
 **Problem:** Database migration fails
+
 ```bash
 # Test connection from VNet agent
 sqlcmd -S tcp:sql-assetsim-prod.database.windows.net,1433 \
@@ -684,9 +706,9 @@ npx prisma migrate deploy
 ### Related Documentation
 
 - Pipeline definition: `azure-pipelines.yml`
-- Architecture decisions: [ARCHITECTURE.md](./ARCHITECTURE.md) (ADR-023, lines 1151-1293)
+- Architecture decisions: [ARCHITECTURE.md](../../ARCHITECTURE.md) (ADR-023, lines 1151-1293)
 - Bootstrap guide: [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)
-- Zero Trust setup: [ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)
+- Zero Trust setup: [ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md)
 
 ## Rollback Procedure
 
@@ -705,9 +727,10 @@ terraform state push backup.tfstate
 ## Support
 
 For issues or questions:
-- Review [ARCHITECTURE.md](./ARCHITECTURE.md) for design decisions
-- Check [ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md) for architecture details
-- See [backend/README.md](./backend/README.md) for API documentation
+
+- Review [ARCHITECTURE.md](../../ARCHITECTURE.md) for design decisions
+- Check [ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md) for architecture details
+- See [backend/README.md](../../backend/README.md) for API documentation
 
 ---
 

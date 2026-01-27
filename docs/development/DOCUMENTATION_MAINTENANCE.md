@@ -1,7 +1,7 @@
 # Documentation Maintenance Guide
 
-**Version:** 1.0.0  
-**Last Updated:** January 25, 2026  
+**Version:** 2.0.0  
+**Last Updated:** January 26, 2026  
 **Maintained By:** AssetSim Pro Engineering Team
 
 ## Purpose
@@ -10,42 +10,76 @@ This guide helps maintainers keep AssetSim Pro documentation accurate, consisten
 
 ---
 
+## Documentation Organization (v2.0 - Updated Jan 26, 2026)
+
+As of January 26, 2026, the documentation has been reorganized into a `docs/` folder structure for better organization and discoverability:
+
+### Root-Level Documents (Essential Entry Points)
+
+These remain in the repository root for maximum visibility:
+
+- **README.md** - Project overview and quick start
+- **GETTING_STARTED.md** - Primary entry point for new developers
+- **ARCHITECTURE.md** - Complete architectural decision records (ADRs)
+- **CONTRIBUTING.md** - Development guidelines and git workflow
+
+### `docs/` Folder Structure
+
+Supporting documentation is organized into themed subdirectories:
+
+- **`docs/deployment/`** - Infrastructure and deployment guides
+  - BOOTSTRAP_GUIDE.md, DEPLOYMENT_GUIDE.md
+- **`docs/architecture/`** - Architecture and integration documents
+  - BACKEND_FRONTEND_INTEGRATION.md, ZERO_TRUST_IMPLEMENTATION.md, VERIFICATION.md, OBSERVABILITY_ALERT_CONFIG.md
+- **`docs/development/`** - Development guides and maintenance
+  - NX_WORKSPACE_GUIDE.md, TESTING.md, DOCUMENTATION_MAINTENANCE.md (this file)
+
+### Benefits of New Structure
+
+- ✅ **Cleaner root directory** - Only essential entry points at top level
+- ✅ **Better organization** - Related documents grouped together
+- ✅ **Easier navigation** - Clear folder names indicate content type
+- ✅ **Scalability** - Easy to add new documentation without cluttering root
+
+---
+
 ## Documentation Structure
 
 ### Document Categories
 
 #### 1. Entry Points (Must be kept current)
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Primary entry point for all users
+
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Primary entry point for all users
   - **Owner:** DevOps Team
   - **Review Frequency:** Monthly or after major changes
   - **Dependencies:** README.md, BOOTSTRAP_GUIDE.md, DEPLOYMENT_GUIDE.md
 
-- **[README.md](./README.md)**: Project overview and navigation
+- **[README.md](../../README.md)**: Project overview and navigation
   - **Owner:** Project Lead
   - **Review Frequency:** Quarterly or after major milestones
   - **Dependencies:** All documentation files
 
 #### 2. Primary Procedure Documents (Authoritative sources)
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures
+
+- **[BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures
   - **Owner:** DevOps Team
   - **Review Frequency:** After Azure service changes or automation updates
   - **Version:** Semantic versioning (currently v2.0.0)
-  
-- **[scripts/README.md](./scripts/README.md)**: Automation script documentation
+- **[scripts/README.md](../../scripts/README.md)**: Automation script documentation
   - **Owner:** DevOps Team
   - **Review Frequency:** After script changes
   - **Version:** Semantic versioning (currently v1.1.0)
 
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**: Terraform deployment procedures
+- **[DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md)**: Terraform deployment procedures
   - **Owner:** Infrastructure Team
   - **Review Frequency:** After infrastructure changes
 
 #### 3. Reference Documents (Background information)
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: All ADRs and technical decisions
+
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: All ADRs and technical decisions
   - **Owner:** Architecture Team
   - **Review Frequency:** After each ADR addition or update
-  
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines
+- **[CONTRIBUTING.md](../../CONTRIBUTING.md)**: Development guidelines
   - **Owner:** Development Team
   - **Review Frequency:** Quarterly
 
@@ -54,22 +88,10 @@ This guide helps maintainers keep AssetSim Pro documentation accurate, consisten
   - **Review Frequency:** After test framework changes
 
 #### 4. Verification Documents (Implementation proofs)
-- **IMPLEMENTATION_ADR_*.md**: ADR implementation verification
-  - **Owner:** Implementation Team
-  - **Review Frequency:** Once after ADR completion, then as needed
-  
-- **VERIFICATION.md**: Source control verification
+
+- **docs/architecture/VERIFICATION.md**: Source control verification
   - **Owner:** DevOps Team
   - **Review Frequency:** After tooling changes
-
-#### 5. Evaluation Documents (Status reports)
-- **PHASE_*_EVALUATION.md**: Phase completion reports
-  - **Owner:** Project Manager
-  - **Review Frequency:** At phase milestones
-  
-- **[EVALUATION_DOCS_README.md](./EVALUATION_DOCS_README.md)**: Evaluation navigation
-  - **Owner:** Project Manager
-  - **Review Frequency:** After new evaluation reports
 
 ---
 
@@ -79,23 +101,28 @@ This guide helps maintainers keep AssetSim Pro documentation accurate, consisten
 GETTING_STARTED.md (Entry Point) ← Always start here
 ├── Local Development Path
 │   ├── README.md (Overview)
-│   ├── NX_WORKSPACE_GUIDE.md (Workspace)
+│   ├── docs/development/NX_WORKSPACE_GUIDE.md (Workspace)
 │   ├── CONTRIBUTING.md (Guidelines)
-│   └── TESTING.md (Testing)
+│   └── docs/development/TESTING.md (Testing)
 │
 └── Azure Deployment Path
-    ├── BOOTSTRAP_GUIDE.md (Primary: Manual procedures) ← Authoritative
-    │   ├── scripts/README.md (Primary: Automation) ← Authoritative
-    │   └── IMPLEMENTATION_ADR_012.md (Verification)
+    ├── docs/deployment/BOOTSTRAP_GUIDE.md (Primary: Manual procedures) ← Authoritative
+    │   └── scripts/README.md (Primary: Automation) ← Authoritative
     │
-    ├── DEPLOYMENT_GUIDE.md (Primary: Terraform)
-    └── VERIFICATION.md (Verification procedures)
+    ├── docs/deployment/DEPLOYMENT_GUIDE.md (Primary: Terraform)
+    └── docs/architecture/VERIFICATION.md (Verification procedures)
 
-Reference Layer (Supporting documentation)
-├── ARCHITECTURE.md (ADRs)
-├── EVALUATION_DOCS_README.md (Evaluation navigation)
-├── PHASE_*_EVALUATION.md (Status reports)
-└── IMPLEMENTATION_ADR_*.md (Implementation verification)
+Reference Layer (Supporting documentation - organized in docs/ folder)
+├── ARCHITECTURE.md (ADRs - root level)
+├── docs/architecture/
+│   ├── BACKEND_FRONTEND_INTEGRATION.md
+│   ├── ZERO_TRUST_IMPLEMENTATION.md
+│   ├── VERIFICATION.md
+│   └── OBSERVABILITY_ALERT_CONFIG.md
+└── docs/development/
+    ├── DOCUMENTATION_MAINTENANCE.md (this file)
+    ├── NX_WORKSPACE_GUIDE.md
+    └── TESTING.md
 ```
 
 ---
@@ -105,17 +132,20 @@ Reference Layer (Supporting documentation)
 ### When to Update Documentation
 
 #### After Code Changes
+
 - **Function/API changes**: Update backend README and OpenAPI docs
 - **Component changes**: Update frontend READMEs and component docs
 - **Script changes**: Update scripts/README.md
 - **Configuration changes**: Update relevant setup guides
 
 #### After Infrastructure Changes
+
 - **Azure service updates**: Update BOOTSTRAP_GUIDE.md, DEPLOYMENT_GUIDE.md
 - **Terraform changes**: Update DEPLOYMENT_GUIDE.md
 - **Network changes**: Update ZERO_TRUST_IMPLEMENTATION.md
 
 #### After Process Changes
+
 - **Git workflow updates**: Update CONTRIBUTING.md
 - **CI/CD updates**: Update azure-pipelines.yml comments
 - **Testing strategy changes**: Update TESTING.md
@@ -127,6 +157,7 @@ Reference Layer (Supporting documentation)
 Use the dependency map above to find all documents that need updates.
 
 **Example:** If you update a bootstrap script:
+
 1. Update `scripts/README.md` (primary)
 2. Check if `BOOTSTRAP_GUIDE.md` needs updates (it references scripts)
 3. Check if `GETTING_STARTED.md` needs updates (it references both)
@@ -138,17 +169,19 @@ Always update in this order to maintain consistency:
 
 1. **Primary documents** (authoritative sources)
 2. **Entry points** (GETTING_STARTED.md, README.md)
-3. **Verification documents** (IMPLEMENTATION_ADR_*.md)
+3. **Verification documents** (IMPLEMENTATION*ADR*\*.md)
 4. **Reference documents** (cross-references)
 
 #### 3. Version Updates
 
 Use semantic versioning for major documents:
+
 - **Major (X.0.0)**: Breaking changes, major restructuring
 - **Minor (x.Y.0)**: New sections, significant additions
 - **Patch (x.y.Z)**: Corrections, clarifications, small updates
 
 **Documents with versions:**
+
 - BOOTSTRAP_GUIDE.md (currently v2.0.0)
 - scripts/README.md (currently v1.1.0)
 - IMPLEMENTATION_ADR_012.md (currently v2.0.0)
@@ -173,26 +206,29 @@ For each documentation update:
 ### Cross-References
 
 **Always use relative links:**
+
 ```markdown
-✅ Good: [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)
-❌ Bad:  [BOOTSTRAP_GUIDE.md](/BOOTSTRAP_GUIDE.md)
-❌ Bad:  [BOOTSTRAP_GUIDE.md](https://github.com/archubbuck/asset-sim-pro/blob/main/BOOTSTRAP_GUIDE.md)
+✅ Good: [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md)
+❌ Bad: [BOOTSTRAP_GUIDE.md](/BOOTSTRAP_GUIDE.md)
+❌ Bad: [BOOTSTRAP_GUIDE.md](https://github.com/archubbuck/asset-sim-pro/blob/main/BOOTSTRAP_GUIDE.md)
 ```
 
 **Always provide context:**
+
 ```markdown
-✅ Good: See [BOOTSTRAP_GUIDE.md Phase 2](./BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent) for Entra ID setup
-❌ Bad:  See BOOTSTRAP_GUIDE.md
+✅ Good: See [BOOTSTRAP_GUIDE.md Phase 2](../deployment/BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent) for Entra ID setup
+❌ Bad: See BOOTSTRAP_GUIDE.md
 ```
 
 ### Document Headers
 
 All primary documents should have:
+
 ```markdown
 # Document Title
 
 **Status:** [Status]
-**Version:** X.Y.Z  (if versioned)
+**Version:** X.Y.Z (if versioned)
 **Date:** January DD, 2026
 **ADR Reference:** (if applicable)
 ```
@@ -200,14 +236,16 @@ All primary documents should have:
 ### Related Documents Section
 
 Add at the end of each document:
+
 ```markdown
 ---
 
 **Last Updated:** January DD, 2026
-**Version:** X.Y.Z  (if applicable)
+**Version:** X.Y.Z (if applicable)
 **Maintained By:** [Team Name]
 
 **Related Documents:**
+
 - [Document 1](./doc1.md) - Purpose
 - [Document 2](./doc2.md) - Purpose
 ```
@@ -215,6 +253,7 @@ Add at the end of each document:
 ### Automation Markers
 
 Use consistent markers in BOOTSTRAP_GUIDE.md:
+
 - 🤖 **Automation Available:** For steps that can be automated
 - ⚠️ **Manual Setup Required:** For steps without automation
 
@@ -245,12 +284,14 @@ Use consistent markers in BOOTSTRAP_GUIDE.md:
 ### Deprecating a Document
 
 **Never delete documentation.** Instead:
+
 1. Add deprecation notice at top
 2. Link to replacement document
 3. Update all references to point to new document
 4. Keep deprecated document for historical reference
 
 **Example:**
+
 ```markdown
 # Old Document (DEPRECATED)
 
@@ -297,9 +338,11 @@ Every quarter, review:
 Track documentation that needs attention:
 
 ### Known Issues
+
 - None currently
 
 ### Future Improvements
+
 - Add architecture diagrams to DEPLOYMENT_GUIDE.md
 - Create video walkthrough for bootstrap procedures
 - Add interactive documentation with examples
@@ -312,6 +355,7 @@ Track documentation that needs attention:
 ### Recommended Tools
 
 **Link Checking:**
+
 ```bash
 # Use markdown-link-check (install via npm)
 npm install -g markdown-link-check
@@ -319,6 +363,7 @@ find . -name "*.md" -not -path "./node_modules/*" | xargs markdown-link-check
 ```
 
 **Spelling:**
+
 ```bash
 # Use cspell (install via npm)
 npm install -g cspell
@@ -326,6 +371,7 @@ cspell "**/*.md"
 ```
 
 **Formatting:**
+
 ```bash
 # Use prettier (already in project)
 npx prettier --write "**/*.md"
@@ -334,6 +380,7 @@ npx prettier --write "**/*.md"
 ### Automated Checks (Future)
 
 Consider adding to CI/CD:
+
 - Link validation
 - Spelling check
 - Cross-reference validation
@@ -344,10 +391,12 @@ Consider adding to CI/CD:
 ## Contact and Escalation
 
 ### Documentation Questions
+
 - Create an issue with label `documentation`
 - Tag: @archubbuck or relevant team
 
 ### Major Documentation Changes
+
 - Propose changes in a PR
 - Request review from at least 2 team members
 - Update DOCUMENTATION_MAINTENANCE.md if structure changes
@@ -356,9 +405,10 @@ Consider adding to CI/CD:
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | January 25, 2026 | Initial documentation maintenance guide |
+| Version | Date             | Changes                                                                          |
+| ------- | ---------------- | -------------------------------------------------------------------------------- |
+| 2.0.0   | January 26, 2026 | Reorganized documentation into docs/ folder structure with themed subdirectories |
+| 1.0.0   | January 25, 2026 | Initial documentation maintenance guide                                          |
 
 ---
 

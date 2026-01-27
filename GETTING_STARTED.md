@@ -19,13 +19,16 @@ This guide provides the essential steps to get AssetSim Pro running locally or d
 Before starting, ensure you have:
 
 ### For Local Development
+
 - **Node.js 20.x** or higher
 - **Docker & Docker Compose** (for local services)
 - **Git**
 - **npm** package manager
 
 ### For Azure Deployment
+
 All of the above, plus:
+
 - **Azure Subscription** with Contributor or Owner role
 - **Azure CLI 2.50.0+** installed and configured
 - **Microsoft Entra ID Global Administrator** role (for API consent only)
@@ -140,12 +143,13 @@ export APP_ID="your-application-client-id"
 
 #### Option B: Manual Bootstrap
 
-Follow the comprehensive manual steps in [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md), which covers:
+Follow the comprehensive manual steps in [BOOTSTRAP_GUIDE.md](./docs/deployment/BOOTSTRAP_GUIDE.md), which covers:
+
 - Phase 1: Terraform State Storage
 - Phase 2: Entra ID API Consent
 - Phase 3: Azure DevOps Self-Hosted Agent Pool
 
-**📖 See:** [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) for step-by-step manual instructions.
+**📖 See:** [BOOTSTRAP_GUIDE.md](./docs/deployment/BOOTSTRAP_GUIDE.md) for step-by-step manual instructions.
 
 ### Step 2: Deploy Infrastructure with Terraform
 
@@ -168,7 +172,7 @@ terraform plan
 terraform apply
 ```
 
-**📖 See:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for complete deployment instructions.
+**📖 See:** [DEPLOYMENT_GUIDE.md](./docs/deployment/DEPLOYMENT_GUIDE.md) for complete deployment instructions.
 
 ### Step 3: Configure Backend
 
@@ -184,7 +188,7 @@ az functionapp config appsettings set \
   --settings @appsettings.json
 ```
 
-**📖 See:** [DEPLOYMENT_GUIDE.md - Phase 4](./DEPLOYMENT_GUIDE.md#phase-4-deploy-backend-function-app) for detailed backend configuration.
+**📖 See:** [DEPLOYMENT_GUIDE.md - Phase 4](./docs/deployment/DEPLOYMENT_GUIDE.md#phase-4-deploy-backend-function-app) for detailed backend configuration.
 
 ### Step 4: Deploy Frontend
 
@@ -195,7 +199,7 @@ swa deploy ./dist/apps/client \
   --deployment-token $DEPLOYMENT_TOKEN
 ```
 
-**📖 See:** [DEPLOYMENT_GUIDE.md - Phase 5](./DEPLOYMENT_GUIDE.md#phase-5-configure-static-web-app) for Static Web App setup.
+**📖 See:** [DEPLOYMENT_GUIDE.md - Phase 5](./docs/deployment/DEPLOYMENT_GUIDE.md#phase-5-configure-static-web-app) for Static Web App setup.
 
 ### Step 5: Verify Deployment
 
@@ -212,27 +216,29 @@ curl https://<your-function-app>.azurewebsites.net/api/health
 curl https://<your-static-web-app>.azurestaticapps.net
 ```
 
-**📖 See:** [VERIFICATION.md](./VERIFICATION.md) for complete verification steps.
+**📖 See:** [VERIFICATION.md](./docs/architecture/VERIFICATION.md) for complete verification steps.
 
 ---
 
 ## Next Steps
 
 ### After Local Setup
-- **Explore the codebase:** [NX_WORKSPACE_GUIDE.md](./NX_WORKSPACE_GUIDE.md)
+
+- **Explore the codebase:** [NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)
 - **Understand architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md)
-- **Review testing strategy:** [TESTING.md](./TESTING.md)
+- **Review testing strategy:** [TESTING.md](./docs/development/TESTING.md)
 - **Contribution guidelines:** [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ### After Azure Deployment
+
 - **Configure monitoring:** Set up Application Insights
-- **Review security:** [ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)
+- **Review security:** [ZERO_TRUST_IMPLEMENTATION.md](./docs/architecture/ZERO_TRUST_IMPLEMENTATION.md)
 - **Set up CI/CD:** Review [azure-pipelines.yml](./azure-pipelines.yml)
 
 ### Understanding the Project
+
 - **Architecture decisions:** [ARCHITECTURE.md](./ARCHITECTURE.md) contains all ADRs
-- **Implementation status:** [EVALUATION_DOCS_README.md](./EVALUATION_DOCS_README.md)
-- **Backend-frontend integration:** [BACKEND_FRONTEND_INTEGRATION.md](./BACKEND_FRONTEND_INTEGRATION.md)
+- **Backend-frontend integration:** [BACKEND_FRONTEND_INTEGRATION.md](./docs/architecture/BACKEND_FRONTEND_INTEGRATION.md)
 
 ---
 
@@ -241,6 +247,7 @@ curl https://<your-static-web-app>.azurestaticapps.net
 ### Issue: "Docker services not starting"
 
 **Solution:**
+
 ```bash
 # Check Docker is running
 docker ps
@@ -258,6 +265,7 @@ docker compose up -d
 **Cause:** This project uses [Conventional Commits](https://www.conventionalcommits.org/)
 
 **Solution:**
+
 ```bash
 # Valid format: type(scope): description
 git commit -m "feat(backend): add new feature"
@@ -269,6 +277,7 @@ git commit -m "fix(frontend): resolve bug"
 ### Issue: "Azure authentication failed"
 
 **Solution:**
+
 ```bash
 # Login to Azure
 az login
@@ -289,6 +298,7 @@ az account show
 ### Issue: "npm install fails"
 
 **Solution:**
+
 ```bash
 # Clear npm cache
 npm cache clean --force
@@ -310,27 +320,21 @@ This is your **starting point**. Here's how the documentation is organized:
 GETTING_STARTED.md (you are here) ← Start here for quick setup
 ├── README.md ← Project overview and workspace structure
 ├── Local Development Path
-│   ├── NX_WORKSPACE_GUIDE.md ← Nx monorepo development
-│   ├── TESTING.md ← Testing strategy
+│   ├── docs/development/NX_WORKSPACE_GUIDE.md ← Nx monorepo development
+│   ├── docs/development/TESTING.md ← Testing strategy
 │   └── CONTRIBUTING.md ← Git workflow and standards
 └── Azure Deployment Path
-    ├── BOOTSTRAP_GUIDE.md ← Manual bootstrap procedures (one-time)
+    ├── docs/deployment/BOOTSTRAP_GUIDE.md ← Manual bootstrap procedures (one-time)
     ├── scripts/README.md ← Automated bootstrap scripts
-    ├── DEPLOYMENT_GUIDE.md ← Terraform and app deployment
-    ├── VERIFICATION.md ← Post-deployment verification
-    └── ZERO_TRUST_IMPLEMENTATION.md ← Security architecture details
+    ├── docs/deployment/DEPLOYMENT_GUIDE.md ← Terraform and app deployment
+    ├── docs/architecture/VERIFICATION.md ← Post-deployment verification
+    └── docs/architecture/ZERO_TRUST_IMPLEMENTATION.md ← Security architecture details
 ```
 
-### Architecture & Evaluation Documents
-- **ARCHITECTURE.md** - All architectural decision records (ADRs)
-- **EVALUATION_DOCS_README.md** - Navigation for evaluation reports
-- **PHASE_1_2_EVALUATION.md** - Phase 1 & 2 verification
-- **PHASE_3_4_EVALUATION.md** - Phase 3 & 4 verification
-- **PHASE_5_EVALUATION.md** - Phase 5 (Frontend) status
-- **BACKEND_FRONTEND_INTEGRATION.md** - Integration architecture
+### Architecture Documents
 
-### Implementation Documents (ADR-Specific)
-- **IMPLEMENTATION_ADR_004.md** through **IMPLEMENTATION_ADR_013.md** - Detailed ADR implementations
+- **ARCHITECTURE.md** - All architectural decision records (ADRs)
+- **docs/architecture/BACKEND_FRONTEND_INTEGRATION.md** - Integration architecture
 
 ---
 

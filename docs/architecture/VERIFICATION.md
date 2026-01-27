@@ -5,19 +5,22 @@ This document provides verification steps to ensure the source control governanc
 ## Prerequisites
 
 Before running verification steps:
-- **Local Development**: See [GETTING_STARTED.md](./GETTING_STARTED.md) for setup
-- **Azure Deployment**: Complete [BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md) first
+
+- **Local Development**: See [GETTING_STARTED.md](../../GETTING_STARTED.md) for setup
+- **Azure Deployment**: Complete [BOOTSTRAP_GUIDE.md](../deployment/BOOTSTRAP_GUIDE.md) first
 
 ## Related Documentation
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)**: Initial setup guide
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines and git workflow
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: See ADR-001 for governance specifications
+
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)**: Initial setup guide
+- **[CONTRIBUTING.md](../../CONTRIBUTING.md)**: Development guidelines and git workflow
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)**: See ADR-001 for governance specifications
 
 ---
 
 ## Quick Verification Checklist
 
 ### ✅ 1. Package Installation
+
 ```bash
 # Verify required packages are installed
 npm list @commitlint/cli @commitlint/config-conventional husky
@@ -26,6 +29,7 @@ npm list @commitlint/cli @commitlint/config-conventional husky
 Expected output should show all three packages with their versions.
 
 ### ✅ 2. Husky Hooks Setup
+
 ```bash
 # Check that Husky hooks directory exists
 ls -la .husky/
@@ -38,6 +42,7 @@ test -f .husky/pre-commit && echo "✓ pre-commit hook exists" || echo "✗ pre-
 ```
 
 ### ✅ 3. Commitlint Configuration
+
 ```bash
 # Verify commitlint config exists
 test -f .commitlintrc.json && echo "✓ commitlint config exists" || echo "✗ commitlint config missing"
@@ -54,6 +59,7 @@ echo "bad commit message" | npx commitlint
 ### ✅ 4. Test Commit Hook Integration
 
 #### Test with Invalid Commit Message
+
 ```bash
 # Create a test file
 echo "test" > test-verification.txt
@@ -69,6 +75,7 @@ rm test-verification.txt
 ```
 
 #### Test with Valid Commit Message
+
 ```bash
 # Create a test file
 echo "test" > test-verification.txt
@@ -87,6 +94,7 @@ rm test-verification.txt
 ## Detailed Verification
 
 ### Verify Conventional Commits Types
+
 Test each valid commit type:
 
 ```bash
@@ -107,6 +115,7 @@ echo "revert(scope): description" | npx commitlint
 ### Verify Commit Message Rules
 
 #### Rule: Type must be lowercase
+
 ```bash
 # Should fail
 echo "FEAT(scope): description" | npx commitlint
@@ -117,6 +126,7 @@ echo "feat(scope): description" | npx commitlint
 ```
 
 #### Rule: Scope must be lowercase
+
 ```bash
 # Should fail
 echo "feat(SCOPE): description" | npx commitlint
@@ -126,6 +136,7 @@ echo "feat(scope): description" | npx commitlint
 ```
 
 #### Rule: No period at end of header
+
 ```bash
 # Should fail
 echo "feat(scope): description." | npx commitlint
@@ -135,6 +146,7 @@ echo "feat(scope): description" | npx commitlint
 ```
 
 #### Rule: Header max length 100 characters
+
 ```bash
 # Should fail (101+ characters)
 echo "feat(scope): this is a very long description that exceeds the maximum allowed length of one hundred characters" | npx commitlint
@@ -146,6 +158,7 @@ echo "feat(scope): this is a valid length description" | npx commitlint
 ## Verification of Documentation
 
 ### ✅ 5. Documentation Files
+
 ```bash
 # Verify all required documentation exists
 test -f README.md && echo "✓ README.md exists" || echo "✗ README.md missing"
@@ -154,6 +167,7 @@ test -f ARCHITECTURE.md && echo "✓ ARCHITECTURE.md exists" || echo "✗ ARCHIT
 ```
 
 ### ✅ 6. .gitignore Configuration
+
 ```bash
 # Verify .gitignore includes Node.js artifacts
 grep -q "node_modules" .gitignore && echo "✓ .gitignore includes node_modules" || echo "✗ Missing node_modules in .gitignore"
@@ -165,30 +179,34 @@ grep -q "*.log" .gitignore && echo "✓ .gitignore includes log files" || echo "
 ### Scenario: Create a Valid Feature Branch Commit
 
 1. **Create feature branch:**
+
    ```bash
    git checkout -b feat/test-governance
    ```
 
 2. **Make a change:**
+
    ```bash
    echo "# Test" > test-file.md
    git add test-file.md
    ```
 
 3. **Commit with valid message:**
+
    ```bash
    git commit -m "feat(test): add test file for governance verification"
    ```
-   
+
    Expected: Commit succeeds ✓
 
 4. **Try invalid message:**
+
    ```bash
    echo "# Test 2" >> test-file.md
    git add test-file.md
    git commit -m "Added something"
    ```
-   
+
    Expected: Commit fails with commitlint error ✓
 
 5. **Clean up:**
@@ -200,19 +218,25 @@ grep -q "*.log" .gitignore && echo "✓ .gitignore includes log files" || echo "
 ## Troubleshooting
 
 ### Issue: Hooks not running
+
 **Solution:** Reinstall Husky hooks
+
 ```bash
 npm run prepare
 ```
 
 ### Issue: commitlint not found
+
 **Solution:** Reinstall dependencies
+
 ```bash
 npm install
 ```
 
 ### Issue: Permission denied on hooks
+
 **Solution:** Make hooks executable
+
 ```bash
 chmod +x .husky/commit-msg
 chmod +x .husky/pre-commit
@@ -221,6 +245,7 @@ chmod +x .husky/pre-commit
 ## Success Criteria
 
 All verifications should pass with:
+
 - ✅ commitlint installed and configured
 - ✅ Husky hooks executable and running
 - ✅ Invalid commits rejected automatically
@@ -233,9 +258,9 @@ All verifications should pass with:
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [commitlint Documentation](https://commitlint.js.org/)
 - [Husky Documentation](https://typicode.github.io/husky/)
-- [CONTRIBUTING.md](./CONTRIBUTING.md) - Development workflow
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - See ADR-001 for governance requirements
-- [GETTING_STARTED.md](./GETTING_STARTED.md) - Setup guide
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development workflow
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) - See ADR-001 for governance requirements
+- [GETTING_STARTED.md](../../GETTING_STARTED.md) - Setup guide
 
 ---
 

@@ -384,6 +384,7 @@ const totalValue = price * quantity;
 #### **Code Review Considerations**
 
 Even with Copilot:
+
 - Always review generated code for correctness
 - Verify financial calculations use Decimal.js
 - Ensure RxJS operators are properly applied
@@ -393,6 +394,7 @@ Even with Copilot:
 #### **Chat and Questions**
 
 When asking Copilot questions:
+
 - Copilot has context from `.github/copilot-instructions.md`
 - Reference ADRs by number (e.g., "How does ADR-002 affect this?")
 - Ask about specific patterns (e.g., "Show me the correct way to calculate commissions")
@@ -401,9 +403,10 @@ When asking Copilot questions:
 
 #### Creating a Trading Component
 
-Ask Copilot: *"Create an order entry component with price chart"*
+Ask Copilot: _"Create an order entry component with price chart"_
 
 Copilot will generate code using:
+
 - Kendo Chart for price visualization
 - Decimal.js for order calculations
 - RxJS throttling for price updates
@@ -411,9 +414,10 @@ Copilot will generate code using:
 
 #### Implementing Portfolio Calculations
 
-Ask Copilot: *"Calculate portfolio value with positions and cash"*
+Ask Copilot: _"Calculate portfolio value with positions and cash"_
 
 Copilot will suggest:
+
 - Decimal.js for all arithmetic
 - Proper precision handling
 - Error handling for edge cases
@@ -421,11 +425,13 @@ Copilot will suggest:
 ### Troubleshooting
 
 **Copilot not following custom instructions?**
+
 - Ensure `.github/copilot-instructions.md` is on the main branch
 - Restart your IDE to reload instructions
 - Check that Copilot extension is up to date
 
 **Need to override instructions?**
+
 - Add explicit comments in your code
 - Example: `// Note: Using native math here for performance in tight loop`
 
