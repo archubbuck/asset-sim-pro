@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// Test configuration constants
+const MAX_PERFORMANCE_WARNINGS = 10;
+
 /**
  * Real-time Updates E2E Tests
  * 
@@ -126,7 +129,7 @@ test.describe('Live Ticker Updates', () => {
       w.toLowerCase().includes('performance') ||
       w.toLowerCase().includes('slow')
     );
-    expect(perfWarnings.length).toBeLessThan(10);
+    expect(perfWarnings.length).toBeLessThan(MAX_PERFORMANCE_WARNINGS);
   });
 
   test('should subscribe to correct exchange ticker group', async ({ page }) => {

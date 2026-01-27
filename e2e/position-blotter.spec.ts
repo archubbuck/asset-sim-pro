@@ -326,11 +326,12 @@ test.describe('Blotter Responsiveness', () => {
     await page.waitForSelector('h3:has-text("Position Blotter")', { timeout: 10000 });
     
     // Blotter may be scrollable or adapted for mobile
+    // Grid should be present in DOM (may need to scroll to see)
     const grid = page.locator('kendo-grid');
-    const gridVisible = await grid.isVisible();
+    const gridCount = await grid.count();
     
-    // Grid should be present (may need to scroll to see)
-    expect(gridVisible || true).toBeTruthy();
+    // Grid should exist in DOM
+    expect(gridCount).toBeGreaterThan(0);
   });
 });
 

@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// Performance thresholds
+const MAX_CHART_RENDER_TIME_MS = 12000;
+
 /**
  * Financial Chart E2E Tests
  * 
@@ -154,9 +157,9 @@ test.describe('Chart Interactions', () => {
         await page.setViewportSize(viewport);
         await page.waitForTimeout(500);
         
-        // Chart should adapt to viewport
-        const stillVisible = await kendoChart.first().isVisible();
-        expect(stillVisible || true).toBeTruthy();
+        // Chart should remain in DOM after viewport change
+        const chartStillExists = await page.locator('kendo-chart, kendo-stockchart').count();
+        expect(chartStillExists).toBeGreaterThan(0);
       }
     }
   });
@@ -362,8 +365,8 @@ test.describe('Chart Performance', () => {
     
     const renderTime = Date.now() - startTime;
     
-    // Page with chart should load within 12 seconds
-    expect(renderTime).toBeLessThan(12000);
+    // Page with chart should load within acceptable time
+    expect(renderTime).toBeLessThan(MAX_CHART_RENDER_TIME_MS);
   });
 
   test('should not cause memory leaks on repeated navigation', async ({ page }) => {
