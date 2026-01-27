@@ -198,22 +198,21 @@ test.describe('Order Validation', () => {
     await symbolInput.click();
     await symbolInput.fill('');
     
-    // Try to submit order
+    // Try to submit order - should either show validation error or use default
     await page.click('button:has-text("Place Order")');
     
-    // Wait for either validation error or success message
-    // Use Promise.race to wait for whichever appears first
-    try {
-      await Promise.race([
-        expect(page.locator('.validation-message, .error, .kendo-formerror')).toBeVisible({ timeout: 5000 }),
-        expect(page.locator('.status-message')).toBeVisible({ timeout: 5000 })
-      ]);
-    } catch (e) {
-      // If neither appears, that's also valid (form may use defaults)
-    }
+    // Wait a moment for any validation to appear
+    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
     
-    // Page should still be functional
+    // Page should still be functional (button remains visible)
     await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
+    
+    // If validation messages exist, they should be visible
+    const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+    const validationCount = await validationMessages.count();
+    if (validationCount > 0) {
+      await expect(validationMessages.first()).toBeVisible();
+    }
   });
 
   test('should handle zero quantity gracefully', async ({ page }) => {
@@ -223,21 +222,21 @@ test.describe('Order Validation', () => {
     await quantityInput.fill('');
     await quantityInput.fill('0');
     
-    // Try to submit order
+    // Try to submit order - should either show validation error or reject
     await page.click('button:has-text("Place Order")');
     
-    // Wait for either validation error or success message
-    try {
-      await Promise.race([
-        expect(page.locator('.validation-message, .error, .kendo-formerror')).toBeVisible({ timeout: 5000 }),
-        expect(page.locator('.status-message')).toBeVisible({ timeout: 5000 })
-      ]);
-    } catch (e) {
-      // If neither appears, that's also valid (form may reject silently)
-    }
+    // Wait a moment for any validation to appear
+    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
     
-    // Page should still be functional
+    // Page should still be functional (button remains visible)
     await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
+    
+    // If validation messages exist, they should be visible
+    const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+    const validationCount = await validationMessages.count();
+    if (validationCount > 0) {
+      await expect(validationMessages.first()).toBeVisible();
+    }
   });
 
   test('should handle negative quantity gracefully', async ({ page }) => {

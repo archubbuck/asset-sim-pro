@@ -219,12 +219,21 @@ test.describe('Input Validation', () => {
     await quantityInput.fill('');
     await quantityInput.fill('0');
     
-    // Try to submit
+    // Try to submit - should either validate or handle zero quantity
     await page.click('button:has-text("Place Order")');
-    await page.waitForTimeout(1000);
     
-    // Should validate or handle zero quantity
+    // Wait a moment for any validation to appear
+    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+    
+    // Page should remain functional
     await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
+    
+    // If validation messages exist, they should be visible
+    const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+    const validationCount = await validationMessages.count();
+    if (validationCount > 0) {
+      await expect(validationMessages.first()).toBeVisible();
+    }
   });
 
   test('should validate negative quantity', async ({ page }) => {
@@ -268,11 +277,22 @@ test.describe('Input Validation', () => {
     await quantityInput.click();
     await quantityInput.fill('');
     
-    // Try to submit
+    // Try to submit - should either validate or use defaults
     await page.click('button:has-text("Place Order")');
-    await page.waitForTimeout(1000);
     
-    // Form should validate or use defaults
+    // Wait a moment for any validation to appear
+    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+    
+    // Page should remain functional
+    await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
+    
+    // If validation messages exist, they should be visible
+    const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+    const validationCount = await validationMessages.count();
+    if (validationCount > 0) {
+      await expect(validationMessages.first()).toBeVisible();
+    }
+  });
     await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
   });
 
