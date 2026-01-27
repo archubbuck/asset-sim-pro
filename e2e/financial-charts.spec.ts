@@ -239,9 +239,9 @@ test.describe('Time Series Data Display', () => {
       const svgElements = page.locator('svg path, svg rect');
       const elementCount = await svgElements.count();
       
-      // Chart visualization should have visible elements
+      // Chart visualization should have visible elements if data is present
       if (elementCount > 0) {
-        expect(elementCount).toBeGreaterThan(0);
+        await expect(svgElements.first()).toBeVisible();
       }
     }
   });
@@ -287,7 +287,7 @@ test.describe('Chart Styling and Theme', () => {
       
       // Chart should have visual shape elements if data is present
       if (shapeCount > 0) {
-        expect(shapeCount).toBeGreaterThan(0);
+        await expect(svgShapes.first()).toBeVisible();
       }
     }
   });
@@ -307,7 +307,7 @@ test.describe('Chart Styling and Theme', () => {
       
       // Chart may have grid lines if configured
       if (lineCount > 0) {
-        expect(lineCount).toBeGreaterThan(0);
+        await expect(gridLines.first()).toBeVisible();
       }
     }
   });
