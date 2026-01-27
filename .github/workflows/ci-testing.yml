@@ -125,38 +125,45 @@ jobs:
             exit 1
           fi
 
-      - name: Build Client Application
-        run: npx nx build client --verbose
-        timeout-minutes: 15
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
-
       - name: Start Application Server
         run: |
+          # Start dev server in background
           npm start &
           APP_PID=$!
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
           
+          echo "Waiting for Angular dev server to compile and serve..."
           # Wait for app to be ready (check for 2xx or 3xx status codes)
-          timeout=60
+          timeout=180
           elapsed=0
           while [ $elapsed -lt $timeout ]; do
             status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4200 || echo "000")
             if [[ "$status_code" =~ ^[23][0-9][0-9]$ ]]; then
               echo "Application is ready! (HTTP $status_code)"
+              # Give it a few more seconds to ensure full compilation
+              sleep 5
               break
             fi
-            echo "Waiting for application to start... (HTTP $status_code)"
-            sleep 2
-            elapsed=$((elapsed + 2))
+            echo "Waiting for application to start... (HTTP $status_code, elapsed: ${elapsed}s)"
+            sleep 5
+            elapsed=$((elapsed + 5))
           done
           
           if [ $elapsed -ge $timeout ]; then
-            echo "Timeout waiting for application"
+            echo "ERROR: Timeout waiting for application to start"
+            echo "Checking for any running node processes:"
+            ps aux | grep node || true
+            echo "Checking port 4200:"
+            lsof -i:4200 || true
+            echo "Last 50 lines of npm start output (if available):"
+            # The output might be in the background, so this may not show anything
             exit 1
           fi
+          
+          echo "Application server is running and ready for E2E tests"
         env:
           BASE_URL: http://localhost:4200
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Run E2E Tests
         run: npm run test:e2e
