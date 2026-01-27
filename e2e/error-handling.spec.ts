@@ -187,7 +187,7 @@ test.describe('Input Validation', () => {
     // Wait for either error message or success message
     await page.waitForTimeout(2000);
     
-    const errorMessage = page.locator('.error, .validation-error, kendo-formerror');
+    const errorMessage = page.locator('.error, .validation-error, .kendo-formerror');
     const successMessage = page.locator('.status-message.success, .status-message');
     
     const errorCount = await errorMessage.count();
@@ -287,7 +287,7 @@ test.describe('Input Validation', () => {
     await page.waitForTimeout(500);
     
     // Check for validation message - if present, it should be visible
-    const validationMessages = page.locator('.error, .invalid, .validation-error, kendo-formerror');
+    const validationMessages = page.locator('.error, .invalid, .validation-error, .kendo-formerror');
     const messageCount = await validationMessages.count();
     
     // Validation may be shown or field may accept empty (use default)

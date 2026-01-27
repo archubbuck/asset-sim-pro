@@ -205,7 +205,7 @@ test.describe('Order Validation', () => {
     // Use Promise.race to wait for whichever appears first
     try {
       await Promise.race([
-        expect(page.locator('.validation-message, .error, kendo-formerror')).toBeVisible({ timeout: 5000 }),
+        expect(page.locator('.validation-message, .error, .kendo-formerror')).toBeVisible({ timeout: 5000 }),
         expect(page.locator('.status-message')).toBeVisible({ timeout: 5000 })
       ]);
     } catch (e) {
@@ -229,7 +229,7 @@ test.describe('Order Validation', () => {
     // Wait for either validation error or success message
     try {
       await Promise.race([
-        expect(page.locator('.validation-message, .error, kendo-formerror')).toBeVisible({ timeout: 5000 }),
+        expect(page.locator('.validation-message, .error, .kendo-formerror')).toBeVisible({ timeout: 5000 }),
         expect(page.locator('.status-message')).toBeVisible({ timeout: 5000 })
       ]);
     } catch (e) {
