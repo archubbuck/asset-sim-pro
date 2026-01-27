@@ -280,12 +280,19 @@ test.describe('Exchange Creation Flow', () => {
     await page.goto('/');
     await page.waitForSelector('text=AssetSim Pro', { timeout: 10000 });
     
-    // Look for exchange creation buttons or links - if present, verify they're interactive
-    const createExchangeLinks = page.locator('text=/Create Exchange/i, text=/New Exchange/i, text=/Add Exchange/i, button:has-text("Create")');
-    const linkCount = await createExchangeLinks.count();
+    // Look for exchange creation text links
+    const createExchangeTextLinks = page.locator('text=/Create Exchange/i, text=/New Exchange/i, text=/Add Exchange/i');
+    const textLinkCount = await createExchangeTextLinks.count();
     
-    if (linkCount > 0) {
-      await expect(createExchangeLinks.first()).toBeVisible();
+    // Look for exchange creation buttons
+    const createButtons = page.locator('button:has-text("Create")');
+    const buttonCount = await createButtons.count();
+    
+    // If either text links or buttons exist, verify visibility
+    if (textLinkCount > 0) {
+      await expect(createExchangeTextLinks.first()).toBeVisible();
+    } else if (buttonCount > 0) {
+      await expect(createButtons.first()).toBeVisible();
     }
   });
 
@@ -475,10 +482,15 @@ test.describe('Exchange Configuration Error Handling', () => {
     
     // Either dashboard loads or error is shown
     const dashboard = page.locator('h2:has-text("Trading Desk")');
-    const error = page.locator('.error, .alert, text=/Error/i');
+    
+    // Check for error using separate locators
+    const errorClass = page.locator('.error, .alert');
+    const errorText = page.locator('text=/Error/i');
     
     const dashboardVisible = await dashboard.isVisible();
-    const errorVisible = await error.isVisible();
+    const errorClassVisible = await errorClass.isVisible().catch(() => false);
+    const errorTextVisible = await errorText.isVisible().catch(() => false);
+    const errorVisible = errorClassVisible || errorTextVisible;
     
     // One of them should be visible
     expect(dashboardVisible || errorVisible).toBeTruthy();

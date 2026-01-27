@@ -201,9 +201,16 @@ test.describe('Order Validation', () => {
     // Try to submit order
     await page.click('button:has-text("Place Order")');
     
-    // Either validation message appears or order is submitted with default
-    // Wait to see what happens (error or success)
-    await page.waitForTimeout(2000);
+    // Wait for either validation error or success message
+    // Use Promise.race to wait for whichever appears first
+    try {
+      await Promise.race([
+        expect(page.locator('.validation-message, .error, kendo-formerror')).toBeVisible({ timeout: 5000 }),
+        expect(page.locator('.status-message')).toBeVisible({ timeout: 5000 })
+      ]);
+    } catch (e) {
+      // If neither appears, that's also valid (form may use defaults)
+    }
     
     // Page should still be functional
     await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
@@ -219,8 +226,15 @@ test.describe('Order Validation', () => {
     // Try to submit order
     await page.click('button:has-text("Place Order")');
     
-    // Wait to see response (validation or submission)
-    await page.waitForTimeout(2000);
+    // Wait for either validation error or success message
+    try {
+      await Promise.race([
+        expect(page.locator('.validation-message, .error, kendo-formerror')).toBeVisible({ timeout: 5000 }),
+        expect(page.locator('.status-message')).toBeVisible({ timeout: 5000 })
+      ]);
+    } catch (e) {
+      // If neither appears, that's also valid (form may reject silently)
+    }
     
     // Page should still be functional
     await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
