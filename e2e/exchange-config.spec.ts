@@ -483,13 +483,27 @@ test.describe('Exchange Configuration Error Handling', () => {
     // Either dashboard loads or error is shown
     const dashboard = page.locator('h2:has-text("Trading Desk")');
     
-    // Check for error using separate locators
+    // Check for error using separate locators with try-catch for safety
     const errorClass = page.locator('.error, .alert');
     const errorText = page.locator('text=/Error/i');
     
     const dashboardVisible = await dashboard.isVisible();
-    const errorClassVisible = await errorClass.isVisible().catch(() => false);
-    const errorTextVisible = await errorText.isVisible().catch(() => false);
+    
+    let errorClassVisible = false;
+    let errorTextVisible = false;
+    
+    try {
+      errorClassVisible = await errorClass.isVisible();
+    } catch (e) {
+      // Element not found
+    }
+    
+    try {
+      errorTextVisible = await errorText.isVisible();
+    } catch (e) {
+      // Element not found
+    }
+    
     const errorVisible = errorClassVisible || errorTextVisible;
     
     // One of them should be visible
