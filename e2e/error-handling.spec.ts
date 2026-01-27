@@ -293,8 +293,6 @@ test.describe('Input Validation', () => {
       await expect(validationMessages.first()).toBeVisible();
     }
   });
-    await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
-  });
 
   test('should show validation messages near invalid fields', async ({ page }) => {
     // Clear required field
