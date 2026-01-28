@@ -11,8 +11,8 @@
  * - tsconfig-paths runtime resolution
  * - Building shared libraries separately
  * 
- * IMPORTANT: When adding new @assetsim/* shared libraries, update the path mapping
- * in the 'assetsim-paths' plugin below to include the new library path.
+ * Path mappings are automatically loaded from tsconfig.json "compilerOptions.paths".
+ * When adding new @assetsim/* shared libraries, update tsconfig.json paths configuration.
  */
 
 import * as esbuild from 'esbuild';
@@ -31,9 +31,9 @@ let tsconfigPaths = {};
 try {
   const tsconfigPath = join(__dirname, 'tsconfig.json');
   const tsconfigContent = readFileSync(tsconfigPath, 'utf-8');
-  // Simple JSON parsing (comments are stripped by JSON.parse's error tolerance in practice)
-  // For production use, consider using a proper JSON-with-comments parser
-  const tsconfig = JSON.parse(tsconfigContent.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, ''));
+  // Strip comments from JSON before parsing (JSON.parse doesn't support comments)
+  const cleanedContent = tsconfigContent.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+  const tsconfig = JSON.parse(cleanedContent);
   
   if (tsconfig.compilerOptions?.paths) {
     Object.keys(tsconfig.compilerOptions.paths).forEach(key => {
@@ -118,14 +118,30 @@ try {
 
   if (isWatchMode) {
     console.log('\nWatch mode enabled - rebuilding on file changes...\n');
+    
+    // Copy config files before entering watch mode
+    copyConfigFiles();
+    
     const ctx = await esbuild.context(buildOptions);
     await ctx.watch();
     console.log('Watching for changes...');
     // Keep the process running in watch mode
   } else {
     await esbuild.build(buildOptions);
+    
+    // Copy essential Azure Functions configuration files
+    copyConfigFiles();
 
-  // Copy essential Azure Functions configuration files
+    console.log('\n✓ Build completed successfully');
+    console.log('Output: dist/');
+  }
+} catch (error) {
+  console.error('Build failed:', error);
+  process.exit(1);
+}
+
+// Helper function to copy configuration files
+function copyConfigFiles() {
   console.log('\nCopying configuration files...');
   try {
     copyFileSync(join(__dirname, 'host.json'), join(__dirname, 'dist/host.json'));
@@ -135,11 +151,4 @@ try {
     console.error('Warning: Failed to copy configuration files:', copyError.message);
     // Non-fatal - build artifacts are still usable
   }
-
-  console.log('\n✓ Build completed successfully');
-  console.log('Output: dist/');
-  }
-} catch (error) {
-  console.error('Build failed:', error);
-  process.exit(1);
 }
