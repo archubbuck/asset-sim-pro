@@ -1,12 +1,12 @@
 # Azure DevOps Pipeline Documentation
 
-This directory contains documentation for the AssetSim Pro CI/CD pipeline.
+This document contains documentation for the AssetSim Pro CI/CD pipeline.
 
 ## Quick Links
 
 - **Pipeline File:** [`/azure-pipelines.yml`](../azure-pipelines.yml)
 - **Architecture Decision:** [ARCHITECTURE.md](../ARCHITECTURE.md) (ADR-023)
-- **Deployment Guide:** [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md#cicd-pipeline-adr-023)
+- **Deployment Guide:** [DEPLOYMENT_GUIDE.md](./deployment/DEPLOYMENT_GUIDE.md#cicd-pipeline-adr-023)
 
 ## Pipeline Overview
 
@@ -42,7 +42,7 @@ The AssetSim Pro pipeline implements a **split architecture** for security:
 - Apply Terraform configuration (`terraform apply -auto-approve`)
 
 **Prerequisites:**
-- Terraform state storage (see [BOOTSTRAP_GUIDE.md](../BOOTSTRAP_GUIDE.md))
+- Terraform state storage (see [BOOTSTRAP_GUIDE.md](./deployment/BOOTSTRAP_GUIDE.md))
 - Self-hosted agent in VNet
 - Azure service connection with Contributor role
 
@@ -144,7 +144,7 @@ View detailed logs in Azure DevOps:
 
 ## Architecture Decisions
 
-This pipeline implements **ADR-023: CI/CD Pipelines** as documented in [ARCHITECTURE.md](../ARCHITECTURE.md#L1151-L1293).
+This pipeline implements **ADR-023: CI/CD Pipelines** as documented in [ARCHITECTURE.md](../ARCHITECTURE.md#L1170-L1296).
 
 ### Key Decisions
 
@@ -156,18 +156,18 @@ This pipeline implements **ADR-023: CI/CD Pipelines** as documented in [ARCHITEC
 
 ## Related Documentation
 
-- [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md) - Full deployment procedures
-- [BOOTSTRAP_GUIDE.md](../BOOTSTRAP_GUIDE.md) - Initial setup steps
+- [DEPLOYMENT_GUIDE.md](./deployment/DEPLOYMENT_GUIDE.md) - Full deployment procedures
+- [BOOTSTRAP_GUIDE.md](./deployment/BOOTSTRAP_GUIDE.md) - Initial setup steps
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - Architecture decisions (ADR-023)
-- [ZERO_TRUST_IMPLEMENTATION.md](../ZERO_TRUST_IMPLEMENTATION.md) - Security architecture
+- [ZERO_TRUST_IMPLEMENTATION.md](./architecture/ZERO_TRUST_IMPLEMENTATION.md) - Security architecture
 
 ## Support
 
 For pipeline issues:
 
-1. Check this README for common solutions
+1. Check this document for common solutions
 2. Review pipeline logs in Azure DevOps
-3. Consult [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md) troubleshooting section
+3. Consult [DEPLOYMENT_GUIDE.md](./deployment/DEPLOYMENT_GUIDE.md) troubleshooting section
 4. Contact the AssetSim Pro Infrastructure Team
 
 ---

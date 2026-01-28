@@ -228,7 +228,7 @@ Reference Documentation (Supporting Details)
 
 - **[azure-pipelines.yml](../azure-pipelines.yml)** - Azure DevOps pipeline configuration
 - **[.github/workflows/](../.github/workflows/)** - GitHub Actions workflows (if applicable)
-- **[.azuredevops/README.md](../.azuredevops/README.md)** - Azure DevOps setup documentation
+- **[azure-devops.md](./azure-devops.md)** - Azure DevOps setup documentation
 
 ### 8. Testing Documentation
 
