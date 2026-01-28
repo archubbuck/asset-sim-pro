@@ -16,7 +16,7 @@
  */
 
 import * as esbuild from 'esbuild';
-import { readdirSync, copyFileSync, readFileSync } from 'fs';
+import { readdirSync, copyFileSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -31,8 +31,15 @@ let tsconfigPaths = {};
 try {
   const tsconfigPath = join(__dirname, 'tsconfig.json');
   const tsconfigContent = readFileSync(tsconfigPath, 'utf-8');
-  // Strip comments from JSON before parsing (JSON.parse doesn't support comments)
-  const cleanedContent = tsconfigContent.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+  
+  // Use a more robust approach to handle JSON with comments
+  // Remove single-line comments (but preserve URLs with //)
+  let cleanedContent = tsconfigContent.replace(/(?:^|\s)\/\/.*$/gm, '');
+  // Remove multi-line comments
+  cleanedContent = cleanedContent.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Remove trailing commas before closing braces/brackets
+  cleanedContent = cleanedContent.replace(/,(\s*[}\]])/g, '$1');
+  
   const tsconfig = JSON.parse(cleanedContent);
   
   if (tsconfig.compilerOptions?.paths) {
@@ -143,10 +150,38 @@ try {
 // Helper function to copy configuration files
 function copyConfigFiles() {
   console.log('\nCopying configuration files...');
+  
+  // Ensure dist directory exists
+  const distDir = join(__dirname, 'dist');
+  mkdirSync(distDir, { recursive: true });
+  
   try {
-    copyFileSync(join(__dirname, 'host.json'), join(__dirname, 'dist/host.json'));
-    copyFileSync(join(__dirname, 'package.json'), join(__dirname, 'dist/package.json'));
-    console.log('✓ Copied host.json and package.json to dist/');
+    // Copy host.json
+    copyFileSync(join(__dirname, 'host.json'), join(distDir, 'host.json'));
+    
+    // Create production-only package.json (excluding devDependencies)
+    const packageJsonPath = join(__dirname, 'package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    
+    // Create a production version without devDependencies
+    const productionPackageJson = {
+      name: packageJson.name,
+      version: packageJson.version,
+      description: packageJson.description,
+      main: packageJson.main,
+      dependencies: packageJson.dependencies,
+      // Include only essential scripts for runtime
+      scripts: {
+        start: packageJson.scripts.start
+      }
+    };
+    
+    writeFileSync(
+      join(distDir, 'package.json'),
+      JSON.stringify(productionPackageJson, null, 2)
+    );
+    
+    console.log('✓ Copied host.json and created production package.json in dist/');
   } catch (copyError) {
     console.error('Warning: Failed to copy configuration files:', copyError.message);
     // Non-fatal - build artifacts are still usable
