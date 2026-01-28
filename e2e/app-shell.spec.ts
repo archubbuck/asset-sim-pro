@@ -37,7 +37,7 @@ test.describe('App Shell Component', () => {
 
   test('should display buying power in AppBar', async ({ page }) => {
     // Buying Power label should be visible
-    await expect(page.locator('.buying-power-label, text=Buying Power')).toBeVisible();
+    await expect(page.locator('.buying-power-label')).toBeVisible();
     
     // Buying Power value should be displayed
     const buyingPowerValue = page.locator('.buying-power-value');
@@ -88,9 +88,9 @@ test.describe('Navigation Drawer', () => {
     // Verify drawer is visible
     await expect(page.locator('kendo-drawer')).toBeVisible();
     
-    // Verify navigation items are present
-    await expect(page.locator('text=Terminal')).toBeVisible();
-    await expect(page.locator('text=Execution')).toBeVisible();
+    // Verify navigation items are present using getByRole for better specificity
+    await expect(page.getByRole('link', { name: 'Terminal' }).or(page.getByText('Terminal', { exact: true })).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Execution' }).or(page.getByText('Execution', { exact: true })).first()).toBeVisible();
     
     // Fund Performance link may or may not be visible depending on configuration
     // No assertion needed - its presence is optional
@@ -98,24 +98,24 @@ test.describe('Navigation Drawer', () => {
 
   test('should navigate to Dashboard when Terminal is clicked', async ({ page }) => {
     // Click Terminal navigation item
-    await page.click('text=Terminal');
+    await page.getByRole('link', { name: 'Terminal' }).or(page.getByText('Terminal', { exact: true })).first().click();
     
     // Should navigate to /dashboard
     await expect(page).toHaveURL(/\/dashboard/);
     
     // Dashboard content should be visible
-    await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Trading Desk' })).toBeVisible({ timeout: 5000 });
   });
 
   test('should navigate to Trading page when Execution is clicked', async ({ page }) => {
     // Click Execution navigation item
-    await page.click('text=Execution');
+    await page.getByRole('link', { name: 'Execution' }).or(page.getByText('Execution', { exact: true })).first().click();
     
     // Should navigate to /trade
     await expect(page).toHaveURL(/\/trade/);
     
     // Trading page content should be visible
-    await expect(page.locator('h2:has-text("Live Trading Terminal")')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Live Trading Terminal' })).toBeVisible({ timeout: 5000 });
   });
 
   test('should navigate to Portfolio page when Fund Performance is clicked', async ({ page }) => {
@@ -151,11 +151,11 @@ test.describe('Navigation Drawer', () => {
   test('should highlight selected navigation item', async ({ page }) => {
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForSelector('h2:has-text("Trading Desk")', { timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Trading Desk' })).toBeVisible({ timeout: 5000 });
     
     // The Terminal item should be selected/highlighted
     // (Implementation may vary - just verify items are interactive)
-    const terminalItem = page.locator('text=Terminal');
+    const terminalItem = page.getByRole('link', { name: 'Terminal' }).or(page.getByText('Terminal', { exact: true })).first();
     await expect(terminalItem).toBeVisible();
   });
 });
@@ -171,7 +171,7 @@ test.describe('Application Routing', () => {
     await page.waitForURL(/\/dashboard/, { timeout: 10000 });
     
     // Dashboard content should be visible
-    await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Trading Desk' })).toBeVisible({ timeout: 5000 });
   });
 
   test('should handle direct navigation to /dashboard', async ({ page }) => {
@@ -179,7 +179,7 @@ test.describe('Application Routing', () => {
     
     // Should display dashboard
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Trading Desk' })).toBeVisible({ timeout: 10000 });
   });
 
   test('should handle direct navigation to /trade', async ({ page }) => {
@@ -187,7 +187,7 @@ test.describe('Application Routing', () => {
     
     // Should display trading page
     await expect(page).toHaveURL(/\/trade/);
-    await expect(page.locator('h2:has-text("Live Trading Terminal")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Live Trading Terminal' })).toBeVisible({ timeout: 10000 });
   });
 
   test('should handle direct navigation to /portfolio', async ({ page }) => {

@@ -18,17 +18,17 @@ test.describe('Critical User Journey: Trading Flow', () => {
     
     // Step 2: Navigate to Trading Terminal (Dashboard)
     // The navigation drawer has a "Terminal" link that routes to /dashboard
-    await page.click('text=Terminal');
+    await page.getByRole('link', { name: 'Terminal' }).or(page.getByText('Terminal', { exact: true })).first().click();
     await page.waitForURL(/\/dashboard/);
     
     // Step 3: Verify Dashboard Widgets are Displayed
     // The dashboard should show "Trading Desk" title and widgets
-    await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible();
-    await expect(page.locator('h3:has-text("L2 Market Depth")')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Trading Desk' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'L2 Market Depth', level: 3 })).toBeVisible({ timeout: 5000 });
     
     // Step 4: Navigate to Execution Page
     // The "Execution" nav link routes to /trade where the order entry form is
-    await page.click('text=Execution');
+    await page.getByRole('link', { name: 'Execution' }).or(page.getByText('Execution', { exact: true })).first().click();
     await page.waitForURL(/\/trade/);
     
     // Step 5: Place an Order
@@ -90,15 +90,15 @@ test.describe('Critical User Journey: Trading Flow', () => {
     await page.waitForURL(/\/dashboard/);
     
     // Navigate to Terminal (already on dashboard, but verify)
-    await page.click('text=Terminal');
+    await page.getByRole('link', { name: 'Terminal' }).or(page.getByText('Terminal', { exact: true })).first().click();
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Trading Desk' })).toBeVisible();
     
     // Navigate to Execution directly via URL to avoid navigation timeout
     await page.goto('/trade');
     await expect(page).toHaveURL(/\/trade/);
     // Verify trading page loads
-    await expect(page.locator('h2:has-text("Live Trading Terminal")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Live Trading Terminal' })).toBeVisible();
   });
 
   test('should display order entry form with validation', async ({ page }) => {

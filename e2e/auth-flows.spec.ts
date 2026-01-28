@@ -55,7 +55,7 @@ test.describe('Authentication & Authorization', () => {
     await page.waitForSelector('text=AssetSim Pro', { timeout: 10000 });
     
     // Buying power should be visible in AppBar
-    await expect(page.locator('.buying-power-label, text=Buying Power')).toBeVisible();
+    await expect(page.locator('.buying-power-label')).toBeVisible();
     
     // Buying power value should be displayed
     const buyingPowerValue = page.locator('.buying-power-value');
@@ -85,9 +85,9 @@ test.describe('Authentication & Authorization', () => {
     const drawer = page.locator('kendo-drawer');
     await expect(drawer).toBeVisible();
     
-    // Navigation items should be present
-    await expect(page.locator('text=Terminal')).toBeVisible();
-    await expect(page.locator('text=Execution')).toBeVisible();
+    // Navigation items should be present using getByRole for better specificity
+    await expect(page.getByRole('link', { name: 'Terminal' }).or(page.getByText('Terminal', { exact: true })).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Execution' }).or(page.getByText('Execution', { exact: true })).first()).toBeVisible();
   });
 });
 
@@ -105,14 +105,14 @@ test.describe('RBAC Permission Boundaries', () => {
     // All authenticated users should access trading terminal
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.locator('h2:has-text("Trading Desk")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Trading Desk' })).toBeVisible();
   });
 
   test('should allow access to execution page for all authenticated users', async ({ page }) => {
     // All authenticated users should access execution page
     await page.goto('/trade');
     await expect(page).toHaveURL(/\/trade/);
-    await expect(page.locator('h2:has-text("Live Trading Terminal")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Live Trading Terminal' })).toBeVisible();
   });
 
   test('should display consistent UI elements for authenticated users', async ({ page }) => {
@@ -129,7 +129,7 @@ test.describe('RBAC Permission Boundaries', () => {
       await expect(page.locator('kendo-avatar')).toBeVisible();
       
       // Buying power should always be visible
-      await expect(page.locator('.buying-power-label, text=Buying Power')).toBeVisible();
+      await expect(page.locator('.buying-power-label')).toBeVisible();
     }
   });
 });
