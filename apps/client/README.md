@@ -50,19 +50,16 @@ export const appConfig: ApplicationConfig = {
   providers: [
     // Zoneless change detection - signals-based reactivity
     provideZonelessChangeDetection(),
-    
+
     // Router configuration
     provideRouter(appRoutes),
-    
+
     // Animations required for Kendo UI components
     provideAnimations(),
-    
+
     // HTTP client with fetch API and error interceptor (ADR-018)
-    provideHttpClient(
-      withFetch(),
-      withInterceptors([errorInterceptor])
-    ),
-    
+    provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
+
     // Authentication service with factory pattern (ADR-020)
     // Automatically uses MockAuthService for localhost, AzureAuthService for production
     provideAuthService(),
@@ -71,6 +68,7 @@ export const appConfig: ApplicationConfig = {
 ```
 
 **Key Features:**
+
 - **Zoneless Change Detection**: Signals-first approach for improved performance
 - **Kendo UI Support**: Animation provider required for Kendo components
 - **Error Handling**: RFC 7807 compliant error interceptor
@@ -101,6 +99,7 @@ export const appConfig: ApplicationConfig = {
 **From [`nx-welcome.ts`](./src/app/nx-welcome.ts):**
 
 This component provides onboarding information, demo content, and helpful Nx/Angular commands including:
+
 - Sample UI components and styling
 - Nx workspace commands and references
 - Links to workspace documentation
@@ -122,6 +121,7 @@ Before starting development on the client application, ensure you have completed
 ### Initial Setup
 
 1. **Install dependencies** (from workspace root):
+
    ```bash
    npm install
    ```
@@ -161,6 +161,7 @@ nx graph
 ### Development Server
 
 The development server starts with:
+
 - **Hot Module Replacement (HMR)** for fast development
 - **Zoneless change detection** for optimal performance
 - **Kendo UI Institutional Slate theme** pre-configured
@@ -298,17 +299,18 @@ import { ChartModule } from '@progress/kendo-angular-charts';
   template: `
     <kendo-chart [seriesDefaults]="{ type: 'candlestick' }">
       <kendo-chart-series>
-        <kendo-chart-series-item 
-          [data]="ohlcData()" 
+        <kendo-chart-series-item
+          [data]="ohlcData()"
           openField="open"
           highField="high"
           lowField="low"
           closeField="close"
-          categoryField="date">
+          categoryField="date"
+        >
         </kendo-chart-series-item>
       </kendo-chart-series>
     </kendo-chart>
-  `
+  `,
 })
 export class PriceChartComponent {
   ohlcData = signal<OHLCData[]>([]);
@@ -333,7 +335,7 @@ import { Component, signal, computed } from '@angular/core';
     <p>Count: {{ count() }}</p>
     <p>Double: {{ doubleCount() }}</p>
     <button (click)="increment()">Increment</button>
-  `
+  `,
 })
 export class ExampleComponent {
   // Signal-based state
@@ -358,10 +360,10 @@ The application uses a custom Kendo UI theme. Global styles are in `src/styles.s
 @import '@progress/kendo-theme-default/dist/all.scss';
 
 // Custom theme variables for Institutional Slate
-$primary-color: #1e293b;      // Dark slate
-$secondary-color: #3b82f6;    // Professional blue
-$background-color: #0f172a;   // Deep dark
-$text-color: #e2e8f0;         // Light slate
+$primary-color: #1e293b; // Dark slate
+$secondary-color: #3b82f6; // Professional blue
+$background-color: #0f172a; // Deep dark
+$text-color: #e2e8f0; // Light slate
 ```
 
 ### Code Quality Standards
@@ -369,6 +371,7 @@ $text-color: #e2e8f0;         // Light slate
 Following **ADR-001** (Source Control Governance):
 
 - **Commit Messages**: Use Conventional Commits format
+
   ```bash
   git commit -m "feat(client): add portfolio overview component"
   ```
@@ -382,17 +385,21 @@ Following **ADR-001** (Source Control Governance):
 ### Common Issues
 
 **Issue**: Kendo UI components not rendering
+
 - **Solution**: Ensure `provideAnimations()` is included in `app.config.ts`
 
 **Issue**: HTTP requests failing
+
 - **Solution**: Verify local services are running (`docker compose ps`)
 - Check `.env.local` configuration
 
 **Issue**: Authentication errors in local development
+
 - **Solution**: MockAuthService should be used automatically for localhost
 - Verify `provideAuthService()` is in `app.config.ts`
 
 **Issue**: Build errors with Nx
+
 - **Solution**: Clear Nx cache with `nx reset`
 - Reinstall dependencies with `npm install`
 
