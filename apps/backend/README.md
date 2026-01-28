@@ -230,15 +230,62 @@ This ensures users can only access data for Exchanges where they have assigned r
 
 ## Development
 
+### Building the Backend
+
+The backend uses **esbuild** to bundle Azure Functions with proper path mapping resolution and correct output structure. This is integrated with Nx for monorepo-aware builds.
+
+```bash
+# Build using Nx (recommended - handles dependencies)
+npx nx build backend
+
+# Or from root package.json
+npm run backend:build
+
+# The build process:
+# 1. Builds shared libraries (error-models, finance-models)
+# 2. Bundles backend functions with esbuild
+# 3. Resolves @assetsim/* path mappings at build time
+# 4. Outputs to dist/functions/ (Azure Functions structure)
+```
+
+**Build Configuration**: See `build.mjs` for esbuild configuration.
+
+### Known Limitations (RESOLVED)
+
+Previously, the TypeScript compiler had two limitations:
+
+1. ✅ **Output Structure** - FIXED: esbuild now outputs to `dist/functions/` matching Azure Functions structure
+2. ✅ **Runtime Module Resolution** - FIXED: esbuild resolves `@assetsim/*` path mappings at build time
+
+The bundler approach eliminates the need for runtime path resolution or workspace linking.
+
+### Running Locally
+
 ```bash
 # Install dependencies
 npm install
 
-# Build TypeScript
-npm run build
+# Build (required before starting)
+npx nx build backend
 
 # Run locally (requires Azure Functions Core Tools)
 npm start
+
+# Or using Nx
+npx nx serve backend
+```
+
+### Testing
+
+```bash
+# Run tests using Nx
+npx nx test backend
+
+# Or from root
+npm run backend:test
+
+# With coverage
+npm run backend:test:coverage
 ```
 
 ## Deployment

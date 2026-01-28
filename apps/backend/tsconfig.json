@@ -6,17 +6,20 @@
     "lib": ["ES2020"],
     "outDir": "dist",
     // NOTE: rootDir is not explicitly set for TypeScript compilation (used for type checking).
-    // The actual build process uses esbuild (see build.mjs) which:
-    //   1. Bundles code into dist/functions/ matching Azure Functions structure
-    //   2. Resolves @assetsim/* path mappings during build
-    //   3. Bundles shared libraries inline (no runtime resolution needed)
+    // 
+    // BUILD PROCESS (Nx-integrated):
+    // The actual build uses esbuild via Nx (see build.mjs and project.json):
+    //   - Nx builds shared library dependencies first (error-models, finance-models)
+    //   - esbuild bundles backend functions with resolved path mappings
+    //   - Output: dist/functions/ matching Azure Functions structure
     //
-    // RESOLVED: Both known limitations from previous implementation have been fixed:
-    //   ✓ Output Structure: esbuild outputs to dist/functions/ (not dist/apps/backend/src/functions/)
-    //   ✓ Runtime Module Resolution: esbuild resolves path mappings at build time
+    // RESOLVED LIMITATIONS:
+    //   ✅ Output Structure: esbuild outputs to dist/functions/ (not dist/apps/backend/src/functions/)
+    //   ✅ Runtime Module Resolution: esbuild resolves @assetsim/* paths at build time
     //
-    // To build: npm run build (uses build.mjs with esbuild)
-    // For type-checking only: npm run build:tsc
+    // Build commands:
+    //   - npx nx build backend (recommended - Nx handles dependencies)
+    //   - npm run build:tsc (TypeScript only, for type checking)
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
