@@ -11,11 +11,13 @@ export default defineConfig({
   retries: process.env['CI'] ? 2 : 0,
   workers: process.env['CI'] ? '50%' : undefined,
   reporter: process.env['CI'] ? 'github' : 'list',
+  timeout: process.env['CI'] ? 60000 : 30000, // 60s for CI, 30s locally
   
   use: {
     baseURL: process.env['BASE_URL'] || 'http://localhost:4200',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    actionTimeout: process.env['CI'] ? 15000 : 10000, // 15s for actions in CI, 10s locally
   },
 
   // In CI, only run chromium to match installed browsers; locally test all browsers

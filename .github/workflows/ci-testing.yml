@@ -138,7 +138,7 @@ jobs:
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
           
           # Wait for app to be ready (check for 2xx or 3xx status codes)
-          timeout=60
+          timeout=300
           elapsed=0
           while [ $elapsed -lt $timeout ]; do
             status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4200 || echo "000")
@@ -146,13 +146,15 @@ jobs:
               echo "Application is ready! (HTTP $status_code)"
               break
             fi
-            echo "Waiting for application to start... (HTTP $status_code)"
-            sleep 2
-            elapsed=$((elapsed + 2))
+            echo "Waiting for application to start... (HTTP $status_code, elapsed: ${elapsed}s)"
+            sleep 5
+            elapsed=$((elapsed + 5))
           done
           
           if [ $elapsed -ge $timeout ]; then
-            echo "Timeout waiting for application"
+            echo "ERROR: Timeout waiting for application to start after ${timeout}s"
+            echo "Checking if process is still running..."
+            ps aux | grep -E "nx serve|ng serve" | grep -v grep || echo "Process not found"
             exit 1
           fi
         env:
