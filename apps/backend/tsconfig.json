@@ -13,15 +13,14 @@
     "moduleResolution": "node",
     "importHelpers": false,
     "baseUrl": ".",
+    // Path mappings override base config due to different baseUrl
+    // Base paths are relative to monorepo root, these are relative to apps/backend
     "paths": {
       "@assetsim/shared/finance-models": [
         "../../libs/shared/finance-models/src/index.ts"
       ],
       "@assetsim/shared/error-models": [
         "../../libs/shared/error-models/src/index.ts"
-      ],
-      "@assetsim/shared/auth-models": [
-        "../../libs/shared/auth-models/src/index.ts"
       ]
     }
   },
