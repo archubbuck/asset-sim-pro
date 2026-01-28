@@ -198,21 +198,35 @@ test.describe('Order Validation', () => {
     await symbolInput.click();
     await symbolInput.fill('');
     
-    // Try to submit order - should either show validation error or use default
-    await page.click('button:has-text("Place Order")');
+    const placeOrderButton = page.locator('button:has-text("Place Order")');
     
-    // Wait a moment for any validation to appear
-    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+    // Check if button is disabled due to validation
+    const isDisabled = await placeOrderButton.isDisabled().catch(() => false);
+    
+    if (isDisabled) {
+      // Button is disabled - validation is working
+      const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+      const validationCount = await validationMessages.count();
+      if (validationCount > 0) {
+        await expect(validationMessages.first()).toBeVisible();
+      }
+    } else {
+      // Button is enabled - try to submit order (should either show validation error or use default)
+      await placeOrderButton.click();
+      
+      // Wait a moment for any validation to appear
+      await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+      
+      // If validation messages exist, they should be visible
+      const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+      const validationCount = await validationMessages.count();
+      if (validationCount > 0) {
+        await expect(validationMessages.first()).toBeVisible();
+      }
+    }
     
     // Page should still be functional (button remains visible)
-    await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
-    
-    // If validation messages exist, they should be visible
-    const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
-    const validationCount = await validationMessages.count();
-    if (validationCount > 0) {
-      await expect(validationMessages.first()).toBeVisible();
-    }
+    await expect(placeOrderButton).toBeVisible();
   });
 
   test('should handle zero quantity gracefully', async ({ page }) => {
@@ -222,21 +236,35 @@ test.describe('Order Validation', () => {
     await quantityInput.fill('');
     await quantityInput.fill('0');
     
-    // Try to submit order - should either show validation error or reject
-    await page.click('button:has-text("Place Order")');
+    const placeOrderButton = page.locator('button:has-text("Place Order")');
     
-    // Wait a moment for any validation to appear
-    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+    // Check if button is disabled due to validation
+    const isDisabled = await placeOrderButton.isDisabled().catch(() => false);
+    
+    if (isDisabled) {
+      // Button is disabled - validation is working
+      const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+      const validationCount = await validationMessages.count();
+      if (validationCount > 0) {
+        await expect(validationMessages.first()).toBeVisible();
+      }
+    } else {
+      // Button is enabled - try to submit order (should either show validation error or reject)
+      await placeOrderButton.click();
+      
+      // Wait a moment for any validation to appear
+      await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+      
+      // If validation messages exist, they should be visible
+      const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
+      const validationCount = await validationMessages.count();
+      if (validationCount > 0) {
+        await expect(validationMessages.first()).toBeVisible();
+      }
+    }
     
     // Page should still be functional (button remains visible)
-    await expect(page.locator('button:has-text("Place Order")')).toBeVisible();
-    
-    // If validation messages exist, they should be visible
-    const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
-    const validationCount = await validationMessages.count();
-    if (validationCount > 0) {
-      await expect(validationMessages.first()).toBeVisible();
-    }
+    await expect(placeOrderButton).toBeVisible();
   });
 
   test('should handle negative quantity gracefully', async ({ page }) => {
