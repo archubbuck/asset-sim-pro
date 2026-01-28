@@ -8,9 +8,13 @@ import { setScriptKey } from '@progress/kendo-licensing';
 // The license key is loaded from environment variables at build time
 // See apps/client/src/environments/environment.ts for configuration details
 const PLACEHOLDER = '__KENDO_UI_LICENSE__';
-if (KENDO_LICENSE && KENDO_LICENSE !== PLACEHOLDER as string) {
+// Use string comparison to handle both compile-time and runtime values
+if (KENDO_LICENSE && (KENDO_LICENSE as string) !== PLACEHOLDER) {
   setScriptKey(KENDO_LICENSE);
-} else if (!KENDO_LICENSE || KENDO_LICENSE === PLACEHOLDER as string) {
+} else {
+  // Note: Using console.warn directly here is acceptable because this code runs
+  // during application bootstrap, before Angular's DI system is available.
+  // LoggerService from @assetsim/client/core cannot be used in this context.
   console.warn('Kendo UI: Running in trial mode (license key not configured)');
 }
 

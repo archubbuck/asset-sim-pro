@@ -78,7 +78,8 @@ try {
       
       // Replace placeholder with actual license key
       // If kendoLicense is empty, replace with empty string
-      const updatedContent = originalContent.replace('__KENDO_UI_LICENSE__', kendoLicense);
+      // Using global replacement to handle multiple occurrences
+      const updatedContent = originalContent.replace(/__KENDO_UI_LICENSE__/g, kendoLicense);
       fs.writeFileSync(envFilePath, updatedContent, 'utf8');
     }
   }
@@ -90,10 +91,8 @@ try {
 // Function to restore the original environment file
 function cleanup() {
   try {
-    if (fs.existsSync(envFileBackupPath) && fs.existsSync(envFilePath)) {
-      fs.renameSync(envFileBackupPath, envFilePath);
-    } else if (fs.existsSync(envFileBackupPath)) {
-      // If original file was deleted, restore from backup
+    if (fs.existsSync(envFileBackupPath)) {
+      // Restore original file from backup (whether or not the current file exists)
       fs.renameSync(envFileBackupPath, envFilePath);
     }
   } catch (error) {

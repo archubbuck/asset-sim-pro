@@ -37,6 +37,17 @@ This PR implements secure configuration management for the Kendo UI license key 
 - **Build-time Validation**: Script warns if placeholder replacement fails
 - **Impact**: Prevents invalid license activation attempts
 
+### 7. **Kendo UI License Exposure** ⚠️
+- **Nature**: Kendo UI for Angular uses **client-side activation**, meaning the license key is embedded in the compiled JavaScript bundle and visible to end users who inspect browser assets
+- **Acceptable Tradeoff**: This is the standard licensing model for Kendo UI Angular components and is expected by the vendor
+- **Not a Security Risk**: The license key is a **licensing token**, not an authentication secret or data access credential
+- **Scope**: License keys control product usage and support entitlements, not application security or data access
+- **Mitigation**: 
+  - License keys should never be reused for API authentication, database credentials, or server-side secrets
+  - Organizations concerned about license key visibility should contact Progress Telerik for server-side licensing options
+  - Regular license key rotation and usage monitoring per vendor recommendations
+- **Impact**: Client-visible license keys are standard practice for client-side component libraries and do not compromise application security when used correctly
+
 ## Security Audit Results
 
 ### CodeQL Analysis: ✅ PASSED
@@ -100,8 +111,11 @@ No security vulnerabilities were discovered during the implementation or testing
 | Accidental Commits | HIGH | LOW | Automated cleanup, gitignore |
 | Build Failures | MEDIUM | LOW | Graceful degradation, error handling |
 | Concurrent Builds | MEDIUM | MEDIUM | Note: Concurrent builds may have minor race conditions* |
+| License Key Visibility | N/A | ACCEPTED | Client-side licensing model (vendor design)** |
 
 *Note: Concurrent builds on the same machine may experience race conditions with the backup file. This is acceptable for typical CI/CD scenarios where builds run in isolated containers.
+
+**Note: Kendo UI uses client-side licensing. The license key is visible in the browser bundle, which is the intended and standard behavior for this type of component library. This does not compromise application security as the license key is not used for authentication or data access.
 
 ## Conclusion
 
@@ -111,11 +125,12 @@ This implementation significantly enhances the security posture of the AssetSim 
 3. ✅ Following industry best practices
 4. ✅ Maintaining backward compatibility
 5. ✅ Providing clear migration path
+6. ✅ Documenting client-side license exposure tradeoffs
 
 **Security Status**: ✅ **APPROVED**  
 **Vulnerabilities Found**: 0  
 **Vulnerabilities Fixed**: 0  
-**Security Enhancements**: 6
+**Security Enhancements**: 7
 
 ---
 
