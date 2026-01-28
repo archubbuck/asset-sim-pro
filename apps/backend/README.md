@@ -24,22 +24,32 @@ Key features:
 ```
 backend/
 ├── src/
-│   ├── functions/               # Azure Functions (HTTP & Timer triggers)
-│   │   ├── apiDocs.ts          # HTTP: GET /api/docs (OpenAPI spec)
-│   │   ├── createExchange.ts   # HTTP: POST /api/v1/exchanges
-│   │   ├── createOrder.ts      # HTTP: POST /api/v1/orders
-│   │   └── marketEngineTick.ts # Timer: Market simulation engine
-│   ├── lib/                     # Shared utilities
-│   │   ├── auth.ts             # Entra ID authentication
-│   │   ├── database.ts         # SQL connection and RLS context
-│   │   └── openapi-registry.ts # OpenAPI spec generation (ADR-017)
-│   └── types/                   # TypeScript type definitions & Zod schemas
-│       ├── exchange.ts
-│       ├── transaction.ts      # Transaction API schemas
-│       └── market-engine.ts    # Market Engine schemas
-├── host.json                    # Azure Functions host configuration
+│   ├── functions/                  # Azure Functions (HTTP & Timer triggers)
+│   │   ├── apiDocs.ts             # HTTP: GET /api/docs (OpenAPI spec)
+│   │   ├── createExchange.ts      # HTTP: POST /api/v1/exchanges
+│   │   ├── createOrder.ts         # HTTP: POST /api/v1/orders
+│   │   ├── getExchangeRules.ts    # HTTP: GET /api/v1/exchanges/:id/rules
+│   │   ├── hotPathCleanup.ts      # Timer: Hot path cache cleanup
+│   │   ├── marketEngineTick.ts    # Timer: Market simulation engine
+│   │   ├── ohlcAggregation.ts     # Timer: OHLC data aggregation
+│   │   └── tickerGenerator.ts     # Timer: Ticker data generation
+│   ├── lib/                        # Shared utilities
+│   │   ├── auth.ts                # Entra ID authentication
+│   │   ├── cache.ts               # Redis cache operations
+│   │   ├── database.ts            # SQL connection and RLS context
+│   │   ├── error-handler.ts       # Standardized error handling
+│   │   ├── event-hub.ts           # Azure Event Hub integration
+│   │   ├── openapi-registry.ts    # OpenAPI spec generation (ADR-017)
+│   │   ├── signalr-broadcast.ts   # SignalR real-time broadcasting
+│   │   └── telemetry.ts           # Application Insights telemetry
+│   └── types/                      # TypeScript type definitions & Zod schemas
+│       ├── exchange.ts            # Exchange creation schemas
+│       ├── market-engine.ts       # Market Engine schemas
+│       └── transaction.ts         # Transaction API schemas
+├── host.json                       # Azure Functions host configuration
 ├── package.json
-└── tsconfig.json
+├── tsconfig.json
+└── vitest.config.mts               # Vitest test configuration
 ```
 
 ## API Endpoints

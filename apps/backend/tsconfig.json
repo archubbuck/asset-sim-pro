@@ -1,17 +1,42 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "importHelpers": false,
+    "baseUrl": ".",
+    "paths": {
+      "@assetsim/shared/finance-models": [
+        "../../libs/shared/finance-models/src/index.ts"
+      ],
+      "@assetsim/shared/error-models": [
+        "../../libs/shared/error-models/src/index.ts"
+      ],
+      "@assetsim/shared/auth-models": [
+        "../../libs/shared/auth-models/src/index.ts"
+      ]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*",
+    "../../libs/shared/error-models/src/**/*",
+    "../../libs/shared/finance-models/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "../../libs/**/*.spec.ts",
+    "../../libs/**/*.test.ts"
+  ]
 }
