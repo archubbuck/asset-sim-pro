@@ -254,7 +254,7 @@ npm run backend:build
 
 Previously, the TypeScript compiler had two limitations:
 
-1. ✅ **Output Structure** - FIXED: esbuild now outputs to `dist/functions/` matching Azure Functions structure
+1. ✅ **Output Structure** - FIXED: esbuild now outputs function files directly to `dist/` matching Azure Functions v4 structure
 2. ✅ **Runtime Module Resolution** - FIXED: esbuild resolves `@assetsim/*` path mappings at build time
 
 The bundler approach eliminates the need for runtime path resolution or workspace linking.

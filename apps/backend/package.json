@@ -6,8 +6,7 @@
   "scripts": {
     "build": "node build.mjs",
     "build:tsc": "tsc",
-    "watch": "tsc --watch",
-    "prestart": "npm run build",
+    "build:watch": "node build.mjs --watch",
     "start": "func start",
     "test": "vitest run",
     "test:watch": "vitest",
