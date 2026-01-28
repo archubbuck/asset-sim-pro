@@ -1,17 +1,63 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "dist",
-    "rootDir": "src",
+    // NOTE: rootDir is not explicitly set, allowing TypeScript to infer from included files.
+    // With includes spanning src/ and ../../libs/, the inferred root is the monorepo root (../../).
+    // This creates the output structure: dist/apps/backend/src/... and dist/libs/shared/...
+    // 
+    // LIMITATION: Azure Functions expects functions at dist/functions/, not dist/apps/backend/src/functions/
+    // This structure works for development but needs adjustment for production deployment.
+    // 
+    // ALTERNATIVE: Setting rootDir: "src" would fix the output structure but prevents compilation
+    // of shared libraries (which are outside src/). This would require shared libraries to be
+    // built separately and properly linked via Nx or npm workspaces.
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "importHelpers": false,
+    "baseUrl": ".",
+    // Path mappings for TypeScript type checking during development.
+    // These override base config paths due to different baseUrl (relative to apps/backend).
+    //
+    // RUNTIME RESOLUTION: TypeScript path mappings are NOT rewritten in emitted JavaScript.
+    // The compiled code will contain require('@assetsim/shared/error-models'), which Node.js
+    // cannot resolve without one of the following:
+    //   1. Nx workspace linking (creates symlinks in node_modules)
+    //   2. A bundler (webpack/esbuild) that resolves imports during build
+    //   3. tsconfig-paths or similar runtime path resolution
+    //   4. Building shared libraries separately and publishing to node_modules
+    //
+    // For production deployment, implement one of the above solutions.
+    "paths": {
+      "@assetsim/shared/finance-models": [
+        "../../libs/shared/finance-models/src/index.ts"
+      ],
+      "@assetsim/shared/error-models": [
+        "../../libs/shared/error-models/src/index.ts"
+      ]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  // Include both backend source and shared library source for compilation.
+  // This ensures TypeScript can resolve imports during type checking and compilation.
+  "include": [
+    "src/**/*",
+    "../../libs/shared/error-models/src/**/*",
+    "../../libs/shared/finance-models/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "../../libs/**/*.spec.ts",
+    "../../libs/**/*.test.ts"
+  ]
 }
