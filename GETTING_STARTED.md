@@ -79,9 +79,22 @@ npm run seed:local
 # Copy environment template
 cp .env.local.example .env.local
 
+# Edit .env.local and set your Kendo UI license key
+# KENDO_UI_LICENSE=your-kendo-license-key-here
+
 # Review and adjust connection strings if needed
 # (Default values work with Docker Compose setup)
 ```
+
+**Important: Kendo UI License Configuration**
+
+AssetSim Pro uses Kendo UI for financial charts and components. To run without trial watermarks:
+
+1. Obtain your Kendo UI license key from [https://www.telerik.com/account/](https://www.telerik.com/account/)
+2. Open `.env.local` and set `KENDO_UI_LICENSE=your-license-key`
+3. Never commit `.env.local` to version control (it's already in `.gitignore`)
+
+If you don't have a license yet, the application will run in trial mode with watermarks.
 
 ### Step 5: Start Development Servers
 
@@ -127,6 +140,23 @@ To deploy AssetSim Pro to Azure, follow this **sequential path**:
 ### Step 1: Bootstrap Azure Resources
 
 **⚠️ REQUIRED BEFORE DEPLOYMENT:** Complete bootstrap operations to set up foundational infrastructure.
+
+#### Configure Secrets
+
+Before deploying, configure the following secrets:
+
+**For GitHub Actions CI/CD:**
+1. Go to your GitHub repository → Settings → Secrets and variables → Actions
+2. Add a new repository secret:
+   - Name: `KENDO_UI_LICENSE`
+   - Value: Your Kendo UI license key from https://www.telerik.com/account/
+
+**For Azure DevOps:**
+1. In your Azure DevOps project, go to Pipelines → Library
+2. Add `KENDO_UI_LICENSE` to the `assetsim-prod-vars` variable group
+3. Mark it as secret to protect the value
+
+These secrets are used during the build process to embed the Kendo UI license key without exposing it in source control.
 
 #### Option A: Automated Bootstrap (Recommended)
 

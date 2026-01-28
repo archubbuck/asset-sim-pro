@@ -160,6 +160,7 @@ jobs:
         env:
           BASE_URL: http://localhost:4200
           NODE_OPTIONS: "--max-old-space-size=4096"
+          KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
 
       - name: Run E2E Tests
         run: npm run test:e2e

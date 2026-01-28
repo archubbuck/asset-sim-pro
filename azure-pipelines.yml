@@ -39,6 +39,8 @@ stages:
           # Build Angular Client (dist/apps/client)
           - script: npx nx run client:build:production
             displayName: 'Build Institutional Client'
+            env:
+              KENDO_UI_LICENSE: $(KENDO_UI_LICENSE)
 
           # Publish client artifact for Static Web App deployment
           - task: PublishPipelineArtifact@1
