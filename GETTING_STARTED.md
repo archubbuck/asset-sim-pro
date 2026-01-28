@@ -316,8 +316,15 @@ npm install
 
 This is your **starting point**. Here's how the documentation is organized:
 
+### 📚 Complete Documentation Index
+
+For comprehensive documentation navigation, visit the **[Documentation Hub (`docs/README.md`)](./docs/README.md)**
+
+### Quick Navigation
+
 ```
 GETTING_STARTED.md (you are here) ← Start here for quick setup
+├── docs/README.md ← Complete documentation hub and index
 ├── README.md ← Project overview and workspace structure
 ├── Local Development Path
 │   ├── docs/development/NX_WORKSPACE_GUIDE.md ← Nx monorepo development
@@ -333,18 +340,19 @@ GETTING_STARTED.md (you are here) ← Start here for quick setup
 
 ### Architecture Documents
 
-- **ARCHITECTURE.md** - All architectural decision records (ADRs)
-- **docs/architecture/BACKEND_FRONTEND_INTEGRATION.md** - Integration architecture
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - All architectural decision records (ADRs)
+- **[docs/architecture/BACKEND_FRONTEND_INTEGRATION.md](./docs/architecture/BACKEND_FRONTEND_INTEGRATION.md)** - Integration architecture
 
 ---
 
 ## Support
 
+- **Documentation Hub:** See [docs/README.md](./docs/README.md) for complete documentation index
 - **Documentation Issues:** Create an issue on GitHub
 - **Architecture Questions:** See [ARCHITECTURE.md](./ARCHITECTURE.md)
 - **Development Questions:** See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ---
 
-**Last Updated:** January 25, 2026  
+**Last Updated:** January 28, 2026  
 **Maintained By:** AssetSim Pro Engineering Team

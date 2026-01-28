@@ -47,6 +47,12 @@ See **[NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md)** for de
 
 ## Documentation
 
+### 📚 Documentation Hub
+
+For comprehensive documentation navigation and complete index, visit:
+
+**[Documentation Hub (`docs/README.md`)](./docs/README.md)** - Central index for all documentation
+
 ### Getting Started
 
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)**: 🚀 **Start here!** Quick setup guide for local dev and Azure deployment

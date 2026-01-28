@@ -791,12 +791,13 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 ---
 
 **Document Status:** ✅ Complete  
-**Last Updated:** January 25, 2026  
+**Last Updated:** January 28, 2026  
 **Version:** 2.0.0  
 **Maintained By:** AssetSim Pro DevOps Team
 
 **Related Documents:**
 
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [GETTING_STARTED.md](../../GETTING_STARTED.md) - Quick setup guide
 - [scripts/README.md](../../scripts/README.md) - Automation scripts
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Next steps after bootstrap

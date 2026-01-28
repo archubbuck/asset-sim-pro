@@ -231,6 +231,7 @@ nx reset
 
 ## 📖 Additional Resources
 
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [Nx Documentation](https://nx.dev)
 - [Angular Documentation](https://angular.dev)
 - [Kendo UI for Angular](https://www.telerik.com/kendo-angular-ui)
@@ -244,10 +245,10 @@ nx reset
 
 ## 🤝 Contributing
 
-Please follow the project's contribution guidelines in `CONTRIBUTING.md` and ensure all commits follow Conventional Commits specification as per ADR-001.
+Please follow the project's contribution guidelines in **[CONTRIBUTING.md](../../CONTRIBUTING.md)** and ensure all commits follow Conventional Commits specification as per ADR-001.
 
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: January 2026  
+**Last Updated**: January 28, 2026  
 **Architecture**: ADR-004 Compliant

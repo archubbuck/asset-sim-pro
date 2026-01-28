@@ -439,6 +439,10 @@ For complete details, see [`.github/copilot-instructions.md`](./.github/copilot-
 
 ## Additional Resources
 
+- **[Documentation Hub](./docs/README.md)** - Complete documentation index
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Quick setup guide
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Architectural decision records
+- **[TESTING.md](./docs/development/TESTING.md)** - Testing strategy
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [Trunk-Based Development](https://trunkbaseddevelopment.com/)
 - [commitlint Documentation](https://commitlint.js.org/)
