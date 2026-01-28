@@ -255,7 +255,7 @@ All verifications should pass with:
 
 ## References
 
-- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [commitlint Documentation](https://commitlint.js.org/)
 - [Husky Documentation](https://typicode.github.io/husky/)

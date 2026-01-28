@@ -198,7 +198,7 @@ open coverage/index.html
 
 ## References
 
-- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [ARCHITECTURE.md ADR-005](../../ARCHITECTURE.md#adr-005-testing-strategy--quality-gates)
 - [Vitest Documentation](https://vitest.dev/)
 - [Playwright Documentation](https://playwright.dev/)

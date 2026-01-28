@@ -341,7 +341,7 @@ terraform/
 
 ## References
 
-- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [ADR-002: Security & Network Isolation](../../ARCHITECTURE.md#adr-002-security--network-isolation)
 - [ADR-011: Terraform Engineering Specification](../../ARCHITECTURE.md#adr-011-terraform-engineering-specification)
 - [ADR-012: Manual Operations & Bootstrap Guide](../../ARCHITECTURE.md#adr-012-manual-operations--bootstrap-guide)

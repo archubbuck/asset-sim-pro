@@ -797,7 +797,7 @@ STORAGE_NAME="sttfstateassetsim$(date +%s)"
 
 **Related Documents:**
 
-- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [GETTING_STARTED.md](../../GETTING_STARTED.md) - Quick setup guide
 - [scripts/README.md](../../scripts/README.md) - Automation scripts
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Next steps after bootstrap

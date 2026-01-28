@@ -728,7 +728,7 @@ terraform state push backup.tfstate
 
 For issues or questions:
 
-- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - Review [ARCHITECTURE.md](../../ARCHITECTURE.md) for design decisions
 - Check [ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md) for architecture details
 - See [backend/README.md](../../apps/backend/README.md) for API documentation

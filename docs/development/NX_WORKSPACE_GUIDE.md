@@ -231,7 +231,7 @@ nx reset
 
 ## 📖 Additional Resources
 
-- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [Nx Documentation](https://nx.dev)
 - [Angular Documentation](https://angular.dev)
 - [Kendo UI for Angular](https://www.telerik.com/kendo-angular-ui)

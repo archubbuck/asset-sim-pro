@@ -201,7 +201,7 @@ Reference Documentation (Supporting Details)
     - [`apps/backend/src/lib/openapi-registry.ts`](../apps/backend/src/lib/openapi-registry.ts) - OpenAPI schema registry
   - **Backend README:** [`apps/backend/README.md`](../apps/backend/README.md) - Backend architecture and API overview
 
-- **API Design Standards** - See [ARCHITECTURE.md ADR-010](../ARCHITECTURE.md) (ADR-010)
+- **API Design Standards** - See [ARCHITECTURE.md ADR-010](../ARCHITECTURE.md)
   - RESTful conventions
   - Request/response formats
   - Error handling

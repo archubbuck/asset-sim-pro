@@ -343,7 +343,7 @@ Adjust the threshold based on:
 
 ## References
 
-- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[Documentation Hub](../README.md)** - Complete documentation index
 - [Azure Monitor Metrics Alerts Documentation](https://docs.microsoft.com/azure/azure-monitor/alerts/alerts-metric)
 - [Application Insights Custom Metrics](https://docs.microsoft.com/azure/azure-monitor/app/api-custom-events-metrics)
 - [ARCHITECTURE.md ADR-025](../../ARCHITECTURE.md#adr-025-observability--health-checks)
