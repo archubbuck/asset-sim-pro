@@ -4,7 +4,8 @@
   "description": "AssetSim Pro Backend - Azure Functions API",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "node build.mjs",
+    "build:tsc": "tsc",
     "watch": "tsc --watch",
     "prestart": "npm run build",
     "start": "func start",
@@ -30,6 +31,7 @@
     "@types/mssql": "^9.0.0",
     "@types/node": "^20.0.0",
     "@vitest/coverage-v8": "^4.0.17",
+    "esbuild": "^0.27.2",
     "typescript": "^5.0.0",
     "vitest": "^4.0.17"
   }
