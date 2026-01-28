@@ -17,7 +17,7 @@ export default defineConfig({
     baseURL: process.env['BASE_URL'] || 'http://localhost:4200',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    actionTimeout: process.env['CI'] ? 15000 : 10000, // 15s for actions in CI
+    actionTimeout: process.env['CI'] ? 15000 : 10000, // 15s for actions in CI, 10s locally
   },
 
   // In CI, only run chromium to match installed browsers; locally test all browsers
