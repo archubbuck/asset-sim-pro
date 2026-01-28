@@ -104,7 +104,7 @@ Reference Documentation (Supporting Details)
   - Build and test commands
 
 - **[TESTING.md](./development/TESTING.md)** - Testing strategy
-  - Test coverage requirements (92.59% achieved)
+  - Test coverage requirements (minimum 80% coverage; see TESTING.md)
   - Unit testing guidelines
   - Integration testing approach
   - E2E testing setup
