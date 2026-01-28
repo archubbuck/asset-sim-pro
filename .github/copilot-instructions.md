@@ -261,6 +261,8 @@ const OrderSchema = z.object({
 });
 
 // Use in Azure Function
+import { HttpRequest, InvocationContext } from '@azure/functions';
+
 export async function placeOrder(request: HttpRequest, context: InvocationContext) {
   const body = await request.json();
   const validatedOrder = OrderSchema.parse(body); // Throws if invalid
@@ -339,7 +341,6 @@ import { PlotlyModule } from 'plotly.js-angular'; // WRONG
 
 // ✅ ALWAYS: Use Kendo UI for Angular charts
 import { ChartModule } from '@progress/kendo-angular-charts';
-import { StockChartModule } from '@progress/kendo-angular-charts';
 ```
 
 ### ❌ Real-Time Data Anti-Patterns
