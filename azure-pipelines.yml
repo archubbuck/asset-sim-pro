@@ -37,7 +37,8 @@ stages:
             displayName: 'Install Dependencies'
 
           # Build Angular Client (dist/apps/client)
-          - script: npx nx run client:build:production
+          # Using npm run build:prod to ensure load-env.js script runs
+          - script: npm run build:prod
             displayName: 'Build Institutional Client'
             env:
               KENDO_UI_LICENSE: $(KENDO_UI_LICENSE)

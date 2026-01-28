@@ -7,8 +7,11 @@ import { setScriptKey } from '@progress/kendo-licensing';
 // Initialize Kendo UI License
 // The license key is loaded from environment variables at build time
 // See apps/client/src/environments/environment.ts for configuration details
-if (KENDO_LICENSE) {
+const PLACEHOLDER = '__KENDO_UI_LICENSE__';
+if (KENDO_LICENSE && KENDO_LICENSE !== PLACEHOLDER as string) {
   setScriptKey(KENDO_LICENSE);
+} else if (!KENDO_LICENSE || KENDO_LICENSE === PLACEHOLDER as string) {
+  console.warn('Kendo UI: Running in trial mode (license key not configured)');
 }
 
 // Polyfill for $localize required by Kendo Angular components

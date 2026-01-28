@@ -40,11 +40,21 @@ const kendoLicense = process.env.KENDO_UI_LICENSE || '';
 
 // Check if KENDO_UI_LICENSE is set
 if (!kendoLicense) {
-  console.warn('⚠ Warning: KENDO_UI_LICENSE not set');
-  console.warn('  Kendo UI will run in trial mode with watermarks');
-  console.warn('  For local development:');
-  console.warn('    1. Copy .env.local.example to .env.local');
-  console.warn('    2. Set KENDO_UI_LICENSE=your-license-key in .env.local');
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || process.env.TF_BUILD === 'True';
+  
+  if (isCI) {
+    console.error('❌ ERROR: KENDO_UI_LICENSE not set in CI/CD environment');
+    console.error('  Production builds require a valid Kendo license');
+    console.error('  Please configure KENDO_UI_LICENSE as a secret in your CI/CD platform');
+    // In CI, we continue but log an error - the build will still work in trial mode
+    // The user can decide if this is acceptable for their use case
+  } else {
+    console.warn('⚠ Warning: KENDO_UI_LICENSE not set');
+    console.warn('  Kendo UI will run in trial mode with watermarks');
+    console.warn('  For local development:');
+    console.warn('    1. Copy .env.local.example to .env.local');
+    console.warn('    2. Set KENDO_UI_LICENSE=your-license-key in .env.local');
+  }
   console.warn('');
 }
 
@@ -54,21 +64,41 @@ const envFileBackupPath = envFilePath + '.backup';
 
 // Backup and update the environment file
 let originalContent = '';
-if (fs.existsSync(envFilePath)) {
-  originalContent = fs.readFileSync(envFilePath, 'utf8');
-  
-  // Create backup
-  fs.writeFileSync(envFileBackupPath, originalContent, 'utf8');
-  
-  // Replace placeholder with actual license key
-  const updatedContent = originalContent.replace('__KENDO_UI_LICENSE__', kendoLicense);
-  fs.writeFileSync(envFilePath, updatedContent, 'utf8');
+try {
+  if (fs.existsSync(envFilePath)) {
+    originalContent = fs.readFileSync(envFilePath, 'utf8');
+    
+    // Check if placeholder exists
+    if (!originalContent.includes('__KENDO_UI_LICENSE__')) {
+      console.warn('⚠ Warning: Placeholder __KENDO_UI_LICENSE__ not found in environment.ts');
+      console.warn('  The license key may not be injected correctly');
+    } else {
+      // Create backup
+      fs.writeFileSync(envFileBackupPath, originalContent, 'utf8');
+      
+      // Replace placeholder with actual license key
+      // If kendoLicense is empty, replace with empty string
+      const updatedContent = originalContent.replace('__KENDO_UI_LICENSE__', kendoLicense);
+      fs.writeFileSync(envFilePath, updatedContent, 'utf8');
+    }
+  }
+} catch (error) {
+  console.error('Error updating environment file:', error);
+  // Don't exit - allow build to continue with placeholder
 }
 
 // Function to restore the original environment file
 function cleanup() {
-  if (fs.existsSync(envFileBackupPath)) {
-    fs.renameSync(envFileBackupPath, envFilePath);
+  try {
+    if (fs.existsSync(envFileBackupPath) && fs.existsSync(envFilePath)) {
+      fs.renameSync(envFileBackupPath, envFilePath);
+    } else if (fs.existsSync(envFileBackupPath)) {
+      // If original file was deleted, restore from backup
+      fs.renameSync(envFileBackupPath, envFilePath);
+    }
+  } catch (error) {
+    console.error('Warning: Failed to restore environment file:', error.message);
+    // Don't throw - we're in cleanup
   }
 }
 
