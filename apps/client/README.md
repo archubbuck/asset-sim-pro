@@ -43,7 +43,7 @@ apps/client/
 
 The application configuration follows **ADR-004** (Nx Workspace with Angular 21+ and Kendo UI), **ADR-018** (HTTP Error Handling), and **ADR-020** (Authentication).
 
-**Key configuration from [`app.config.ts`](./src/app/app.config.ts#L33-L46):**
+**Key configuration from [`app.config.ts`](./src/app/app.config.ts#L25-L46):**
 
 ```typescript
 export const appConfig: ApplicationConfig = {
@@ -111,7 +111,7 @@ This is a starter component that can be deleted when starting actual feature dev
 
 ### Prerequisites
 
-Before starting development on the client application, ensure you have completed the workspace-level setup. See the **[workspace-level README.md](../../README.md#L20-L45)** for initial setup instructions including:
+Before starting development on the client application, ensure you have completed the workspace-level setup. See the **[workspace-level README.md](../../README.md#getting-started)** for initial setup instructions including:
 
 - Node.js 20.x or higher
 - npm or yarn package manager
@@ -291,6 +291,7 @@ import { NotificationModule } from '@progress/kendo-angular-notification';
 ```typescript
 import { Component, signal } from '@angular/core';
 import { ChartModule } from '@progress/kendo-angular-charts';
+import { OHLCData } from '@assetsim/shared/finance-models';
 
 @Component({
   selector: 'app-price-chart',
@@ -353,17 +354,19 @@ export class ExampleComponent {
 
 ### Styling with Institutional Slate Theme
 
-The application uses a custom Kendo UI theme. Global styles are in `src/styles.scss`:
+The application uses a custom Kendo UI theme with CSS custom properties. Global styles are in `src/styles.scss`:
 
 ```scss
 // Kendo UI theme import
 @import '@progress/kendo-theme-default/dist/all.scss';
 
-// Custom theme variables for Institutional Slate
-$primary-color: #1e293b; // Dark slate
-$secondary-color: #3b82f6; // Professional blue
-$background-color: #0f172a; // Deep dark
-$text-color: #e2e8f0; // Light slate
+// Institutional Slate Theme Customization with CSS custom properties
+:root {
+  --kendo-color-primary: #1e293b; // Dark slate
+  --kendo-color-secondary: #3b82f6; // Professional blue
+  --kendo-color-surface: #0f172a; // Deep dark
+  --kendo-color-on-surface: #e2e8f0; // Light slate
+}
 ```
 
 ### Code Quality Standards
