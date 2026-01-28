@@ -1,6 +1,6 @@
 # Azure DevOps Pipeline Documentation
 
-This directory contains documentation for the AssetSim Pro CI/CD pipeline.
+This document contains documentation for the AssetSim Pro CI/CD pipeline.
 
 ## Quick Links
 
@@ -144,7 +144,7 @@ View detailed logs in Azure DevOps:
 
 ## Architecture Decisions
 
-This pipeline implements **ADR-023: CI/CD Pipelines** as documented in [ARCHITECTURE.md](../ARCHITECTURE.md#L1151-L1293).
+This pipeline implements **ADR-023: CI/CD Pipelines** as documented in [ARCHITECTURE.md](../ARCHITECTURE.md#L1170-L1296).
 
 ### Key Decisions
 
@@ -165,7 +165,7 @@ This pipeline implements **ADR-023: CI/CD Pipelines** as documented in [ARCHITEC
 
 For pipeline issues:
 
-1. Check this README for common solutions
+1. Check this document for common solutions
 2. Review pipeline logs in Azure DevOps
 3. Consult [DEPLOYMENT_GUIDE.md](./deployment/DEPLOYMENT_GUIDE.md) troubleshooting section
 4. Contact the AssetSim Pro Infrastructure Team
