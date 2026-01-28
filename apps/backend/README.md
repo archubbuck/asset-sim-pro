@@ -230,15 +230,62 @@ This ensures users can only access data for Exchanges where they have assigned r
 
 ## Development
 
+### Building the Backend
+
+The backend uses **esbuild** to bundle Azure Functions with proper path mapping resolution and correct output structure. This is integrated with Nx for monorepo-aware builds.
+
+```bash
+# Build using Nx (recommended - handles dependencies)
+npx nx build backend
+
+# Or from root package.json
+npm run backend:build
+
+# The build process:
+# 1. Resolves shared library dependencies (error-models, finance-models) via TypeScript path mappings
+# 2. Bundles backend functions with esbuild, including shared library source inline
+# 3. Copies Azure Functions config files (host.json, package.json) to output
+# 4. Outputs to dist/ (Azure Functions v4 structure)
+```
+
+**Build Configuration**: See `build.mjs` for esbuild configuration.
+
+### Known Limitations (RESOLVED)
+
+Previously, the TypeScript compiler had two limitations:
+
+1. ✅ **Output Structure** - FIXED: esbuild now outputs function files directly to `dist/` matching Azure Functions v4 structure
+2. ✅ **Runtime Module Resolution** - FIXED: esbuild resolves `@assetsim/*` path mappings at build time
+
+The bundler approach eliminates the need for runtime path resolution or workspace linking.
+
+### Running Locally
+
 ```bash
 # Install dependencies
 npm install
 
-# Build TypeScript
-npm run build
+# Build (required before starting)
+npx nx build backend
 
 # Run locally (requires Azure Functions Core Tools)
 npm start
+
+# Or using Nx
+npx nx serve backend
+```
+
+### Testing
+
+```bash
+# Run tests using Nx
+npx nx test backend
+
+# Or from root
+npm run backend:test
+
+# With coverage
+npm run backend:test:coverage
 ```
 
 ## Deployment
@@ -246,7 +293,7 @@ npm start
 This Function App is deployed via Terraform and Azure Pipelines:
 
 1. **Infrastructure**: Terraform provisions Premium Function App with VNet integration
-2. **Build**: TypeScript compiled to JavaScript
+2. **Build**: Backend bundled with esbuild (resolves path mappings and creates correct structure)
 3. **Deploy**: Deployed via Azure Pipelines using self-hosted agent in VNet
 
 See `/terraform` and ADR-023 for full deployment specifications.
