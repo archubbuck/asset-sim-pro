@@ -279,9 +279,10 @@ Potential improvements for future versions:
 ## Support & Documentation
 
 ### Primary Documentation
+- **[Documentation Hub](../docs/README.md)** - Complete documentation index
 - **[GETTING_STARTED.md](../GETTING_STARTED.md)**: Quick setup guide
-- **[BOOTSTRAP_GUIDE.md](../BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures
-- **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)**: Infrastructure deployment
+- **[BOOTSTRAP_GUIDE.md](../docs/deployment/BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures
+- **[DEPLOYMENT_GUIDE.md](../docs/deployment/DEPLOYMENT_GUIDE.md)**: Infrastructure deployment
 
 ### Reference Documentation
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)**: ADR-012 and ADR-013 specifications
@@ -302,5 +303,5 @@ Potential improvements for future versions:
 
 **Note:** These scripts are part of the AssetSim Pro Zero Trust architecture implementation. Always review and test scripts in a non-production environment before running in production.
 
-**Last Updated:** January 25, 2026  
+**Last Updated:** January 28, 2026  
 **Maintained By:** AssetSim Pro DevOps Team

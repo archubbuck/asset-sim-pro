@@ -264,3 +264,15 @@ All API endpoints and market engine functions use Zod for data validation:
 - **Authorization**: Exchange-scoped RBAC via Row-Level Security
 - **TLS**: Minimum TLS 1.2 enforced
 - **Secrets**: Stored in Azure Key Vault, referenced via Function App settings
+
+## Related Documentation
+
+For complete documentation, see:
+
+- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)** - Quick setup guide
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)** - See ADR-002, ADR-007, ADR-017 for architectural decisions
+- **[ZERO_TRUST_IMPLEMENTATION.md](../../docs/architecture/ZERO_TRUST_IMPLEMENTATION.md)** - Security architecture details
+- **[DEPLOYMENT_GUIDE.md](../../docs/deployment/DEPLOYMENT_GUIDE.md)** - Backend deployment instructions
+
+**API Documentation:** Available at `/api/docs` when running the backend (see GET /api/docs endpoint above)

@@ -564,5 +564,14 @@ export class TradingTerminalComponent {
 ---
 
 **Document Version:** 1.0  
-**Last Updated:** January 23, 2026  
+**Last Updated:** January 28, 2026  
 **Maintained By:** AssetSim Pro Engineering Team
+
+## Related Documentation
+
+For complete documentation, see:
+
+- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)** - Architectural decisions
+- **[GETTING_STARTED.md](../../GETTING_STARTED.md)** - Quick setup guide
+- **[ZERO_TRUST_IMPLEMENTATION.md](./ZERO_TRUST_IMPLEMENTATION.md)** - Security architecture

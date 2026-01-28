@@ -728,12 +728,13 @@ terraform state push backup.tfstate
 
 For issues or questions:
 
+- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
 - Review [ARCHITECTURE.md](../../ARCHITECTURE.md) for design decisions
 - Check [ZERO_TRUST_IMPLEMENTATION.md](../architecture/ZERO_TRUST_IMPLEMENTATION.md) for architecture details
-- See [backend/README.md](../../backend/README.md) for API documentation
+- See [backend/README.md](../../apps/backend/README.md) for API documentation
 
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: January 18, 2026  
+**Last Updated**: January 28, 2026  
 **Maintained By**: AssetSim Pro Infrastructure Team

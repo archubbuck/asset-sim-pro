@@ -255,6 +255,7 @@ All verifications should pass with:
 
 ## References
 
+- **[Documentation Hub](../../docs/README.md)** - Complete documentation index
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [commitlint Documentation](https://commitlint.js.org/)
 - [Husky Documentation](https://typicode.github.io/husky/)
@@ -264,6 +265,6 @@ All verifications should pass with:
 
 ---
 
-**Last Updated:** January 25, 2026  
+**Last Updated:** January 28, 2026  
 **Version:** 2.0  
 **Maintained By:** AssetSim Pro Engineering Team
