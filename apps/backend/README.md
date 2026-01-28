@@ -242,10 +242,10 @@ npx nx build backend
 npm run backend:build
 
 # The build process:
-# 1. Builds shared libraries (error-models, finance-models)
-# 2. Bundles backend functions with esbuild
-# 3. Resolves @assetsim/* path mappings at build time
-# 4. Outputs to dist/functions/ (Azure Functions structure)
+# 1. Resolves shared library dependencies (error-models, finance-models) via TypeScript path mappings
+# 2. Bundles backend functions with esbuild, including shared library source inline
+# 3. Copies Azure Functions config files (host.json, package.json) to output
+# 4. Outputs to dist/ (Azure Functions v4 structure)
 ```
 
 **Build Configuration**: See `build.mjs` for esbuild configuration.

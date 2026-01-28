@@ -9,12 +9,15 @@
     // 
     // BUILD PROCESS (Nx-integrated):
     // The actual build uses esbuild via Nx (see build.mjs and project.json):
-    //   - Nx builds shared library dependencies first (error-models, finance-models)
-    //   - esbuild bundles backend functions with resolved path mappings
-    //   - Output: dist/functions/ matching Azure Functions structure
+    //   - esbuild directly resolves and bundles TypeScript source from shared libraries
+    //   - Path mappings (@assetsim/*) are resolved at build time via esbuild plugin
+    //   - Output: dist/ matching Azure Functions v4 structure
+    //
+    // Note: While Nx may build shared libraries due to dependsOn configuration, esbuild
+    // itself bundles the TypeScript source inline - it does not use pre-built library artifacts.
     //
     // RESOLVED LIMITATIONS:
-    //   ✅ Output Structure: esbuild outputs to dist/functions/ (not dist/apps/backend/src/functions/)
+    //   ✅ Output Structure: esbuild outputs to dist/ (Azure Functions v4 structure)
     //   ✅ Runtime Module Resolution: esbuild resolves @assetsim/* paths at build time
     //
     // Build commands:
