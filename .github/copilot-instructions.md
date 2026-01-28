@@ -11,8 +11,10 @@ AssetSim Pro is an enterprise-grade simulation platform for Asset Management Fir
 ### Frontend
 - **Framework:** Angular 21+ with Signals-first architecture (Zoneless-ready)
 - **UI Library:** Kendo UI for Angular (Theme: "Institutional Slate")
-- **Build System:** Nx monorepo
-- **State Management:** Angular Signals
+- **Build System:** Nx monorepo (see [NX_WORKSPACE_GUIDE.md](../docs/development/NX_WORKSPACE_GUIDE.md))
+- **State Management:** Angular Signals (required for all new components)
+- **Component Architecture:** Standalone components only (no NgModule)
+- **Change Detection:** Zoneless via `provideZonelessChangeDetection()`
 - **Styling:** TailwindCSS with custom financial UI components
 
 ### Backend
@@ -182,16 +184,43 @@ When handling real-time market data streams or user inputs:
 - **Use Angular Signals** for all state management (Signals-first approach)
 - Prefer `signal()`, `computed()`, and `effect()` over traditional RxJS Subject patterns
 - Design components for Zoneless execution compatibility
+- **All new components must be standalone** (no NgModule declarations)
+- **Application configuration must use `provideZonelessChangeDetection()`**
 
 ```typescript
-// Preferred pattern
+// ✅ Preferred pattern - Signals-based state
 private portfolioValue = signal(0);
 public displayValue = computed(() => 
   this.portfolioValue().toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 );
 
-// Instead of:
-// private portfolioValue$ = new BehaviorSubject<number>(0); // ❌ Outdated
+// ❌ Anti-pattern - Outdated RxJS Subject pattern
+// private portfolioValue$ = new BehaviorSubject<number>(0);
+```
+
+### Standalone Components (Required)
+
+- **All components must be standalone** (Angular 21+ requirement)
+- Use `standalone: true` in `@Component()` decorator
+- Import dependencies directly in component `imports` array
+- Never create or use NgModule declarations
+
+```typescript
+// ✅ Correct standalone component
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ChartModule } from '@progress/kendo-angular-charts';
+
+@Component({
+  selector: 'app-trading-view',
+  standalone: true,
+  imports: [CommonModule, ChartModule],
+  template: `...`
+})
+export class TradingViewComponent { }
+
+// ❌ Never use NgModule approach
+// @NgModule({ declarations: [...], imports: [...] }) // WRONG
 ```
 
 ### Logging (Required)
@@ -218,7 +247,7 @@ this.logger.logException(error);
 
 - **All API inputs must use Zod schemas** for validation
 - Define schemas in `libs/shared/finance-models`
-- Validate at API boundaries
+- Validate at API boundaries (Azure Functions HTTP triggers)
 
 ```typescript
 import { z } from 'zod';
@@ -230,7 +259,37 @@ const OrderSchema = z.object({
   type: z.enum(['MARKET', 'LIMIT', 'STOP']),
   limitPrice: z.number().positive().optional()
 });
+
+// Use in Azure Function
+import { HttpRequest, InvocationContext } from '@azure/functions';
+
+export async function placeOrder(request: HttpRequest, context: InvocationContext) {
+  const body = await request.json();
+  const validatedOrder = OrderSchema.parse(body); // Throws if invalid
+  // ... process order
+}
 ```
+
+### Nx Workspace Structure (Required)
+
+AssetSim Pro uses an Nx monorepo with specific import path aliases. Always use these aliases:
+
+```typescript
+// ✅ Correct imports using Nx aliases
+import { ExchangeConfig, Portfolio } from '@assetsim/shared/finance-models';
+import { TradingComponent } from '@assetsim/client/features/trading';
+import { LoggerService } from '@assetsim/client/core';
+
+// ❌ Never use relative paths for cross-library imports
+// import { ExchangeConfig } from '../../../libs/shared/finance-models'; // WRONG
+```
+
+**Key Import Paths:**
+- `@assetsim/shared/finance-models` - Shared TypeScript types and Zod schemas
+- `@assetsim/client/features/*` - Angular feature libraries
+- `@assetsim/client/core` - Core services (LoggerService, etc.)
+
+For complete workspace structure, see [NX_WORKSPACE_GUIDE.md](../docs/development/NX_WORKSPACE_GUIDE.md).
 
 ### Commit Messages (Required)
 
@@ -253,6 +312,138 @@ const OrderSchema = z.object({
 - Validate all external inputs with Zod
 - Use Row-Level Security (RLS) for multi-tenant data access
 - Follow Zero Trust principles (no public access to data services)
+
+## Anti-Patterns to Avoid
+
+The following patterns are **PROHIBITED** and must never be used:
+
+### ❌ Financial Calculation Anti-Patterns
+
+```typescript
+// ❌ NEVER: Native JavaScript arithmetic for money
+const total = price * quantity;
+const commission = orderValue * 0.0025;
+const portfolioValue = position1 + position2 + cash;
+
+// ✅ ALWAYS: Use Decimal.js for precision
+const total = new Decimal(price).times(quantity);
+const commission = new Decimal(orderValue).times(0.0025);
+const portfolioValue = new Decimal(position1).plus(position2).plus(cash);
+```
+
+### ❌ Charting Library Anti-Patterns
+
+```typescript
+// ❌ NEVER: Use alternative charting libraries
+import Chart from 'chart.js';  // WRONG
+import * as d3 from 'd3';      // WRONG
+import { PlotlyModule } from 'plotly.js-angular'; // WRONG
+
+// ✅ ALWAYS: Use Kendo UI for Angular charts
+import { ChartModule } from '@progress/kendo-angular-charts';
+```
+
+### ❌ Real-Time Data Anti-Patterns
+
+```typescript
+// ❌ NEVER: Subscribe to high-frequency streams without throttling
+// This causes UI freezes and performance issues
+signalrHub.on('marketData', (data) => {
+  this.updatePrice(data); // Will process 100+ updates/sec
+});
+
+marketDataService.priceStream$.subscribe(tick => {
+  this.renderChart(tick); // No throttling = UI freeze
+});
+
+// ✅ ALWAYS: Apply RxJS throttling operators
+marketDataService.priceStream$
+  .pipe(
+    throttleTime(250),
+    distinctUntilChanged()
+  )
+  .subscribe(tick => this.renderChart(tick));
+```
+
+### ❌ State Management Anti-Patterns
+
+```typescript
+// ❌ NEVER: Use RxJS Subjects for component state
+private portfolioValue$ = new BehaviorSubject<number>(0);
+private orders$ = new ReplaySubject<Order[]>(1);
+
+// ✅ ALWAYS: Use Angular Signals
+private portfolioValue = signal(0);
+private orders = signal<Order[]>([]);
+```
+
+### ❌ Logging Anti-Patterns
+
+```typescript
+// ❌ NEVER: Use console.log in production code
+console.log('Order placed:', order);
+console.error('API error:', error);
+console.warn('High volatility detected');
+
+// ✅ ALWAYS: Use LoggerService
+this.logger.logEvent('OrderPlaced', { orderId: order.id, symbol: order.symbol });
+this.logger.logException(error);
+this.logger.logTrace('High volatility detected', { volatility });
+```
+
+### ❌ Component Architecture Anti-Patterns
+
+```typescript
+// ❌ NEVER: Use NgModule declarations
+@NgModule({
+  declarations: [TradingComponent],
+  imports: [CommonModule]
+})
+export class TradingModule { }
+
+// ✅ ALWAYS: Use standalone components
+@Component({
+  selector: 'app-trading',
+  standalone: true,
+  imports: [CommonModule, ChartModule]
+})
+export class TradingComponent { }
+```
+
+### ❌ Import Path Anti-Patterns
+
+```typescript
+// ❌ NEVER: Use relative paths for cross-library imports
+import { Order } from '../../../libs/shared/finance-models/src/lib/order';
+import { TradingService } from '../../trading/src/services/trading.service';
+
+// ✅ ALWAYS: Use Nx path aliases
+import { Order } from '@assetsim/shared/finance-models';
+import { TradingService } from '@assetsim/client/features/trading';
+```
+
+### ❌ Validation Anti-Patterns
+
+```typescript
+// ❌ NEVER: Manual validation or type assertions
+function placeOrder(data: any) {
+  if (!data.symbol || typeof data.quantity !== 'number') {
+    throw new Error('Invalid order');
+  }
+}
+
+// ✅ ALWAYS: Use Zod schemas
+import { z } from 'zod';
+
+const OrderSchema = z.object({
+  symbol: z.string().min(1),
+  quantity: z.number().positive()
+});
+
+function placeOrder(data: unknown) {
+  const order = OrderSchema.parse(data); // Type-safe validation
+}
+```
 
 ## Common Patterns
 
@@ -355,7 +546,9 @@ app.timer('tickerGenerator', {
 
 ## Architecture References
 
-- **ARCHITECTURE.md**: Complete ADR specifications
+- **[ARCHITECTURE.md](../ARCHITECTURE.md)**: Complete ADR specifications
+- **[NX_WORKSPACE_GUIDE.md](../docs/development/NX_WORKSPACE_GUIDE.md)**: Nx workspace structure and development workflow
+- **[CONTRIBUTING.md](../CONTRIBUTING.md)**: Development guidelines and git workflows
 - **ADR-002**: Zero Trust Network Architecture
 - **ADR-003**: Docker Compose for Local Development
 - **ADR-004**: Nx Workspace & Kendo UI
@@ -365,14 +558,87 @@ app.timer('tickerGenerator', {
 ## Questions and Clarifications
 
 When uncertain about implementation details:
-1. Refer to ARCHITECTURE.md for authoritative architectural decisions
-2. Check existing code patterns in the monorepo
-3. Prioritize: Kendo UI > Decimal.js > RxJS throttling
-4. Maintain Zero Trust security principles
-5. Follow Conventional Commits for all changes
+1. Refer to [ARCHITECTURE.md](../ARCHITECTURE.md) for authoritative architectural decisions
+2. Check [NX_WORKSPACE_GUIDE.md](../docs/development/NX_WORKSPACE_GUIDE.md) for workspace structure and commands
+3. Review existing code patterns in the monorepo (`libs/` and `apps/` directories)
+4. Prioritize: Kendo UI > Decimal.js > RxJS throttling
+5. Maintain Zero Trust security principles
+6. Follow Conventional Commits for all changes
+
+## Onboarding Checklist for New Components
+
+When creating new Angular components or features, ensure:
+
+- [ ] Component is **standalone** (`standalone: true`)
+- [ ] Uses **Angular Signals** for state (not RxJS Subjects)
+- [ ] Financial calculations use **Decimal.js**
+- [ ] Charts use **Kendo UI** components (not Chart.js/D3.js)
+- [ ] Real-time streams use **RxJS throttling** (250ms for market data)
+- [ ] Imports use **Nx path aliases** (`@assetsim/*`)
+- [ ] Logging uses **LoggerService** (not `console.log`)
+- [ ] API validation uses **Zod schemas**
+- [ ] Commits follow **Conventional Commits** format
+- [ ] Unit tests achieve **80% coverage minimum**
+- [ ] Component is compatible with **zoneless change detection**
+
+## Quick Reference
+
+### Essential Imports
+
+```typescript
+// Core Angular (Signals-first)
+import { Component, signal, computed, effect, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+// Kendo UI Components
+import { ChartModule } from '@progress/kendo-angular-charts';
+import { GridModule } from '@progress/kendo-angular-grid';
+import { ButtonsModule } from '@progress/kendo-angular-buttons';
+
+// Financial Precision
+import { Decimal } from 'decimal.js';
+
+// RxJS Throttling
+import { throttleTime, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
+// Validation
+import { z } from 'zod';
+
+// Project Libraries (use Nx aliases)
+import { ExchangeConfig, Portfolio, Order } from '@assetsim/shared/finance-models';
+import { LoggerService } from '@assetsim/client/core';
+```
+
+### Common Command Reference
+
+```bash
+# Start development server
+npm start
+nx serve client
+
+# Build for production
+npm run build:prod
+nx build client --configuration=production
+
+# Run tests
+npm test
+nx test client
+
+# Generate new component (standalone)
+nx g @nx/angular:component my-component --project=client --standalone
+
+# Generate new library
+nx g @nx/angular:library my-feature --directory=libs/client/features
+
+# View dependency graph
+nx graph
+
+# Lint code
+npm run lint
+```
 
 ---
 
-**Last Updated:** January 19, 2026  
-**Version:** 1.0.0  
+**Last Updated:** January 28, 2026  
+**Version:** 1.1.0  
 **Authority:** ADR-006 from ARCHITECTURE.md
