@@ -13,8 +13,8 @@
  */
 
 import * as esbuild from 'esbuild';
-import { readdirSync, statSync } from 'fs';
-import { join, relative, dirname } from 'path';
+import { readdirSync } from 'fs';
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -293,7 +293,7 @@ npm run backend:test:coverage
 This Function App is deployed via Terraform and Azure Pipelines:
 
 1. **Infrastructure**: Terraform provisions Premium Function App with VNet integration
-2. **Build**: TypeScript compiled to JavaScript
+2. **Build**: Backend bundled with esbuild (resolves path mappings and creates correct structure)
 3. **Deploy**: Deployed via Azure Pipelines using self-hosted agent in VNet
 
 See `/terraform` and ADR-023 for full deployment specifications.

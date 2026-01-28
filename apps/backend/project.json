@@ -15,8 +15,11 @@
       "dependsOn": ["^build"],
       "configurations": {
         "production": {
-          "command": "NODE_ENV=production node build.mjs",
-          "cwd": "apps/backend"
+          "command": "node build.mjs",
+          "cwd": "apps/backend",
+          "env": {
+            "NODE_ENV": "production"
+          }
         }
       }
     },
