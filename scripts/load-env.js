@@ -2,8 +2,11 @@
 /**
  * Load Environment Variables and Execute Command
  * 
- * This script loads environment variables from .env.local file (if it exists)
- * and executes the provided command with those variables.
+ * This script:
+ * 1. Loads environment variables from .env.local file (if it exists)
+ * 2. Injects the KENDO_UI_LICENSE into the environment file
+ * 3. Executes the provided command with those variables
+ * 4. Restores the original environment file after the command completes
  * 
  * Usage: 
  *   node scripts/load-env.js <command> [args...]
@@ -32,8 +35,11 @@ if (fs.existsSync(envLocalPath)) {
   }
 }
 
+// Get the Kendo license key from environment
+const kendoLicense = process.env.KENDO_UI_LICENSE || '';
+
 // Check if KENDO_UI_LICENSE is set
-if (!process.env.KENDO_UI_LICENSE) {
+if (!kendoLicense) {
   console.warn('⚠ Warning: KENDO_UI_LICENSE not set');
   console.warn('  Kendo UI will run in trial mode with watermarks');
   console.warn('  For local development:');
@@ -42,11 +48,47 @@ if (!process.env.KENDO_UI_LICENSE) {
   console.warn('');
 }
 
+// Path to the environment file
+const envFilePath = path.join(__dirname, '..', 'apps', 'client', 'src', 'environments', 'environment.ts');
+const envFileBackupPath = envFilePath + '.backup';
+
+// Backup and update the environment file
+let originalContent = '';
+if (fs.existsSync(envFilePath)) {
+  originalContent = fs.readFileSync(envFilePath, 'utf8');
+  
+  // Create backup
+  fs.writeFileSync(envFileBackupPath, originalContent, 'utf8');
+  
+  // Replace placeholder with actual license key
+  const updatedContent = originalContent.replace('__KENDO_UI_LICENSE__', kendoLicense);
+  fs.writeFileSync(envFilePath, updatedContent, 'utf8');
+}
+
+// Function to restore the original environment file
+function cleanup() {
+  if (fs.existsSync(envFileBackupPath)) {
+    fs.renameSync(envFileBackupPath, envFilePath);
+  }
+}
+
+// Register cleanup handlers
+process.on('exit', cleanup);
+process.on('SIGINT', () => {
+  cleanup();
+  process.exit(130);
+});
+process.on('SIGTERM', () => {
+  cleanup();
+  process.exit(143);
+});
+
 // Get command and arguments from command line
 const args = process.argv.slice(2);
 if (args.length === 0) {
   console.error('Error: No command provided');
   console.error('Usage: node scripts/load-env.js <command> [args...]');
+  cleanup();
   process.exit(1);
 }
 
@@ -61,6 +103,14 @@ const child = spawn(command, commandArgs, {
 });
 
 child.on('exit', (code) => {
+  cleanup();
   process.exit(code || 0);
 });
+
+child.on('error', (error) => {
+  console.error('Failed to execute command:', error);
+  cleanup();
+  process.exit(1);
+});
+
 

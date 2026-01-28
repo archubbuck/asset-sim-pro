@@ -25,10 +25,7 @@
             "output": "/"
           }
         ],
-        "styles": ["apps/client/src/styles.scss"],
-        "define": {
-          "NG_KENDO_LICENSE": "process.env['KENDO_UI_LICENSE'] || ''"
-        }
+        "styles": ["apps/client/src/styles.scss"]
       },
       "configurations": {
         "production": {
