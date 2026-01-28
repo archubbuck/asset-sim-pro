@@ -29,12 +29,12 @@ This is the **central hub** for all AssetSim Pro documentation. Whether you're a
 
 These documents provide the main entry points for different user journeys:
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| **[GETTING_STARTED.md](../GETTING_STARTED.md)** | Quick setup guide for local dev and Azure deployment | New Developers, DevOps |
-| **[README.md](../README.md)** | Project overview, workspace structure, and navigation | All Users |
-| **[ARCHITECTURE.md](../ARCHITECTURE.md)** | Complete architectural decision records (ADRs) | Architects, Senior Developers |
-| **[CONTRIBUTING.md](../CONTRIBUTING.md)** | Development guidelines, git workflow, commit standards | Contributors, Developers |
+| Document                                        | Purpose                                                | Audience                      |
+| ----------------------------------------------- | ------------------------------------------------------ | ----------------------------- |
+| **[GETTING_STARTED.md](../GETTING_STARTED.md)** | Quick setup guide for local dev and Azure deployment   | New Developers, DevOps        |
+| **[README.md](../README.md)**                   | Project overview, workspace structure, and navigation  | All Users                     |
+| **[ARCHITECTURE.md](../ARCHITECTURE.md)**       | Complete architectural decision records (ADRs)         | Architects, Senior Developers |
+| **[CONTRIBUTING.md](../CONTRIBUTING.md)**       | Development guidelines, git workflow, commit standards | Contributors, Developers      |
 
 ### Documentation Hierarchy
 
@@ -82,7 +82,6 @@ Reference Documentation (Supporting Details)
   - Local development setup (Docker + npm)
   - Azure deployment path (Bootstrap → Deploy → Verify)
   - Common troubleshooting and next steps
-  
 - **[README.md](../README.md)** - Project overview
   - Workspace structure (Nx monorepo)
   - Quick start commands
@@ -310,6 +309,7 @@ This documentation hub and all related documentation follows the maintenance pro
 **[DOCUMENTATION_MAINTENANCE.md](./development/DOCUMENTATION_MAINTENANCE.md)**
 
 Key maintenance practices:
+
 - **Review Frequency:** Entry points monthly, procedures after changes, references quarterly
 - **Version Control:** Semantic versioning for major procedural documents
 - **Update Checklist:** Date updates, version bumps, link validation, cross-reference checks

@@ -17,6 +17,7 @@ This directory contains automation scripts that implement ADR-013 for bootstrapp
 These scripts automate the manual "chicken and egg" operations documented in ADR-012 and BOOTSTRAP_GUIDE.md. They use Azure CLI and Azure REST APIs (Graph API and ARM API) to provision foundational infrastructure required before Terraform automation can run.
 
 **Why use these scripts?**
+
 - ⚡ **Faster:** Automate 30+ manual steps into 2 commands
 - ✅ **Consistent:** Eliminate human error from manual configuration
 - 🔁 **Repeatable:** Idempotent operations safe to run multiple times
@@ -31,11 +32,13 @@ These scripts automate the manual "chicken and egg" operations documented in ADR
 **Manual Alternative:** [BOOTSTRAP_GUIDE.md Phase 2](../docs/deployment/BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent)
 
 **Prerequisites:**
+
 - Azure CLI 2.50.0 or higher installed
 - Active Azure login with **Global Administrator** rights
 - Application already registered in Entra ID
 
 **What It Does:**
+
 1. Verifies Azure CLI installation and login status
 2. Retrieves Microsoft Graph Service Principal ID
 3. Retrieves Application Service Principal ID
@@ -54,6 +57,7 @@ export APP_ID="your-application-client-id"
 ```
 
 **API Permissions Granted:**
+
 - `GroupMember.Read.All` (Role ID: 98830695-27a2-44f7-8c18-0c3ebc9698f6)
 
 **For detailed manual steps:** See [BOOTSTRAP_GUIDE.md Phase 2](../docs/deployment/BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent)
@@ -65,11 +69,13 @@ export APP_ID="your-application-client-id"
 **Manual Alternative:** [BOOTSTRAP_GUIDE.md Phase 1](../docs/deployment/BOOTSTRAP_GUIDE.md#phase-1-terraform-state-storage-bootstrap)
 
 **Prerequisites:**
+
 - Azure CLI 2.50.0 or higher installed
 - Active Azure login with **Contributor** or **Owner** rights
 - Valid Azure subscription selected
 
 **What It Does:**
+
 1. Verifies Azure CLI installation and login status
 2. Creates Resource Group for Terraform state using ARM API
 3. Creates Storage Account with secure defaults using ARM API
@@ -97,6 +103,7 @@ export APPLY_RESOURCE_LOCK="yes"
 ```
 
 **Default Configuration:**
+
 - Resource Group: `rg-tfstate`
 - Storage Account: `sttfstate{timestamp8}{random4}` (e.g., `sttfstate12345678abcd`)
 - Blob Container: `tfstate`
@@ -104,6 +111,7 @@ export APPLY_RESOURCE_LOCK="yes"
 - SKU: Standard_LRS (Locally Redundant Storage)
 
 **Generated Files:**
+
 - `terraform-backend-config/backend.tf` - Terraform backend configuration
 - `terraform-backend-config/backend.env` - Environment variables with storage key
 - `terraform-backend-config/README.md` - Usage instructions
@@ -115,21 +123,25 @@ export APPLY_RESOURCE_LOCK="yes"
 Both scripts implement the following security best practices:
 
 ### Error Handling
+
 - `set -euo pipefail` - Exit on error, undefined variables, and pipe failures
 - Comprehensive error checking for all Azure CLI and API calls
 - Graceful handling of already-existing resources
 
 ### Validation
+
 - Prerequisite verification (Azure CLI, login status, permissions)
 - Input validation for resource names
 - Verification of successful resource creation
 
 ### Secure Defaults
+
 - Storage Account: HTTPS-only traffic, TLS 1.2 minimum
 - Blob Container: Private access (no public access)
 - Encryption enabled for blob storage
 
 ### Sensitive Data
+
 - Storage account keys are not displayed in console output
 - Generated configuration files contain credentials (must not be committed)
 - Clear warnings about protecting sensitive files
@@ -159,6 +171,7 @@ terraform apply
 ### Common Issues
 
 **Issue:** "Azure CLI is not installed"
+
 ```bash
 # Install Azure CLI (Ubuntu/Debian)
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
@@ -168,6 +181,7 @@ brew update && brew install azure-cli
 ```
 
 **Issue:** "Not logged into Azure"
+
 ```bash
 # Login to Azure
 az login
@@ -178,18 +192,21 @@ az account set --subscription "Your Subscription Name"
 ```
 
 **Issue:** "Failed to retrieve Application Service Principal ID"
+
 ```bash
 # Create service principal for your app
 az ad sp create --id YOUR_APP_CLIENT_ID
 ```
 
 **Issue:** "Permission already granted"
+
 - This is expected behavior if re-running the script
 - The script detects existing permissions and skips gracefully
 
 ### Script Logs
 
 Both scripts provide color-coded output:
+
 - 🔵 **INFO** (Blue): Informational messages
 - 🟢 **SUCCESS** (Green): Successful operations
 - 🟡 **WARNING** (Yellow): Non-critical issues
@@ -200,6 +217,7 @@ Both scripts provide color-coded output:
 These scripts implement automation for manual steps documented in:
 
 ### Related Documentation
+
 - **[GETTING_STARTED.md](../GETTING_STARTED.md)**: Quick setup path using these scripts
 - **[BOOTSTRAP_GUIDE.md](../BOOTSTRAP_GUIDE.md)**: Detailed manual procedures and fallback instructions
   - Phase 1: Terraform State Storage → `bootstrap-terraform-state.sh`
@@ -228,6 +246,7 @@ shellcheck scripts/bootstrap-terraform-state.sh
 ### Dry Run Testing
 
 Both scripts perform validation before making changes:
+
 1. Verify prerequisites (Azure CLI, login, permissions)
 2. Check for existing resources
 3. Validate input parameters
@@ -235,6 +254,7 @@ Both scripts perform validation before making changes:
 ### Idempotency
 
 Both scripts are designed to be **idempotent**:
+
 - Safe to run multiple times
 - Detect existing resources and skip creation
 - Only create missing components
@@ -253,14 +273,15 @@ terraform-backend-config/
 
 ### Required Permissions
 
-| Script | Minimum Azure Role | Additional Requirements |
-|--------|-------------------|------------------------|
-| `bootstrap-terraform-state.sh` | Contributor | Storage Account permissions |
-| `bootstrap-entra-consent.sh` | Global Administrator | Entra ID admin consent |
+| Script                         | Minimum Azure Role   | Additional Requirements     |
+| ------------------------------ | -------------------- | --------------------------- |
+| `bootstrap-terraform-state.sh` | Contributor          | Storage Account permissions |
+| `bootstrap-entra-consent.sh`   | Global Administrator | Entra ID admin consent      |
 
 ### API Endpoints Used
 
 Both scripts use official Azure APIs:
+
 - **Microsoft Graph API:** `https://graph.microsoft.com/v1.0/`
 - **Azure Resource Manager API:** `https://management.azure.com/`
 
@@ -269,6 +290,7 @@ All API calls are authenticated via Azure CLI token (`az rest`).
 ## Future Enhancements
 
 Potential improvements for future versions:
+
 - [ ] Azure DevOps Agent Pool automation (ADR-012 Phase 3)
 - [ ] Terraform variable file generation
 - [ ] Multi-region deployment support
@@ -279,25 +301,28 @@ Potential improvements for future versions:
 ## Support & Documentation
 
 ### Primary Documentation
+
 - **[Documentation Hub](../docs/README.md)** - Complete documentation index
 - **[GETTING_STARTED.md](../GETTING_STARTED.md)**: Quick setup guide
 - **[BOOTSTRAP_GUIDE.md](../docs/deployment/BOOTSTRAP_GUIDE.md)**: Manual bootstrap procedures
 - **[DEPLOYMENT_GUIDE.md](../docs/deployment/DEPLOYMENT_GUIDE.md)**: Infrastructure deployment
 
 ### Reference Documentation
+
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)**: ADR-012 and ADR-013 specifications
 - **[IMPLEMENTATION_ADR_012.md](../IMPLEMENTATION_ADR_012.md)**: ADR-012 implementation details
 - **[IMPLEMENTATION_ADR_013.md](../IMPLEMENTATION_ADR_013.md)**: This automation implementation
 
 ### Issue Tracking
+
 - GitHub Issues for bugs or enhancement requests
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | January 2026 | Initial implementation of ADR-013 |
-| 1.1.0 | January 2026 | Enhanced documentation and cross-references |
+| Version | Date         | Changes                                     |
+| ------- | ------------ | ------------------------------------------- |
+| 1.0.0   | January 2026 | Initial implementation of ADR-013           |
+| 1.1.0   | January 2026 | Enhanced documentation and cross-references |
 
 ---
 

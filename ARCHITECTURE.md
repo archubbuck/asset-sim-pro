@@ -19,6 +19,7 @@ The platform serves as a high-fidelity **Simulation Sandbox** where Associates a
 For complete documentation navigation, see **[Documentation Hub (`docs/README.md`)](./docs/README.md)**
 
 **Key Resources:**
+
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Quick setup guide
 - **[README.md](./README.md)** - Project overview
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development guidelines

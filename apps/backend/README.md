@@ -11,6 +11,7 @@ This backend implements:
 - **ADR-017**: API Documentation & Standards with zod-to-openapi
 
 Key features:
+
 - **VNet Integration**: Function App connects to data services via private endpoints
 - **Microsoft Entra ID**: Single-tenant authentication for identity management
 - **Exchange-scoped RBAC**: Row-Level Security enforcement at the database level
@@ -52,6 +53,7 @@ Returns the OpenAPI v3 specification for all API endpoints. This endpoint is ava
 **Authentication**: Not required (public in dev/staging)
 
 **Response** (200 OK):
+
 ```json
 {
   "openapi": "3.0.0",
@@ -74,11 +76,13 @@ Returns the OpenAPI v3 specification for all API endpoints. This endpoint is ava
 ```
 
 **Implementation**: ADR-017 (API Documentation & Standards)
+
 - Code-first OpenAPI generation using `zod-to-openapi`
 - Automatically generated from Zod validation schemas
 - Includes all endpoints, request/response schemas, and security requirements
 
 **Usage**:
+
 ```bash
 # Access locally during development
 curl http://localhost:7071/api/docs
@@ -98,6 +102,7 @@ Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager
 **Authentication**: Required (Microsoft Entra ID)
 
 **Request Body**:
+
 ```json
 {
   "name": "Alpha Strategy Fund"
@@ -105,6 +110,7 @@ Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager
 ```
 
 **Response** (201 Created):
+
 ```json
 {
   "exchangeId": "550e8400-e29b-41d4-a716-446655440000",
@@ -115,6 +121,7 @@ Creates a new Simulation Venue (Exchange) and assigns the creator as RiskManager
 ```
 
 **Workflow**:
+
 1. User authenticated via Microsoft Entra ID
 2. Exchange record created in `Trade.Exchanges`
 3. Default configuration created in `Trade.ExchangeConfigurations`
@@ -127,6 +134,7 @@ Creates a new order in the exchange.
 **Authentication**: Required (Microsoft Entra ID)
 
 **Request Body** (Zod Validated):
+
 ```json
 {
   "exchangeId": "550e8400-e29b-41d4-a716-446655440000",
@@ -135,7 +143,7 @@ Creates a new order in the exchange.
   "side": "BUY",
   "orderType": "LIMIT",
   "quantity": 100,
-  "price": 150.50
+  "price": 150.5
 }
 ```
 
@@ -143,6 +151,7 @@ Creates a new order in the exchange.
 **Sides**: `BUY`, `SELL`
 
 **Response** (201 Created):
+
 ```json
 {
   "orderId": "650e8400-e29b-41d4-a716-446655440002",
@@ -152,7 +161,7 @@ Creates a new order in the exchange.
   "side": "BUY",
   "orderType": "LIMIT",
   "quantity": 100,
-  "price": 150.50,
+  "price": 150.5,
   "status": "PENDING",
   "filledQuantity": 0,
   "createdAt": "2026-01-19T10:30:00.000Z",
@@ -161,6 +170,7 @@ Creates a new order in the exchange.
 ```
 
 **Validation Rules** (Zod):
+
 - LIMIT and STOP_LIMIT orders require `price`
 - STOP and STOP_LIMIT orders require `stopPrice`
 - User must have access to the specified portfolio
@@ -173,17 +183,20 @@ Creates a new order in the exchange.
 Runs every 5 seconds to simulate market activity.
 
 **Functions**:
+
 1. Generates price updates for all active symbols in each exchange
 2. Matches pending orders against current market prices
 3. Updates order statuses and portfolio positions
 4. Uses random walk with configurable volatility
 
 **Configuration** (per Exchange):
+
 - `TickIntervalMs`: Market tick interval (100-60000ms)
 - `Volatility`: Price change volatility (0.001-1.0)
 - `MarketEngineEnabled`: Enable/disable market simulation
 
 **Zod Validation**:
+
 - All market ticks validated against `MarketTickSchema`
 - Price update events validated against `PriceUpdateEventSchema`
 
@@ -233,6 +246,7 @@ See `/terraform` and ADR-023 for full deployment specifications.
 This backend implements **ADR-007: Serverless Compute (SWA & Dedicated Functions)**:
 
 ### Azure Function App (Premium Plan - EP1)
+
 - ✅ **Premium Plan**: Configured in `terraform/modules/compute/main.tf` with `sku_name = "EP1"`
 - ✅ **VNet Integration**: Function App connected to VNet for secure access to data services
 - ✅ **BYOB (Bring Your Own Backend)**: Linked to Azure Static Web Apps via `azurerm_static_web_app_function_app_registration`
@@ -240,11 +254,13 @@ This backend implements **ADR-007: Serverless Compute (SWA & Dedicated Functions
 ### Unified Backend (apps/backend)
 
 #### Transaction API - HTTP Triggers
+
 - ✅ `createExchange.ts`: Creates simulation venues with RLS-based multi-tenancy
 - ✅ `createOrder.ts`: Creates trading orders with portfolio validation
 - All endpoints use **Zod schemas** for request validation
 
 #### Market Engine - Timer Triggers
+
 - ✅ `marketEngineTick.ts`: Runs every 5 seconds to:
   - Generate realistic price movements using random walk
   - Match pending orders against market prices
@@ -252,7 +268,9 @@ This backend implements **ADR-007: Serverless Compute (SWA & Dedicated Functions
 - All market data validated with **Zod schemas**
 
 ### Zod Validation (Required by ADR-007)
+
 All API endpoints and market engine functions use Zod for data validation:
+
 - `types/exchange.ts`: Exchange creation schemas
 - `types/transaction.ts`: Order and transaction schemas
 - `types/market-engine.ts`: Market tick and price update schemas
