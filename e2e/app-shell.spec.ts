@@ -195,8 +195,8 @@ test.describe('Application Routing', () => {
     
     // Should display portfolio/trading page (lazy loaded)
     await expect(page).toHaveURL(/\/portfolio/);
-    // Content should load
-    await expect(page.locator('h2, h3')).toBeVisible({ timeout: 10000 });
+    // Content should load - look for any heading to confirm page loaded
+    await expect(page.locator('h2, h3').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should preserve AppShell across all routes', async ({ page }) => {

@@ -235,6 +235,10 @@ test.describe('Order Validation', () => {
     await quantityInput.click();
     await quantityInput.fill('');
     await quantityInput.fill('0');
+    await quantityInput.press('Tab'); // Trigger blur to ensure validation runs
+    
+    // Wait a moment for validation to process
+    await page.waitForTimeout(500);
     
     const placeOrderButton = page.locator('button:has-text("Place Order")');
     
@@ -242,20 +246,22 @@ test.describe('Order Validation', () => {
     const isDisabled = await placeOrderButton.isDisabled().catch(() => false);
     
     if (isDisabled) {
-      // Button is disabled - validation is working
+      // Button is disabled - validation is working correctly
       const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
       const validationCount = await validationMessages.count();
       if (validationCount > 0) {
         await expect(validationMessages.first()).toBeVisible();
       }
     } else {
-      // Button is enabled - try to submit order (should either show validation error or reject)
+      // Button is enabled - try to submit order
+      // Wait for button to be clickable
+      await expect(placeOrderButton).toBeEnabled({ timeout: 2000 });
       await placeOrderButton.click();
       
       // Wait a moment for any validation to appear
       await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
       
-      // If validation messages exist, they should be visible
+      // Check for validation messages after submission
       const validationMessages = page.locator('.validation-message, .error, .kendo-formerror');
       const validationCount = await validationMessages.count();
       if (validationCount > 0) {
