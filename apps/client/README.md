@@ -233,9 +233,9 @@ The client application uses several shared and feature libraries:
 ### Shared Types
 
 - **`libs/shared/finance-models/`** - Shared TypeScript types and interfaces
-  - `ExchangeConfig`, `Portfolio`, `Order`, `Position`
-  - Market data models (OHLC, Quote, Trade)
-  - Common financial calculation utilities
+  - `ExchangeConfig` - Exchange configuration for simulation rules
+  - `FeatureFlagResponse` - Feature flags and configuration
+  - `PriceUpdateEvent` - Real-time price updates from SignalR
 
 - **`libs/shared/auth-models/`** - Authentication types
   - User roles and permissions
@@ -249,10 +249,13 @@ The client application uses several shared and feature libraries:
 
 ```typescript
 // Importing shared types
-import { ExchangeConfig, Portfolio } from '@assetsim/shared/finance-models';
+import {
+  ExchangeConfig,
+  PriceUpdateEvent,
+} from '@assetsim/shared/finance-models';
 
 // Importing feature components
-import { TradingComponent } from '@assetsim/client/features/trading';
+import { Trading } from '@assetsim/client/features/trading';
 
 // Importing core services
 import { AuthService } from '@assetsim/client/core';
@@ -266,8 +269,7 @@ The client application uses Kendo UI for Angular components for a professional i
 
 ```typescript
 // Financial Charts (most commonly used)
-import { ChartModule } from '@progress/kendo-angular-charts';
-import { StockChartModule } from '@progress/kendo-angular-charts';
+import { ChartsModule } from '@progress/kendo-angular-charts';
 
 // Data Grid
 import { GridModule } from '@progress/kendo-angular-grid';
@@ -290,13 +292,21 @@ import { NotificationModule } from '@progress/kendo-angular-notification';
 
 ```typescript
 import { Component, signal } from '@angular/core';
-import { ChartModule } from '@progress/kendo-angular-charts';
-import { OHLCData } from '@assetsim/shared/finance-models';
+import { ChartsModule } from '@progress/kendo-angular-charts';
+
+// Define OHLC data interface locally
+interface OHLCData {
+  date: Date;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
 
 @Component({
   selector: 'app-price-chart',
   standalone: true,
-  imports: [ChartModule],
+  imports: [ChartsModule],
   template: `
     <kendo-chart [seriesDefaults]="{ type: 'candlestick' }">
       <kendo-chart-series>
