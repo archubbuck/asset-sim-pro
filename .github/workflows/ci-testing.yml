@@ -207,6 +207,182 @@ jobs:
           # Stop Docker services
           docker compose down -v
 
+  # Capture Marketing Screenshots (runs on main branch only)
+  capture-screenshots:
+    name: Capture Marketing Screenshots
+    runs-on: ubuntu-latest
+    # Only run on main branch to avoid generating screenshots on every PR
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write  # Need write permission to commit screenshots
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Dockerized Local Environment
+        run: |
+          echo "Starting Docker Compose services per ADR-003"
+          docker compose up -d
+          
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for services to be ready..."
+          timeout=300
+          elapsed=0
+          
+          # Get total number of services
+          total_services=$(docker compose config --services | wc -l)
+          
+          while [ $elapsed -lt $timeout ]; do
+            # Count running services
+            running_services=$(docker compose ps --services --filter "status=running" | wc -l)
+            
+            # Check if any service is unhealthy or exited
+            if docker compose ps | grep -qE "(unhealthy|Exit)"; then
+              echo "ERROR: One or more services are unhealthy or exited"
+              docker compose ps
+              docker compose logs
+              exit 1
+            fi
+            
+            # Check if all services are running
+            if [ "$running_services" -eq "$total_services" ]; then
+              echo "All $total_services services are running!"
+              docker compose ps
+              break
+            fi
+            
+            echo "Waiting for services... ($running_services/$total_services running)"
+            sleep 5
+            elapsed=$((elapsed + 5))
+          done
+          
+          if [ $elapsed -ge $timeout ]; then
+            echo "Timeout waiting for services"
+            docker compose ps
+            docker compose logs
+            exit 1
+          fi
+
+      - name: Initialize Database
+        run: npm run db:init
+
+      - name: Seed Database
+        run: npm run seed:local
+
+      - name: Start Application Server
+        run: |
+          # Start dev server in background
+          npm start &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          
+          echo "Waiting for Angular dev server to compile and serve..."
+          # Wait for app to be ready (check for 2xx or 3xx status codes)
+          timeout=300
+          elapsed=0
+          while [ $elapsed -lt $timeout ]; do
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4200 || echo "000")
+            if [[ "$status_code" =~ ^[23][0-9][0-9]$ ]]; then
+              echo "Application is ready! (HTTP $status_code)"
+              # Give it a few more seconds to ensure full compilation
+              sleep 5
+              break
+            fi
+            echo "Waiting for application to start... (HTTP $status_code, elapsed: ${elapsed}s)"
+            sleep 5
+            elapsed=$((elapsed + 5))
+          done
+          
+          if [ $elapsed -ge $timeout ]; then
+            echo "ERROR: Timeout waiting for application to start after ${timeout}s"
+            echo "Checking if process is still running..."
+            ps aux | grep -E "nx serve|ng serve" | grep -v grep || echo "Process not found"
+            exit 1
+          fi
+          
+          echo "Application server is running and ready for screenshot capture"
+        env:
+          BASE_URL: http://localhost:4200
+          NODE_OPTIONS: "--max-old-space-size=4096"
+          KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+
+      - name: Capture Screenshots
+        run: npm run screenshots
+        env:
+          BASE_URL: http://localhost:4200
+
+      - name: Check if screenshots were generated
+        id: check_screenshots
+        run: |
+          if [ -d "screenshots" ] && [ "$(ls -A screenshots/*.png 2>/dev/null | wc -l)" -gt 0 ]; then
+            echo "screenshots_exist=true" >> $GITHUB_OUTPUT
+            echo "✅ Screenshots were successfully generated"
+            ls -lh screenshots/*.png
+          else
+            echo "screenshots_exist=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No screenshots were generated"
+          fi
+
+      - name: Commit and Push Screenshots
+        if: steps.check_screenshots.outputs.screenshots_exist == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add screenshots/*.png
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update marketing screenshots [skip ci]"
+            git push
+          fi
+
+      - name: Upload Screenshots as Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marketing-screenshots
+          path: screenshots/*.png
+          retention-days: 90
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Stop application - try multiple methods for reliability
+          # Method 1: Kill by port (graceful then forceful)
+          if command -v lsof >/dev/null 2>&1; then
+            echo "Attempting graceful shutdown of processes on port 4200..."
+            lsof -ti:4200 | xargs -r kill -15 || true
+            sleep 2
+            # Force kill if still running
+            lsof -ti:4200 | xargs -r kill -9 || true
+          fi
+          
+          # Method 2: Kill by process name patterns
+          pkill -15 -f "nx serve client" || true
+          pkill -15 -f "ng serve" || true
+          sleep 2
+          pkill -9 -f "nx serve client" || true
+          pkill -9 -f "ng serve" || true
+          
+          # Stop Docker services
+          docker compose down -v
+
   # Quality Gate - All tests must pass
   quality-gate:
     name: Quality Gate

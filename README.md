@@ -271,6 +271,30 @@ asset-sim-pro/
 
 4. **Squash and Merge** after approval
 
+### Marketing & Documentation
+
+#### Automated Screenshot Capture (Recommended)
+
+Use GitHub Actions to automatically generate and commit screenshots:
+
+1. Go to **Actions** tab → **"Capture Marketing Screenshots"**
+2. Click **"Run workflow"** button
+3. Screenshots are automatically generated and committed
+
+Alternatively, screenshots are auto-captured on `main` branch pushes.
+
+#### Local Screenshot Capture
+
+```bash
+# Start the application first
+npm start
+
+# In another terminal, capture screenshots
+npm run screenshots
+```
+
+Screenshots are saved to the `screenshots/` directory. See [screenshots/README.md](./screenshots/README.md) for details.
+
 ## Architecture Highlights
 
 Based on the architectural definitions in ARCHITECTURE.md:

@@ -1,6 +1,6 @@
 # Bootstrap Automation Scripts (ADR-013)
 
-This directory contains automation scripts that implement ADR-013 for bootstrapping AssetSim Pro infrastructure.
+This directory contains automation scripts that implement ADR-013 for bootstrapping AssetSim Pro infrastructure, as well as utility scripts for development and marketing purposes.
 
 **ADR Reference:** ARCHITECTURE.md ADR-013 (lines 261-298)  
 **Implementation Date:** January 2026  
@@ -25,7 +25,9 @@ These scripts automate the manual "chicken and egg" operations documented in ADR
 
 ## Scripts
 
-### 1. `bootstrap-entra-consent.sh`
+### Bootstrap Scripts
+
+#### 1. `bootstrap-entra-consent.sh`
 
 **Purpose:** Automate Entra ID API consent for GroupMember.Read.All permission  
 **ADR Section:** ARCHITECTURE.md ADR-013 §13.1 (lines 267-281)  
@@ -62,7 +64,7 @@ export APP_ID="your-application-client-id"
 
 **For detailed manual steps:** See [BOOTSTRAP_GUIDE.md Phase 2](../docs/deployment/BOOTSTRAP_GUIDE.md#phase-2-entra-id-api-consent)
 
-### 2. `bootstrap-terraform-state.sh`
+#### 2. `bootstrap-terraform-state.sh`
 
 **Purpose:** Automate Azure Resource Group and Storage Account creation for Terraform remote state  
 **ADR Section:** ARCHITECTURE.md ADR-013 §13.2 (lines 283-298)  
@@ -118,9 +120,87 @@ export APPLY_RESOURCE_LOCK="yes"
 
 **For detailed manual steps:** See [BOOTSTRAP_GUIDE.md Phase 1](../BOOTSTRAP_GUIDE.md#phase-1-terraform-state-storage-bootstrap)
 
-## Security Features
+### Development & Utility Scripts
 
-Both scripts implement the following security best practices:
+#### 3. `capture-screenshots.ts`
+
+**Purpose:** Capture high-quality screenshots of AssetSim Pro features for promotional and marketing purposes  
+**Script Type:** TypeScript utility using Playwright  
+**Documentation:** [screenshots/README.md](../screenshots/README.md)
+
+**Prerequisites:**
+
+- Application running on http://localhost:4200 (via `npm start`)
+- Docker services running (via `docker compose up -d`)
+- Database initialized and seeded (via `npm run db:init && npm run seed:local`)
+- Playwright browsers installed (run `npx playwright install` if not already installed)
+
+**What It Does:**
+
+1. Launches headless Chromium browser with Full HD viewport (1920x1080)
+2. Navigates through all major application features
+3. Captures high-resolution screenshots (2x scale for retina displays)
+4. Saves images to `screenshots/` directory
+
+**Features Captured:**
+
+- Dashboard overview with widgets (L2 Market Depth, Risk Matrix, News Terminal)
+- Trading Terminal with order entry form
+- Position Blotter with order grid
+- Financial Charts with OHLC candlesticks
+- Order submission flow (before and after states)
+
+**Usage:**
+
+```bash
+# Make sure application is running first
+npm start
+
+# In another terminal, capture screenshots
+npm run screenshots
+```
+
+**Output:**
+
+Screenshots are saved to the `screenshots/` directory (excluded from git). See [screenshots/README.md](../screenshots/README.md) for complete list of captured images.
+
+**Configuration:**
+
+Edit `scripts/capture-screenshots.ts` to customize:
+- Viewport size and device scale
+- Screenshots to capture
+- Full page vs viewport screenshots
+
+---
+
+## Bootstrap Scripts - Security Features
+
+#### 4. `init-db.ts`
+
+**Purpose:** Initialize the local development database schema  
+**Script Type:** TypeScript utility using mssql  
+
+See [GETTING_STARTED.md](../GETTING_STARTED.md) for usage.
+
+#### 5. `seed-local.ts`
+
+**Purpose:** Seed the local database with demo data  
+**Script Type:** TypeScript utility using mssql  
+
+See [GETTING_STARTED.md](../GETTING_STARTED.md) for usage.
+
+#### 6. `load-env.js`
+
+**Purpose:** Load environment variables from `.env.local` for the Angular CLI  
+**Script Type:** Node.js utility  
+
+Automatically used by `npm start` and `npm run build` commands.
+
+---
+
+## Bootstrap Scripts - Security Features
+
+The bootstrap automation scripts (`bootstrap-entra-consent.sh` and `bootstrap-terraform-state.sh`) implement the following security best practices:
 
 ### Error Handling
 
