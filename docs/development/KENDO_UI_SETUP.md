@@ -45,9 +45,9 @@ npm run build
 
 ### 4. Verify Installation
 
-- Check the browser console for license activation messages
 - Kendo UI components should render without trial watermarks
-- The console should show: "Kendo UI license activated successfully"
+- Check the browser console - if configured correctly, there should be **no** warning messages
+- If not configured, you'll see: "Kendo UI: Running in trial mode (license key not configured)"
 
 ## CI/CD Configuration
 
