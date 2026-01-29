@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Need write permission to commit screenshots
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,20 +35,20 @@ jobs:
         run: |
           echo "Starting Docker Compose services per ADR-003"
           docker compose up -d
-          
+
       - name: Wait for services to be healthy
         run: |
           echo "Waiting for services to be ready..."
           timeout=300
           elapsed=0
-          
+
           # Get total number of services
           total_services=$(docker compose config --services | wc -l)
-          
+
           while [ $elapsed -lt $timeout ]; do
             # Count running services
             running_services=$(docker compose ps --services --filter "status=running" | wc -l)
-            
+
             # Check if any service is unhealthy or exited
             if docker compose ps | grep -qE "(unhealthy|Exit)"; then
               echo "ERROR: One or more services are unhealthy or exited"
@@ -56,19 +56,19 @@ jobs:
               docker compose logs
               exit 1
             fi
-            
+
             # Check if all services are running
             if [ "$running_services" -eq "$total_services" ]; then
               echo "All $total_services services are running!"
               docker compose ps
               break
             fi
-            
+
             echo "Waiting for services... ($running_services/$total_services running)"
             sleep 5
             elapsed=$((elapsed + 5))
           done
-          
+
           if [ $elapsed -ge $timeout ]; then
             echo "Timeout waiting for services"
             docker compose ps
@@ -88,7 +88,7 @@ jobs:
           npm start &
           APP_PID=$!
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-          
+
           echo "Waiting for Angular dev server to compile and serve..."
           # Wait for app to be ready (check for 2xx or 3xx status codes)
           timeout=300
@@ -105,14 +105,14 @@ jobs:
             sleep 5
             elapsed=$((elapsed + 5))
           done
-          
+
           if [ $elapsed -ge $timeout ]; then
             echo "ERROR: Timeout waiting for application to start after ${timeout}s"
             echo "Checking if process is still running..."
             ps aux | grep -E "nx serve|ng serve" | grep -v grep || echo "Process not found"
             exit 1
           fi
-          
+
           echo "✅ Application server is running and ready for screenshot capture"
         env:
           BASE_URL: http://localhost:4200
@@ -147,19 +147,19 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
+
           # Add all PNG files in screenshots directory
           git add screenshots/*.png
-          
+
           # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "ℹ️ No changes to commit - screenshots are up to date"
           else
-            git commit -m "chore: update marketing screenshots
-
-Generated ${{ steps.verify.outputs.screenshot_count }} high-resolution screenshots for documentation and marketing.
-
-[skip ci]"
+            git commit -m "chore: update marketing screenshots" \
+              -m "" \
+              -m "Generated ${{ steps.verify.outputs.screenshot_count }} high-resolution screenshots for documentation and marketing." \
+              -m "" \
+              -m "[skip ci]"
             git push
             echo "✅ Screenshots committed and pushed to repository"
           fi
@@ -194,14 +194,14 @@ Generated ${{ steps.verify.outputs.screenshot_count }} high-resolution screensho
             sleep 2
             lsof -ti:4200 | xargs -r kill -9 || true
           fi
-          
+
           # Kill by process name
           pkill -15 -f "nx serve client" || true
           pkill -15 -f "ng serve" || true
           sleep 2
           pkill -9 -f "nx serve client" || true
           pkill -9 -f "ng serve" || true
-          
+
           # Stop Docker services
           echo "Stopping Docker services..."
           docker compose down -v
