@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import * as sql from 'mssql';
 import { checkDockerServices } from './utils/docker-check';
+import { DB_CONNECTION_STRING } from './utils/db-config';
 
 /**
  * Check if database is initialized
@@ -10,10 +11,7 @@ import { checkDockerServices } from './utils/docker-check';
 async function checkDatabaseInitialized(): Promise<boolean> {
   let pool: sql.ConnectionPool | null = null;
   try {
-    const connectionString =
-      'Server=localhost,1433;Database=AssetSimPro;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
-
-    pool = await sql.connect(connectionString);
+    pool = await sql.connect(DB_CONNECTION_STRING);
     return true;
   } catch (error) {
     return false;
@@ -211,7 +209,7 @@ async function main(): Promise<void> {
   console.log('\n🔍 Checking prerequisites...\n');
   
   // Check Docker services
-  const dockerCheck = await checkDockerServices();
+  const dockerCheck = checkDockerServices();
   const requiredServices = ['sql', 'redis', 'azurite', 'signalr-emulator'];
   const allRunning = requiredServices.every(s => dockerCheck.services.includes(s));
   

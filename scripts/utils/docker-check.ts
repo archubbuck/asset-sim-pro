@@ -9,10 +9,11 @@ import * as path from 'path';
  * Check if Docker services are running
  * @returns Object with running status and list of running services
  */
-export async function checkDockerServices(): Promise<{
+export function checkDockerServices(): {
   running: boolean;
   services: string[];
-}> {
+  dockerInstalled: boolean;
+} {
   try {
     // Check if Docker daemon is running
     execSync('docker info', { stdio: 'ignore' });
@@ -31,10 +32,14 @@ export async function checkDockerServices(): Promise<{
       .split('\n')
       .filter((s) => s.length > 0);
 
-    return { running: runningServices.length > 0, services: runningServices };
+    return {
+      running: runningServices.length > 0,
+      services: runningServices,
+      dockerInstalled: true,
+    };
   } catch (error) {
     // Docker not installed, not running, or services not started
-    return { running: false, services: [] };
+    return { running: false, services: [], dockerInstalled: false };
   }
 }
 
@@ -43,9 +48,7 @@ export async function checkDockerServices(): Promise<{
  * @param serviceName Name of the Docker service to check
  * @returns True if the service is running
  */
-export async function checkDockerService(
-  serviceName: string
-): Promise<boolean> {
-  const { services } = await checkDockerServices();
+export function checkDockerService(serviceName: string): boolean {
+  const { services } = checkDockerServices();
   return services.includes(serviceName);
 }

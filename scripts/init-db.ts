@@ -10,18 +10,35 @@
 import * as sql from 'mssql';
 import * as fs from 'fs';
 import * as path from 'path';
-import { checkDockerService } from './utils/docker-check';
+import { checkDockerService, checkDockerServices } from './utils/docker-check';
+import { MASTER_CONNECTION_STRING, DB_CONNECTION_STRING } from './utils/db-config';
 
 async function initDatabase() {
   console.log('🗄️  Initializing database...\n');
   
   // Check prerequisites
   console.log('🔍 Checking prerequisites...');
-  const dockerRunning = await checkDockerService('sql');
+  const dockerStatus = checkDockerServices();
+  const sqlServiceRunning = checkDockerService('sql');
   
-  if (!dockerRunning) {
-    console.error('\n❌ ERROR: Docker services are not running\n');
-    console.error('Please start Docker services first:');
+  if (!dockerStatus.dockerInstalled) {
+    console.error('\n❌ ERROR: Docker is not installed or not running\n');
+    console.error('Please ensure Docker is installed and running:');
+    console.error('  1. Install Docker Desktop: https://www.docker.com/products/docker-desktop');
+    console.error('  2. Start Docker Desktop');
+    console.error('  3. Verify: docker info\n');
+    process.exit(1);
+  }
+  
+  if (!sqlServiceRunning) {
+    console.error('\n❌ ERROR: SQL Server container is not running\n');
+    if (dockerStatus.services.length === 0) {
+      console.error('No Docker Compose services are running.');
+    } else {
+      console.error(`Running services: ${dockerStatus.services.join(', ')}`);
+      console.error('SQL Server service is not started.');
+    }
+    console.error('\nPlease start Docker services:');
     console.error('  1. Run: docker compose up -d');
     console.error('  2. Wait for services to be healthy (~30 seconds)');
     console.error('  3. Verify: docker compose ps');
@@ -34,9 +51,7 @@ async function initDatabase() {
   console.log('✅ Docker services are running\n');
   
   // Connection string for master database (to create AssetSimPro database)
-  // Fallback value matches .env.local.example for local development only
-  const masterConnectionString = 
-    'Server=localhost,1433;Database=master;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
+  const masterConnectionString = MASTER_CONNECTION_STRING;
   
   let pool: sql.ConnectionPool | null = null;
   
@@ -64,9 +79,7 @@ async function initDatabase() {
     
     // Connect to AssetSimPro database and apply schema
     console.log('📊 Connecting to AssetSimPro database...');
-    // Fallback value matches .env.local.example for local development only
-    const assetSimProConnectionString = 
-      'Server=localhost,1433;Database=AssetSimPro;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
+    const assetSimProConnectionString = DB_CONNECTION_STRING;
     
     pool = await sql.connect(assetSimProConnectionString);
     console.log('✅ Connected\n');
