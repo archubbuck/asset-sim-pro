@@ -133,7 +133,7 @@ export APPLY_RESOURCE_LOCK="yes"
 - Application running on http://localhost:4200 (via `npm start`)
 - Docker services running (via `docker compose up -d`)
 - Database initialized and seeded (via `npm run db:init && npm run seed:local`)
-- Playwright browsers installed (automatically via `npm install`)
+- Playwright browsers installed (run `npx playwright install` if not already installed)
 
 **What It Does:**
 
@@ -169,8 +169,11 @@ Screenshots are saved to the `screenshots/` directory (excluded from git). See [
 Edit `scripts/capture-screenshots.ts` to customize:
 - Viewport size and device scale
 - Screenshots to capture
-- Wait times for page loading
 - Full page vs viewport screenshots
+
+---
+
+## Bootstrap Scripts - Security Features
 
 #### 4. `init-db.ts`
 
@@ -193,9 +196,11 @@ See [GETTING_STARTED.md](../GETTING_STARTED.md) for usage.
 
 Automatically used by `npm start` and `npm run build` commands.
 
-## Security Features (Bootstrap Scripts)
+---
 
-Both bootstrap scripts implement the following security best practices:
+## Bootstrap Scripts - Security Features
+
+The bootstrap automation scripts (`bootstrap-entra-consent.sh` and `bootstrap-terraform-state.sh`) implement the following security best practices:
 
 ### Error Handling
 

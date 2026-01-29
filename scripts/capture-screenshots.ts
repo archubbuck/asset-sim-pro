@@ -27,17 +27,16 @@ interface ScreenshotConfig {
   url: string;
   description: string;
   waitForSelector?: string;
-  additionalWait?: number;
   fullPage?: boolean;
 }
 
+// Total: 8 screenshot configurations + 2 from order submission flow = 10 screenshots
 const screenshots: ScreenshotConfig[] = [
   {
     name: '01-dashboard-overview',
     url: '/dashboard',
     description: 'Trading Desk Dashboard with widgets',
     waitForSelector: 'h2:has-text("Trading Desk")',
-    additionalWait: 3000, // Wait for widgets to fully render
     fullPage: true,
   },
   {
@@ -45,28 +44,24 @@ const screenshots: ScreenshotConfig[] = [
     url: '/dashboard',
     description: 'L2 Market Depth widget showing order book',
     waitForSelector: 'h3:has-text("L2 Market Depth")',
-    additionalWait: 2000,
   },
   {
     name: '03-risk-matrix-widget',
     url: '/dashboard',
     description: 'Risk Matrix (VaR) widget',
     waitForSelector: 'h3:has-text("Risk Matrix")',
-    additionalWait: 2000,
   },
   {
     name: '04-news-terminal-widget',
     url: '/dashboard',
     description: 'News Terminal widget',
     waitForSelector: 'h3:has-text("News Terminal")',
-    additionalWait: 2000,
   },
   {
     name: '05-trading-terminal',
     url: '/trade',
     description: 'Live Trading Terminal with order entry',
     waitForSelector: 'h2:has-text("Live Trading Terminal")',
-    additionalWait: 3000,
     fullPage: true,
   },
   {
@@ -74,21 +69,18 @@ const screenshots: ScreenshotConfig[] = [
     url: '/trade',
     description: 'Order Entry form with fields',
     waitForSelector: 'h3:has-text("Order Entry")',
-    additionalWait: 2000,
   },
   {
     name: '07-position-blotter',
     url: '/trade',
     description: 'Position Blotter with order grid',
     waitForSelector: 'h3:has-text("Position Blotter")',
-    additionalWait: 3000, // Wait for grid to load with data
   },
   {
     name: '08-financial-chart',
     url: '/trade',
     description: 'Financial Chart with OHLC candlesticks',
     waitForSelector: 'app-financial-chart',
-    additionalWait: 2000,
   },
 ];
 
@@ -118,12 +110,9 @@ async function captureScreenshot(
       await page.waitForSelector(config.waitForSelector, { timeout: 10000 });
     }
 
-    // Additional wait for dynamic content to render
-    // Using load state instead of timeout for more reliable waiting
-    if (config.additionalWait) {
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForLoadState('networkidle');
-    }
+    // Wait for page to be fully loaded with all dynamic content
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
     // Capture screenshot
     const screenshotPath = path.join(SCREENSHOTS_DIR, `${config.name}.png`);
