@@ -101,7 +101,7 @@ async function ensureDirectoryExists(dir: string): Promise<void> {
 async function captureScreenshot(
   page: Page,
   config: ScreenshotConfig
-): Promise<void> {
+): Promise<boolean> {
   console.log(`\n📸 Capturing: ${config.name}`);
   console.log(`   Description: ${config.description}`);
   console.log(`   URL: ${config.url}`);
@@ -119,8 +119,10 @@ async function captureScreenshot(
     }
 
     // Additional wait for dynamic content to render
+    // Using load state instead of timeout for more reliable waiting
     if (config.additionalWait) {
-      await page.waitForTimeout(config.additionalWait);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForLoadState('networkidle');
     }
 
     // Capture screenshot
@@ -132,15 +134,14 @@ async function captureScreenshot(
     });
 
     console.log(`   ✅ Saved to: ${screenshotPath}`);
+    return true;
   } catch (error) {
-    console.error(`   ❌ Error capturing ${config.name}:`, error);
+    console.error(`   ❌ Error capturing ${config.name}:`, error instanceof Error ? error.message : String(error));
+    return false;
   }
 }
 
-async function captureOrderSubmissionFlow(
-  page: Page,
-  browser: Browser
-): Promise<void> {
+async function captureOrderSubmissionFlow(page: Page): Promise<boolean> {
   console.log(`\n📸 Capturing: 09-order-submission-flow`);
   console.log(`   Description: Complete order submission with success message`);
 
@@ -151,7 +152,7 @@ async function captureOrderSubmissionFlow(
     });
 
     await page.waitForSelector('h3:has-text("Order Entry")', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify order entry form is visible
     const symbolInput = page.locator('kendo-textbox input').first();
@@ -171,7 +172,7 @@ async function captureOrderSubmissionFlow(
 
     // Wait for success message
     await page.waitForSelector('.status-message', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
 
     // Take screenshot after submission
     const afterPath = path.join(SCREENSHOTS_DIR, '09-order-entry-after-submit.png');
@@ -181,8 +182,10 @@ async function captureOrderSubmissionFlow(
       animations: 'disabled',
     });
     console.log(`   ✅ Saved after state: ${afterPath}`);
+    return true;
   } catch (error) {
-    console.error(`   ❌ Error capturing order submission flow:`, error);
+    console.error(`   ❌ Error capturing order submission flow:`, error instanceof Error ? error.message : String(error));
+    return false;
   }
 }
 
@@ -212,20 +215,71 @@ async function main(): Promise<void> {
   // Set reasonable timeouts
   page.setDefaultTimeout(30000);
 
+  // Check if application is running
+  console.log('\n🔍 Checking if application is running...');
+  try {
+    const response = await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 10000 });
+    if (!response || !response.ok()) {
+      throw new Error(`Application not responding at ${BASE_URL}`);
+    }
+    console.log('   ✅ Application is running');
+  } catch (error) {
+    console.error(`\n❌ ERROR: Cannot connect to application at ${BASE_URL}`);
+    console.error('   Please ensure the application is running:');
+    console.error('   1. Run: npm start');
+    console.error('   2. Wait for application to start');
+    console.error('   3. Run: npm run screenshots');
+    await browser.close();
+    process.exit(1);
+  }
+
+  // Track success/failure
+  let successCount = 0;
+  let failureCount = 0;
+  const failedScreenshots: string[] = [];
+
   // Capture all configured screenshots
   for (const config of screenshots) {
-    await captureScreenshot(page, config);
+    const success = await captureScreenshot(page, config);
+    if (success) {
+      successCount++;
+    } else {
+      failureCount++;
+      failedScreenshots.push(config.name);
+    }
   }
 
   // Capture order submission flow (special case with before/after)
-  await captureOrderSubmissionFlow(page, browser);
+  const orderFlowSuccess = await captureOrderSubmissionFlow(page);
+  if (orderFlowSuccess) {
+    successCount += 2; // before and after screenshots
+  } else {
+    failureCount += 2;
+    failedScreenshots.push('09-order-entry-before-submit', '09-order-entry-after-submit');
+  }
 
   // Close browser
   await browser.close();
 
-  console.log('\n✨ Screenshot capture complete!');
-  console.log(`\n📁 All screenshots saved to: ${SCREENSHOTS_DIR}`);
-  console.log(`\nTotal screenshots captured: ${screenshots.length + 2}`); // +2 for before/after order submission
+  // Report results
+  console.log('\n' + '='.repeat(50));
+  console.log('📊 Screenshot Capture Summary');
+  console.log('='.repeat(50));
+  console.log(`✅ Successful: ${successCount}`);
+  console.log(`❌ Failed: ${failureCount}`);
+  console.log(`📁 Output Directory: ${SCREENSHOTS_DIR}`);
+  
+  if (failedScreenshots.length > 0) {
+    console.log('\n⚠️  Failed Screenshots:');
+    failedScreenshots.forEach(name => console.log(`   - ${name}`));
+  }
+
+  if (failureCount === 0) {
+    console.log('\n✨ All screenshots captured successfully!');
+  } else {
+    console.log('\n⚠️  Some screenshots failed. Check the errors above for details.');
+    process.exit(1);
+  }
 }
 
 // Run the script
