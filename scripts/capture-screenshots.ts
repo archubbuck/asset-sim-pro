@@ -1,6 +1,26 @@
 import { chromium, Browser, Page } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
+import * as sql from 'mssql';
+import { checkDockerServices } from './utils/docker-check';
+import { DB_CONNECTION_STRING } from './utils/db-config';
+
+/**
+ * Check if database is initialized
+ */
+async function checkDatabaseInitialized(): Promise<boolean> {
+  let pool: sql.ConnectionPool | null = null;
+  try {
+    pool = await sql.connect(DB_CONNECTION_STRING);
+    return true;
+  } catch (error) {
+    return false;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
+  }
+}
 
 /**
  * Playwright Screenshot Capture Script
@@ -185,6 +205,42 @@ async function main(): Promise<void> {
   console.log(`Output Directory: ${SCREENSHOTS_DIR}`);
   console.log(`Viewport: ${VIEWPORT.width}x${VIEWPORT.height}`);
 
+  // Check prerequisites
+  console.log('\n🔍 Checking prerequisites...\n');
+  
+  // Check Docker services
+  const dockerCheck = checkDockerServices();
+  const requiredServices = ['sql', 'redis', 'azurite', 'signalr-emulator'];
+  const allRunning = requiredServices.every(s => dockerCheck.services.includes(s));
+  
+  if (!allRunning) {
+    console.error('❌ ERROR: Required Docker services are not running\n');
+    if (dockerCheck.services.length === 0) {
+      console.error('No Docker services are running. Please start them:');
+    } else {
+      console.error(`Running services: ${dockerCheck.services.join(', ')}`);
+      console.error('Missing required services. Please ensure all services are running:');
+    }
+    console.error('  1. Run: docker compose up -d');
+    console.error('  2. Wait for services to be healthy (~30 seconds)');
+    console.error('  3. Verify: docker compose ps\n');
+    process.exit(1);
+  }
+  console.log('✅ Docker services are running');
+  
+  // Check database initialization
+  const dbInitialized = await checkDatabaseInitialized();
+  if (!dbInitialized) {
+    console.error('\n❌ ERROR: Database is not initialized\n');
+    console.error('Please initialize the database:');
+    console.error('  1. Run: npm run db:init');
+    console.error('  2. (Optional) Seed demo data: npm run seed:local\n');
+    process.exit(1);
+  }
+  console.log('✅ Database is initialized');
+  
+  console.log('✅ All prerequisites met\n');
+
   // Ensure screenshots directory exists
   await ensureDirectoryExists(SCREENSHOTS_DIR);
 
@@ -214,10 +270,17 @@ async function main(): Promise<void> {
     console.log('   ✅ Application is running');
   } catch (error) {
     console.error(`\n❌ ERROR: Cannot connect to application at ${BASE_URL}`);
-    console.error('   Please ensure the application is running:');
+    console.error('   Please ensure the application is running:\n');
+    console.error('   For Frontend:');
     console.error('   1. Run: npm start');
-    console.error('   2. Wait for application to start');
-    console.error('   3. Run: npm run screenshots');
+    console.error('   2. Wait for application to start (shows "Application bundle generation complete")');
+    console.error('   3. Verify at: http://localhost:4200\n');
+    console.error('   For Backend (optional for basic screenshots):');
+    console.error('   1. cd apps/backend');
+    console.error('   2. npm install (if not done)');
+    console.error('   3. cp local.settings.json.example local.settings.json (if not done)');
+    console.error('   4. npm start\n');
+    console.error('   Then run: npm run screenshots\n');
     await browser.close();
     process.exit(1);
   }
