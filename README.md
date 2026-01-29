@@ -273,7 +273,17 @@ asset-sim-pro/
 
 ### Marketing & Documentation
 
-To capture high-quality screenshots of features for promotional materials:
+#### Automated Screenshot Capture (Recommended)
+
+Use GitHub Actions to automatically generate and commit screenshots:
+
+1. Go to **Actions** tab → **"Capture Marketing Screenshots"**
+2. Click **"Run workflow"** button
+3. Screenshots are automatically generated and committed
+
+Alternatively, screenshots are auto-captured on `main` branch pushes.
+
+#### Local Screenshot Capture
 
 ```bash
 # Start the application first

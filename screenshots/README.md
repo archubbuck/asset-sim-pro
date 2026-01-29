@@ -2,16 +2,48 @@
 
 This directory contains high-quality screenshots of AssetSim Pro features for promotional and marketing purposes.
 
-## Generating Screenshots
+## Automated Screenshot Generation (Recommended)
 
-To generate the screenshots, run the following commands:
+Screenshots can be automatically generated and committed using GitHub Actions:
+
+### Option 1: Manual Workflow Trigger (Recommended)
+
+Trigger the screenshot capture workflow manually from the GitHub UI:
+
+1. Go to **Actions** tab in GitHub
+2. Select **"Capture Marketing Screenshots"** workflow
+3. Click **"Run workflow"** button
+4. Screenshots will be automatically:
+   - Generated with full application stack
+   - Committed to the repository
+   - Available as workflow artifacts
+
+### Option 2: Automatic on Main Branch
+
+Screenshots are automatically captured and updated when changes are pushed to the `main` branch (enabled in CI workflow).
+
+## Local Screenshot Generation
+
+To generate screenshots locally:
 
 ```bash
-# 1. Start the application
+# 1. Start Docker services
+docker compose up -d
+
+# 2. Initialize and seed database
+npm run db:init
+npm run seed:local
+
+# 3. Start the application
 npm start
 
-# 2. In another terminal, capture screenshots
+# 4. In another terminal, capture screenshots
 npm run screenshots
+
+# 5. Commit the screenshots
+git add screenshots/*.png
+git commit -m "chore: update marketing screenshots"
+git push
 ```
 
 ## Expected Screenshots
@@ -46,8 +78,18 @@ These screenshots can be used in:
 - GitHub README
 - Product demos
 
-## Note
+## CI/CD Integration
 
-Screenshots must be generated locally with the application running. The automated CI/CD pipeline does not capture screenshots as it requires the full application stack (Angular app, Docker services, database).
+The screenshot capture process is integrated into the CI/CD pipeline:
 
-To update screenshots, run `npm run screenshots` locally and commit the updated images.
+- **Workflow**: `.github/workflows/capture-screenshots.yml`
+- **Trigger**: Manual (workflow_dispatch) or automatic on main branch
+- **Requirements**: Full application stack (Angular, Docker services, database)
+- **Output**: Screenshots committed to repository + workflow artifacts
+
+The automated workflow handles:
+- Starting Docker services (SQL Server, Redis, Azurite, SignalR)
+- Initializing and seeding the database
+- Starting the Angular dev server
+- Capturing screenshots with Playwright
+- Committing changes back to the repository
