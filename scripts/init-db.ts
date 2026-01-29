@@ -12,34 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { checkDockerService, checkDockerServices } from './utils/docker-check';
 import { MASTER_CONNECTION_STRING, DB_CONNECTION_STRING } from './utils/db-config';
-
-/**
- * Connect to SQL Server with retry logic
- * @param connectionString Connection string to use
- * @param retries Number of retries (default: 5)
- * @param delayMs Delay between retries in milliseconds (default: 3000)
- */
-async function connectWithRetry(
-  connectionString: string,
-  retries = 5,
-  delayMs = 3000
-): Promise<sql.ConnectionPool> {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const pool = await sql.connect(connectionString);
-      return pool;
-    } catch (error) {
-      const err = error as Error;
-      if (attempt === retries) {
-        throw error;
-      }
-      console.log(`   ⚠️  Connection attempt ${attempt} failed: ${err.message}`);
-      console.log(`   ⏳ Retrying in ${delayMs / 1000}s...`);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    }
-  }
-  throw new Error('Failed to connect after all retries');
-}
+import { connectWithRetry } from './utils/db-connection';
 
 async function initDatabase() {
   console.log('🗄️  Initializing database...\n');

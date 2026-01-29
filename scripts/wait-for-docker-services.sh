@@ -1,6 +1,7 @@
 #!/bin/bash
 # Wait for Docker Compose services to be healthy
-# This script waits for all services to be running and critical services to be healthy
+# This script waits for all services to be running and critical services (sql) to be healthy.
+# Non-critical services may remain unhealthy or have no healthcheck.
 
 set -e
 
@@ -41,7 +42,11 @@ while [ $elapsed -lt $timeout ]; do
     # Check if critical services are healthy
     critical_healthy=true
     for service in "${critical_services[@]}"; do
-      service_health=$(docker compose ps --format json | jq -r "select(.Service == \"$service\") | .Health")
+      # Get health status for this specific service (use -r for raw output without quotes)
+      service_health=$(docker compose ps --format json | jq -rs "map(select(.Service == \"$service\")) | .[0].Health // \"unknown\"")
+      # Remove quotes from jq string output
+      service_health=$(echo "$service_health" | tr -d '"')
+      
       if [ "$service_health" != "healthy" ]; then
         critical_healthy=false
         echo "⏳ Critical service '$service' is not yet healthy (status: $service_health)"
