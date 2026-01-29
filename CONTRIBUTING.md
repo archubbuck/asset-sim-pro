@@ -316,6 +316,82 @@ git commit -m "feat(docs): update contributing guide"
 # Should be accepted
 ```
 
+## Containerized Development Workflow
+
+AssetSim Pro uses Docker containers for both local development and production deployment. This ensures consistency across environments and eliminates "works on my machine" issues.
+
+### Starting Development
+
+```bash
+# Start all services with hot reload
+npm run docker:dev:build
+
+# Access the application
+# - Frontend: http://localhost:4200
+# - Backend: http://localhost:7071/api/health
+```
+
+### Development Commands
+
+```bash
+# View logs
+npm run docker:logs           # All services
+npm run docker:logs:client    # Client only  
+npm run docker:logs:backend   # Backend only
+
+# Stop containers
+npm run docker:dev:down
+
+# Clean restart (removes volumes for fresh state)
+npm run docker:dev:clean
+npm run docker:dev:build
+
+# Infrastructure only (SQL, Redis, Azurite, SignalR)
+npm run docker:infra
+npm run docker:infra:down
+```
+
+### How Hot Reload Works
+
+**What Gets Mounted:**
+- `apps/client/` directory is bind-mounted into the client container
+- `apps/backend/` directory is bind-mounted into the backend container
+- Changes to TypeScript, HTML, SCSS files are detected automatically
+
+**What's Excluded:**
+- `node_modules/` uses anonymous volumes (prevents conflicts)
+- `dist/` and build artifacts are not mounted
+
+**When You Need to Rebuild:**
+
+```bash
+# Rebuild required if you:
+# - Add/remove npm packages (package.json changed)
+# - Modify Dockerfile or Docker Compose files
+# - Change environment variables in .env
+
+npm run docker:dev:build
+```
+
+**When You DON'T Need to Rebuild:**
+- TypeScript code changes
+- Angular template changes
+- SCSS/CSS changes
+- Azure Functions code changes
+
+### Production Container Testing
+
+Test production builds locally before deploying:
+
+```bash
+# Build and start production containers
+npm run docker:prod:build
+
+# Access at http://localhost
+# Stop when done
+npm run docker:prod:down
+```
+
 ## Getting Help
 
 If you have questions or need assistance:
@@ -434,6 +510,12 @@ Copilot will suggest:
 
 - Add explicit comments in your code
 - Example: `// Note: Using native math here for performance in tight loop`
+
+**Docker Issues?**
+
+- See [GETTING_STARTED.md](./GETTING_STARTED.md#common-issues) for Docker troubleshooting
+- On Windows: Restart Docker Desktop from system tray
+- Clean restart: `npm run docker:dev:clean && npm run docker:dev:build`
 
 For complete details, see [`.github/copilot-instructions.md`](./.github/copilot-instructions.md).
 

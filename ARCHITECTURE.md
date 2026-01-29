@@ -172,25 +172,70 @@ Accelerating the creation of complex financial algorithms.
 
 # **Phase 2: Core Architecture**
 
-## **ADR-007: Serverless Compute (SWA & Dedicated Functions)**
+## **ADR-007: Containerized Compute (Azure Container Apps)**
 
 ### **Context**
 
-Reliability and VNet integration are paramount.
+The platform requires unified deployment architecture for both development and production environments with full VNet integration, custom runtime control, and cost-effective scaling.
 
 ### **Decision**
 
-Use **Azure Static Web Apps (SWA)** for the frontend and a dedicated **Azure Function App (Premium Plan)** for the Backend.
+Use **Azure Container Apps** for both frontend (Angular/nginx) and backend (Azure Functions runtime in container) with **Azure Container Registry (ACR)** for image management.
+
+### **Rationale**
+
+**Why Container Apps over Static Web Apps + Functions:**
+- **Unified Architecture:** Same container images run in dev (Docker Compose) and prod (Container Apps)
+- **VNet Integration:** Native VNet integration without Premium Plan costs
+- **Custom Runtime:** Full control over nginx configuration, Node.js versions, and system dependencies
+- **Cost Efficiency:** Pay-per-use scaling with 0-replica idle state
+- **Portability:** Docker images can run anywhere (local, AKS, Container Instances, etc.)
+
+**Why Not AKS (Azure Kubernetes Service):**
+- Operational overhead (cluster management, node pools, networking)
+- Higher minimum cost (always-on control plane)
+- Over-engineered for current scale requirements
 
 ### **Specification**
 
-- **Frontend:** Azure Static Web Apps (Standard).
-- **Backend:** Azure Function App (Premium Plan \- EP1) is **mandatory**.
-  - **Bring Your Own Backend (BYOB):** Must be linked to SWA.
-- **Unified Backend (apps/backend):**
-  - **Transaction API:** HTTP Triggers.
-  - **Market Engine:** Timer Triggers.
-- **Validation:** Zod schemas are required.
+- **Container Registry:** Azure Container Registry (ACR) with Premium SKU for VNet integration
+  - **Image Naming Convention:**
+    - Frontend: `acrassetsimprod.azurecr.io/client:latest`
+    - Backend: `acrassetsimprod.azurecr.io/backend:latest`
+  - **Image Scanning:** Microsoft Defender for Containers enabled
+
+- **Frontend Container App (Angular + nginx):**
+  - **Base Image:** Multi-stage build (node:22-alpine builder → nginx:alpine runtime)
+  - **Port:** 80 (HTTP) with automatic HTTPS via managed certificates
+  - **Scaling:** 0-10 replicas, KEDA HTTP trigger
+  - **Health Probe:** `GET /health` (nginx endpoint)
+  - **Resource Limits:** 0.5 vCPU, 256Mi memory
+
+- **Backend Container App (Azure Functions v4):**
+  - **Base Image:** Multi-stage build (node:22-bullseye builder → mcr.microsoft.com/azure-functions/node:4-node20)
+  - **Port:** 7071 (HTTP)
+  - **Scaling:** 1-5 replicas (minimum 1 for Timer triggers), KEDA HTTP + Queue triggers
+  - **Health Probe:** `GET /api/health` (custom endpoint with 60s timeout)
+  - **Functions:**
+    - **Transaction API:** HTTP Triggers with Zod validation
+    - **Market Engine:** Timer Triggers (every second for tick generation)
+  - **Resource Limits:** 1.0 vCPU, 1Gi memory
+
+- **Container Apps Environment:**
+  - **VNet Integration:** Dedicated subnet (10.0.3.0/24) for Container Apps
+  - **Workload Profiles:** Consumption-based (serverless)
+  - **Ingress:** External for frontend (HTTPS only), Internal for backend (VNet-only)
+  - **Secrets:** Azure Key Vault integration via Managed Identity
+  - **Logging:** Azure Log Analytics workspace integration
+
+- **Database Migrations:** Handled via CI/CD pipeline (not in container startup)
+  - **Production:** Idempotent SQL scripts executed by VNet-connected Azure DevOps agent
+  - **Development:** Container init script runs on startup (docker-compose.dev.yml only)
+
+- **Local Development:** Docker Compose with bind mounts for hot reload
+  - **Command:** `npm run docker:dev:build`
+  - **Services:** sql, redis, azurite, signalr-emulator, client, backend
+  - **Bind Mounts:** `./apps/client` and `./apps/backend` for live code updates
 
 ## **ADR-008: Data Persistence, Caching & Multi-Tenancy**
 
@@ -249,14 +294,46 @@ Implement a **Hot/Cold Data Path**.
 
 ### **Context**
 
-Defining naming conventions and module structure.
+Defining naming conventions and module structure for containerized infrastructure.
 
 ### **Specification**
 
-- **Format:** st-assetsim-prod-useast2.
-- **Tags:** Service \= "AssetSim".
-- **Modules:** network, data, cache, messaging, compute.
-- **Database:** An **Elastic Pool is mandatory**.
+- **Naming Convention:** `<type>-<app>-<env>-<region>`
+  - Example: `acr-assetsim-prod-useast2`, `ca-assetsim-backend-prod`
+- **Tags:** Service = "AssetSim", Environment = "prod", ManagedBy = "Terraform"
+- **Modules:**
+  - **network:** VNet, subnets (endpoints, integration, container-apps), DNS zones, NSGs
+  - **data:** SQL Server, Elastic Pool (mandatory), databases, Private Endpoints
+  - **cache:** Redis Cache with Private Endpoint
+  - **messaging:** Event Hubs, SignalR Service with Private Endpoints
+  - **container:** Azure Container Registry (ACR), Container Apps Environment, Container Apps (client + backend)
+  - **monitoring:** Log Analytics, Application Insights, Container Insights
+
+- **Container Module Structure:**
+  - **Azure Container Registry (ACR):**
+    - SKU: Premium (required for VNet integration)
+    - Admin enabled: false (use Managed Identity)
+    - Private Endpoint to subnet-endpoints
+    - Retention policy: 30 days for untagged manifests
+  
+  - **Container Apps Environment:**
+    - Internal Load Balancer with VNet integration
+    - Subnet: 10.0.3.0/24 (dedicated for Container Apps)
+    - Log Analytics workspace integration
+    - Workload profile: Consumption
+  
+  - **Client Container App:**
+    - Image: `acr-assetsim-prod.azurecr.io/client:latest`
+    - Ingress: External, port 80, HTTPS only
+    - Scaling: min 0, max 10 replicas
+    - Managed Certificate for custom domain
+  
+  - **Backend Container App:**
+    - Image: `acr-assetsim-prod.azurecr.io/backend:latest`
+    - Ingress: Internal, port 7071
+    - Scaling: min 1, max 5 replicas (min 1 for Timer triggers)
+    - Secrets: SQL, Redis, SignalR connection strings from Key Vault
+    - Environment variables: NODE_ENV=production, FUNCTIONS_WORKER_RUNTIME=node
 
 ## **ADR-012: Manual Operations & Bootstrap Guide**
 
@@ -1167,11 +1244,17 @@ export class DashboardComponent {
 
 # **Phase 6: Operations & Lifecycle**
 
-## **ADR-023: Reference Implementation \- CI/CD Pipelines**
+## **ADR-023: Reference Implementation \- CI/CD Pipelines (Container-Based)**
 
 ### **Context**
 
-Split pipeline: Cloud Build vs. VNet Deploy.
+Docker-based deployment pipeline with Azure Container Registry and Azure Container Apps.
+
+### **Pipeline Stages**
+
+1. **Build Stage:** Build Docker images and push to ACR (runs on Microsoft-hosted agents)
+2. **Database Stage:** Run idempotent SQL migrations (runs on VNet-connected self-hosted agent)
+3. **Deploy Stage:** Update Container Apps with new images (runs on Microsoft-hosted agents)
 
 ### **23.1 Azure Pipelines Configuration (azure-pipelines.yml)**
 

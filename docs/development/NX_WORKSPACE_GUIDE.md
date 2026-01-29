@@ -85,31 +85,89 @@ asset-sim-pro/
 
 ## 🚀 Development Workflow
 
-### Starting Development
+### Containerized Development (Recommended)
+
+AssetSim Pro runs in Docker containers for both local development and production deployment.
 
 ```bash
-# Install dependencies
+# Install dependencies (one-time)
 npm install
 
-# Start Angular development server
+# Start containerized development environment
+npm run docker:dev:build
+
+# This starts:
+# - Angular client at localhost:4200 with hot reload
+# - Azure Functions backend at localhost:7071 with watch mode
+# - SQL Server, Redis, Azurite, SignalR emulator
+# - Automatic database initialization with seed data
+```
+
+**Development Workflow:**
+
+```bash
+# View logs
+npm run docker:logs           # All services
+npm run docker:logs:client    # Client only
+npm run docker:logs:backend   # Backend only
+
+# Stop containers
+npm run docker:dev:down
+
+# Clean restart (removes volumes)
+npm run docker:dev:clean
+npm run docker:dev:build
+```
+
+**When to Rebuild:**
+- Code changes: **No rebuild needed** (bind mounts with hot reload)
+- Dockerfile changes: **Rebuild required** (`npm run docker:dev:build`)
+- package.json changes: **Rebuild required** (`npm run docker:dev:build`)
+
+**Container Architecture:**
+- Uses `docker-compose.dev.yml` for development
+- Bind mounts for `apps/client` and `apps/backend` (hot reload)
+- Anonymous volumes for `node_modules` (prevents conflicts)
+- Health checks ensure services are ready before starting app
+
+### Host-Based Development (Alternative)
+
+For scenarios where you need to run services directly on your host:
+
+```bash
+# Start infrastructure only (SQL, Redis, Azurite, SignalR)
+npm run docker:infra
+
+# In Terminal 1: Start Angular development server
 npm start
 # or
 nx serve client
 
-# Start backend function app
+# In Terminal 2: Start backend function app
 npm run backend:start
 ```
 
 ### Building Applications
 
-```bash
-# Build client for production
-npm run build:prod
-# or
-nx build client --configuration=production
+**For Production Deployment:**
 
-# Build backend
-npm run backend:build
+```bash
+# Build Docker images for production
+npm run docker:prod:build
+
+# Or build specific targets with Nx
+nx build client --configuration=production
+nx build backend --configuration=production
+```
+
+**Production Container Testing:**
+
+```bash
+# Start production stack locally
+npm run docker:prod
+
+# Stop production stack
+npm run docker:prod:down
 ```
 
 ### Running Tests

@@ -22,7 +22,20 @@
     "backend:test": "nx test backend",
     "backend:test:coverage": "nx test backend --coverage",
     "db:init": "ts-node --project scripts/tsconfig.json scripts/init-db.ts",
-    "seed:local": "ts-node --project scripts/tsconfig.json scripts/seed-local.ts"
+    "seed:local": "ts-node --project scripts/tsconfig.json scripts/seed-local.ts",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up",
+    "docker:dev:build": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:dev:clean": "docker compose -f docker-compose.dev.yml down -v",
+    "docker:prod": "docker compose up",
+    "docker:prod:build": "docker compose up --build",
+    "docker:prod:down": "docker compose down",
+    "docker:prod:clean": "docker compose down -v",
+    "docker:infra": "docker compose -f docker-compose.dev.yml up -d sql redis azurite signalr-emulator",
+    "docker:infra:down": "docker compose -f docker-compose.dev.yml down sql redis azurite signalr-emulator",
+    "docker:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "docker:logs:backend": "docker compose -f docker-compose.dev.yml logs -f backend",
+    "docker:logs:client": "docker compose -f docker-compose.dev.yml logs -f client"
   },
   "keywords": [
     "trading",
@@ -121,6 +134,8 @@
     "decimal.js": "^10.6.0",
     "ioredis": "^5.9.2",
     "mssql": "^10.0.0",
-    "rxjs": "~7.8.0"
+    "rxjs": "~7.8.0",
+    "zod": "^3.25.67",
+    "@asteasolutions/zod-to-openapi": "^7.3.0"
   }
 }

@@ -26,6 +26,9 @@ AssetSim Pro is an enterprise-grade simulation platform for Asset Management Fir
 - **Database:** Azure SQL Database with Row-Level Security (RLS)
 - **Caching:** Azure Cache for Redis
 - **Architecture:** Zero Trust Network with Private Endpoints
+- **Deployment:** Azure Container Apps (not Static Web Apps)
+- **Local Development:** Docker Compose with bind mounts for hot reload
+- **Container Registry:** Azure Container Registry (ACR) with Premium SKU
 
 ## Critical Development Guidelines (ADR-006)
 
@@ -176,6 +179,92 @@ When handling real-time market data streams or user inputs:
   // Note: Low-frequency events (e.g., user notifications, config changes) 
   // may not require throttling
   ```
+
+### 4. Container Health Endpoints (Mandatory)
+
+When creating Azure Functions or web services:
+
+- **All services must expose health endpoints** for container orchestration
+- **Anonymous authentication required** for health probes
+- **Standard paths:** `/api/health` for backend, `/health` for frontend
+
+**Health Endpoint Pattern:**
+
+```typescript
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+
+export async function health(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+  return {
+    status: 200,
+    jsonBody: {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'backend',
+      runtime: process.version
+    }
+  };
+}
+
+app.http('health', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  route: 'health',
+  handler: health
+});
+```
+
+**Container Probe Configuration:**
+- Liveness probe: Check if service is running
+- Readiness probe: Check if service is ready to accept requests
+- Startup probe: Allow time for cold start (60s for Azure Functions)
+
+### 5. Database Schema Idempotency (Mandatory)
+
+When generating SQL DDL scripts:
+
+- **All schema objects must use IF NOT EXISTS guards**
+- **Idempotent scripts can be run multiple times safely**
+- **Required for container init scripts and CI/CD pipelines**
+
+**Idempotent Pattern:**
+
+```sql
+-- Schema creation
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Trade')
+BEGIN
+  EXEC('CREATE SCHEMA [Trade]');
+END;
+GO
+
+-- Table creation  
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Portfolios' AND schema_id = SCHEMA_ID('Trade'))
+BEGIN
+  CREATE TABLE [Trade].[Portfolios] (
+    [PortfolioId] UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    [ExchangeId] UNIQUEIDENTIFIER NOT NULL,
+    [UserId] UNIQUEIDENTIFIER NOT NULL,
+    [CashBalance] MONEY NOT NULL
+  );
+END;
+GO
+
+-- Function creation (requires dynamic SQL)
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE name = 'fn_securitypredicate')
+BEGIN
+  EXEC('
+    CREATE FUNCTION [Security].[fn_securitypredicate](@ExchangeId UNIQUEIDENTIFIER)
+    RETURNS TABLE
+    WITH SCHEMABINDING
+    AS RETURN SELECT 1 AS result
+  ');
+END;
+```
+
+**Why Idempotency Matters:**
+- Development containers run init scripts on startup
+- CI/CD pipelines run migrations without manual intervention
+- Safe to re-run failed deployments
+- Enables GitOps workflows
 
 ## Additional Coding Standards
 

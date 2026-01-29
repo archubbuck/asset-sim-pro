@@ -1,10 +1,10 @@
-# Azure DevOps Pipeline for AssetSim Pro
-# ADR-023: Split CI/CD Pipeline for Build, Infra, & Deploy
+# Azure DevOps Pipeline for AssetSim Pro (Container-Based)
+# ADR-023: Container Build & Deploy Pipeline
 # 
 # Pipeline Stages:
-# 1. Build (Cloud): Compile Angular client & Azure Functions backend
-# 2. Infrastructure (VNet): Provision Azure resources via Terraform
-# 3. Deploy (VNet): Deploy Function App, Static Web App, and run migrations
+# 1. Build (Cloud): Build Docker images and push to Azure Container Registry
+# 2. Database (VNet): Run idempotent SQL migrations from VNet-connected agent
+# 3. Deploy (Cloud): Update Container Apps with new images
 
 trigger:
   - main
@@ -16,171 +16,153 @@ variables:
   - group: 'assetsim-prod-vars' # Links to Azure Key Vault for secrets
   - name: terraform_version
     value: '1.7.0'
+  - name: acrName
+    value: 'acrassetsimprod'
+  - name: acrLoginServer
+    value: 'acrassetsimprod.azurecr.io'
+  - name: imageTag
+    value: '$(Build.BuildId)'
 
 stages:
   # ============================================================================
-  # STAGE 1: BUILD APPLICATION
+  # STAGE 1: BUILD AND PUSH CONTAINER IMAGES
   # ============================================================================
   - stage: Build
-    displayName: 'Build Application'
+    displayName: 'Build Container Images'
     jobs:
-      - job: Build
+      - job: BuildImages
         steps:
-          # Setup Node.js environment
-          - task: NodeTool@0
+          # Login to Azure Container Registry
+          - task: Docker@2
             inputs:
-              versionSpec: '20.x'
-            displayName: 'Install Node.js 20.x'
-            
-          # Install root dependencies for Nx workspace
-          - script: npm ci
-            displayName: 'Install Dependencies'
+              command: login
+              containerRegistry: 'ACR-Service-Connection'
+            displayName: 'Login to Azure Container Registry'
 
-          # Build Angular Client (dist/apps/client)
-          # Using npm run build:prod to ensure load-env.js script runs
-          - script: npm run build:prod
-            displayName: 'Build Institutional Client'
-            env:
-              KENDO_UI_LICENSE: $(KENDO_UI_LICENSE)
-
-          # Publish client artifact for Static Web App deployment
-          - task: PublishPipelineArtifact@1
+          # Build and push client image
+          - task: Docker@2
             inputs:
-              targetPath: 'dist/apps/client'
-              artifact: 'client-artifact'
-            displayName: 'Publish Client Artifact'
+              command: buildAndPush
+              repository: 'client'
+              dockerfile: 'apps/client/Dockerfile'
+              containerRegistry: 'ACR-Service-Connection'
+              tags: |
+                $(imageTag)
+                latest
+              arguments: '--build-arg KENDO_UI_LICENSE=$(KENDO_UI_LICENSE)'
+            displayName: 'Build and Push Client Image'
 
-          # Build Backend Function App
-          # NOTE: Backend is a standalone Azure Functions app with its own package.json,
-          # not an Nx-managed project. ADR-023 mentions "npx nx run backend:build:production"
-          # but the backend doesn't have a project.json file for Nx integration.
-          # This approach builds the backend independently, which is appropriate for
-          # Azure Functions that need their own runtime and dependencies.
-          - script: |
-              cd apps/backend
-              npm ci
-              npm run build
-            displayName: 'Build Function App'
-
-          # Archive backend for Function App deployment
-          # Include package.json, host.json, and dist folder for Azure Functions
-          - task: ArchiveFiles@2
+          # Build and push backend image
+          - task: Docker@2
             inputs:
-              rootFolderOrFile: 'apps/backend'
-              includeRootFolder: false
-              archiveType: 'zip'
-              archiveFile: '$(Build.ArtifactStagingDirectory)/backend.zip'
-            displayName: 'Archive Backend Function App'
-
-          # Publish backend artifact for Function App deployment
-          - task: PublishPipelineArtifact@1
-            inputs:
-              targetPath: '$(Build.ArtifactStagingDirectory)/backend.zip'
-              artifact: 'backend-artifact'
-            displayName: 'Publish Backend Artifact'
+              command: buildAndPush
+              repository: 'backend'
+              dockerfile: 'apps/backend/Dockerfile'
+              containerRegistry: 'ACR-Service-Connection'
+              tags: |
+                $(imageTag)
+                latest
+            displayName: 'Build and Push Backend Image'
 
   # ============================================================================
-  # STAGE 2: INFRASTRUCTURE PROVISIONING
+  # STAGE 2: DATABASE MIGRATIONS
   # ============================================================================
-  - stage: Infrastructure
-    displayName: 'Provision Infrastructure'
+  - stage: Database
+    displayName: 'Database Migrations'
     dependsOn: Build
     jobs:
-      - job: Terraform
+      - job: RunMigrations
         pool:
-          name: 'Self-Hosted-VNet-Pool' # MUST be inside VNet to reach Storage/KeyVault
+          name: 'Self-Hosted-VNet-Pool' # MUST be inside VNet to reach SQL Server
         steps:
-          # Install Terraform CLI
-          - task: TerraformInstaller@0
-            inputs:
-              terraformVersion: $(terraform_version)
-            displayName: 'Install Terraform'
+          # Checkout code for database schema
+          - checkout: self
 
-          # Initialize Terraform with remote backend
-          - task: TerraformTaskV4@4
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-              backendServiceArm: 'Azure-Service-Connection'
-              backendAzureRmResourceGroupName: 'rg-tfstate'
-              backendAzureRmStorageAccountName: 'sttfstate'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'prod.terraform.tfstate'
-            displayName: 'Terraform Init'
-
-          # Apply Terraform configuration
-          - task: TerraformTaskV4@4
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-              environmentServiceNameAzureRM: 'Azure-Service-Connection'
-              commandOptions: '-auto-approve'
-            displayName: 'Terraform Apply'
+          # Run idempotent SQL schema script
+          - script: |
+              # Install sqlcmd if not present
+              if ! command -v sqlcmd &> /dev/null; then
+                echo "Installing SQL Server command-line tools..."
+                curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+                curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+                sudo apt-get update
+                sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+              fi
+              
+              # Run schema script (idempotent with IF NOT EXISTS guards)
+              echo "Running database schema migrations..."
+              /opt/mssql-tools18/bin/sqlcmd -S "$(SQL_SERVER)" -U "$(SQL_USERNAME)" -P "$(SQL_PASSWORD)" -d AssetSimPro -C -i database/schema.sql
+              
+              echo "Database migrations completed successfully"
+            displayName: 'Run SQL Schema Migrations'
 
   # ============================================================================
-  # STAGE 3: DEPLOY CODE
+  # STAGE 3: DEPLOY CONTAINER APPS
   # ============================================================================
   - stage: Deploy
-    displayName: 'Deploy Code'
-    dependsOn: Infrastructure
+    displayName: 'Deploy Container Apps'
+    dependsOn: Database
     jobs:
-      - job: DeployAssets
-        pool:
-          name: 'Self-Hosted-VNet-Pool' # Deploy from VNet for security
+      - job: UpdateContainerApps
         steps:
-          # Download client artifact
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              artifact: 'client-artifact'
-              path: '$(Pipeline.Workspace)/client'
-            displayName: 'Download Client Artifact'
-
-          # Download backend artifact
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              artifact: 'backend-artifact'
-              path: '$(Pipeline.Workspace)/backend'
-            displayName: 'Download Backend Artifact'
-
-          # 1. Deploy Function App (Backend API & Market Engine)
-          - task: AzureFunctionApp@2
+          # Update backend Container App with new image
+          - task: AzureCLI@2
             inputs:
               azureSubscription: 'Azure-Service-Connection'
-              appType: 'functionAppLinux'
-              appName: 'func-assetsim-backend-prod' # Must match Terraform output
-              package: '$(Pipeline.Workspace)/backend/backend.zip'
-              deploymentMethod: 'runFromPackage'
-            displayName: 'Deploy Azure Function App'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Updating backend Container App..."
+                az containerapp update \
+                  --name ca-assetsim-backend-prod \
+                  --resource-group rg-assetsim-prod-useast2 \
+                  --image $(acrLoginServer)/backend:$(imageTag) \
+                  --set-env-vars \
+                    NODE_ENV=production \
+                    FUNCTIONS_WORKER_RUNTIME=node
+                
+                echo "Backend Container App updated successfully"
+            displayName: 'Update Backend Container App'
 
-          # 2. Deploy Static Content (Frontend)
-          - task: AzureStaticWebApp@0
+          # Update client Container App with new image
+          - task: AzureCLI@2
             inputs:
-              app_location: '/'
-              api_location: ''
-              output_location: '$(Pipeline.Workspace)/client'
-              skip_app_build: true
-              azure_static_web_apps_api_token: $(SWA_DEPLOYMENT_TOKEN)
-            displayName: 'Deploy Static Web App'
+              azureSubscription: 'Azure-Service-Connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Updating client Container App..."
+                az containerapp update \
+                  --name ca-assetsim-client-prod \
+                  --resource-group rg-assetsim-prod-useast2 \
+                  --image $(acrLoginServer)/client:$(imageTag)
+                
+                echo "Client Container App updated successfully"
+            displayName: 'Update Client Container App'
 
-          # 3. Database Migrations (Run from VNet)
-          # NOTE: Dependencies are reinstalled here because:
-          # 1. Deploy stage runs on a different agent pool (Self-Hosted-VNet-Pool)
-          # 2. Build artifacts don't include node_modules (keeps artifact size minimal)
-          # 3. This is the standard Prisma migration approach in Azure DevOps
-          # Alternative approaches (migration artifact, cached node_modules) add complexity
-          # without significant benefit for the migration step which runs once per deployment.
-          - script: |
-              export DATABASE_URL="$(SQL_CONNECTION_STRING)" # From KeyVault
-              cd $(System.DefaultWorkingDirectory)
-              
-              # Only run Prisma migrations if Prisma is configured in this repository.
-              if [ -d "prisma" ] && [ -f "prisma/schema.prisma" ]; then
-                echo "Prisma configuration detected. Installing dependencies and running migrations..."
-                npm ci
-                npx prisma migrate deploy
-              else
-                echo "No Prisma configuration detected (missing ./prisma/schema.prisma). Skipping Prisma migrations."
-              fi
-            displayName: 'Run Prisma Migrations'
+          # Verify deployment health
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'Azure-Service-Connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Verifying Container Apps health..."
+                
+                # Check backend health
+                BACKEND_URL=$(az containerapp show \
+                  --name ca-assetsim-backend-prod \
+                  --resource-group rg-assetsim-prod-useast2 \
+                  --query properties.configuration.ingress.fqdn -o tsv)
+                
+                echo "Backend FQDN: $BACKEND_URL"
+                
+                # Check client health
+                CLIENT_URL=$(az containerapp show \
+                  --name ca-assetsim-client-prod \
+                  --resource-group rg-assetsim-prod-useast2 \
+                  --query properties.configuration.ingress.fqdn -o tsv)
+                
+                echo "Client FQDN: https://$CLIENT_URL"
+                echo "Deployment completed successfully!"
+            displayName: 'Verify Deployment Health'

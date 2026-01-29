@@ -21,7 +21,7 @@ Before starting, ensure you have:
 ### For Local Development
 
 - **Node.js 20.x** or higher
-- **Docker & Docker Compose** (for local services)
+- **Docker Desktop** (latest version with Docker Compose V2)
 - **Git**
 - **npm** package manager
 
@@ -53,27 +53,29 @@ npm install
 
 This automatically sets up Husky git hooks for commit message validation.
 
-### Step 2: Start Local Services
+### Step 2: Start Containerized Development Environment
 
 ```bash
-# Start Docker services (SQL Server, Redis, Azurite, SignalR emulator)
-docker compose up -d
+# Start all services with hot reload (client, backend, SQL, Redis, Azurite, SignalR)
+npm run docker:dev:build
 
-# Verify services are running
-docker compose ps
+# Verify all containers are healthy
+docker ps
+
+# View logs (optional)
+npm run docker:logs        # All services
+npm run docker:logs:client # Client only
+npm run docker:logs:backend # Backend only
 ```
 
-### Step 3: Initialize and Seed Database
+**What This Does:**
+- Starts SQL Server, Redis, Azurite, and SignalR emulator
+- Builds and runs Angular client with hot reload (localhost:4200)
+- Builds and runs Azure Functions backend with watch mode (localhost:7071)
+- Automatically initializes database schema and seeds demo data
+- Uses bind mounts so code changes are reflected immediately
 
-```bash
-# Create database schema
-npm run db:init
-
-# Seed with demo data (optional but recommended)
-npm run seed:local
-```
-
-### Step 4: Configure Local Environment
+### Step 3: Configure Local Environment
 
 ```bash
 # Copy environment template
@@ -86,36 +88,67 @@ cp .env.local.example .env.local
 # (Default values work with Docker Compose setup)
 ```
 
+### Step 3: Configure Local Environment
+
+```bash
+# Copy environment template for Docker Compose
+cp .env.local .env
+
+# Edit .env and set your Kendo UI license key
+# KENDO_UI_LICENSE=your-kendo-license-key-here
+```
+
 **Important: Kendo UI License Configuration**
 
 AssetSim Pro uses Kendo UI for financial charts and components. To run without trial watermarks:
 
 1. Obtain your Kendo UI license key from [https://www.telerik.com/account/](https://www.telerik.com/account/)
-2. Open `.env.local` and set `KENDO_UI_LICENSE=your-license-key`
-3. Never commit `.env.local` to version control (it's already in `.gitignore`)
+2. Open `.env` and set `KENDO_UI_LICENSE=your-license-key`
+3. Never commit `.env` to version control (it's already in `.gitignore`)
+4. For production deployments, use Azure Key Vault or CI/CD secrets
 
 If you don't have a license yet, the application will run in trial mode with watermarks.
 
-### Step 5: Start Development Servers
+**Note:** Docker Compose reads from `.env` (not `.env.local`). Connection strings are pre-configured for the containerized services.
+
+### Step 4: Access the Application
 
 ```bash
-# Terminal 1: Start Angular dev server
-npm start
-
-# Terminal 2: Start Azure Functions backend (in a new terminal)
-cd apps/backend
-npm install
-cp local.settings.json.example local.settings.json
-npm start
+# Everything is already running in containers!
+# No need to start separate terminals
 ```
 
 ### ✅ Verify Local Setup
 
-- **Frontend:** http://localhost:4200
-- **Backend API:** http://localhost:7071/api
-- **API Documentation:** http://localhost:7071/api/docs
+- **Frontend:** http://localhost:4200 (Angular with hot reload)
+- **Backend API:** http://localhost:7071/api (Azure Functions with watch mode)
+- **Backend Health:** http://localhost:7071/api/health
+- **Frontend Health:** http://localhost/health
 
-**📖 Next:** See [Local Development Guide](./README.md#local-development-environment) for detailed Docker service configuration.
+**📖 Next:** See [NX_WORKSPACE_GUIDE.md](./docs/development/NX_WORKSPACE_GUIDE.md#containerized-development) for development workflow.
+
+### 🔄 Development Workflow
+
+**Code Changes:**
+- Edit files in `apps/client/` or `apps/backend/` - changes are reflected immediately
+- No need to restart containers for code changes
+- Frontend uses Angular dev server with live reload
+- Backend uses Azure Functions watch mode
+
+**When to Rebuild:**
+```bash
+# Only rebuild if you change Dockerfile or package.json dependencies
+npm run docker:dev:build
+```
+
+**Stop and Clean Up:**
+```bash
+# Stop all containers
+npm run docker:dev:down
+
+# Stop and remove volumes (fresh start)
+npm run docker:dev:clean
+```
 
 ---
 
@@ -283,12 +316,23 @@ curl https://<your-static-web-app>.azurestaticapps.net
 docker ps
 
 # View logs for troubleshooting
-docker compose logs
+npm run docker:logs
 
-# Reset services
-docker compose down -v
-docker compose up -d
+# Reset services (clean restart)
+npm run docker:dev:clean
+npm run docker:dev:build
 ```
+
+**On Windows (Docker Desktop):**
+
+If Docker daemon crashes or is unresponsive:
+
+1. Right-click Docker Desktop tray icon
+2. Select "Restart"
+3. Wait for "Docker Desktop is running" status
+4. Run `npm run docker:dev:build`
+
+**Note:** Docker runs on Windows, not inside WSL2. Do not use `service docker restart` in WSL.
 
 ### Issue: "Commit message rejected"
 
