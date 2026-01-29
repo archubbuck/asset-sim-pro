@@ -21,6 +21,34 @@ import * as sql from 'mssql';
 import Decimal from 'decimal.js';
 import { cacheExchangeConfig, cacheQuote } from '../apps/backend/src/lib/cache';
 
+/**
+ * Connect to SQL Server with retry logic
+ * @param connectionString Connection string to use
+ * @param retries Number of retries (default: 5)
+ * @param delayMs Delay between retries in milliseconds (default: 3000)
+ */
+async function connectWithRetry(
+  connectionString: string,
+  retries = 5,
+  delayMs = 3000
+): Promise<sql.ConnectionPool> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const pool = await sql.connect(connectionString);
+      return pool;
+    } catch (error) {
+      const err = error as Error;
+      if (attempt === retries) {
+        throw error;
+      }
+      console.log(`   ⚠️  Connection attempt ${attempt} failed: ${err.message}`);
+      console.log(`   ⏳ Retrying in ${delayMs / 1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  throw new Error('Failed to connect after all retries');
+}
+
 // Constants
 const DEMO_EXCHANGE_ID = '00000000-0000-0000-0000-000000000001';
 const DEMO_USER_ID = '00000000-0000-0000-0000-000000000099';
@@ -153,7 +181,7 @@ async function seedLocalEnvironment() {
   try {
     // Connect to SQL Server
     console.log('📊 Connecting to SQL Server...');
-    pool = await sql.connect(sqlConnectionString);
+    pool = await connectWithRetry(sqlConnectionString);
     console.log('✅ Connected to SQL Server\n');
     
     // Set SESSION_CONTEXT for RLS bypass (using Super Admin)
