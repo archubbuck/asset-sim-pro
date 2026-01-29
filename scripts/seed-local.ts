@@ -20,6 +20,7 @@
 import * as sql from 'mssql';
 import Decimal from 'decimal.js';
 import { cacheExchangeConfig, cacheQuote } from '../apps/backend/src/lib/cache';
+import { connectWithRetry } from './utils/db-connection';
 
 // Constants
 const DEMO_EXCHANGE_ID = '00000000-0000-0000-0000-000000000001';
@@ -153,7 +154,7 @@ async function seedLocalEnvironment() {
   try {
     // Connect to SQL Server
     console.log('📊 Connecting to SQL Server...');
-    pool = await sql.connect(sqlConnectionString);
+    pool = await connectWithRetry(sqlConnectionString);
     console.log('✅ Connected to SQL Server\n');
     
     // Set SESSION_CONTEXT for RLS bypass (using Super Admin)

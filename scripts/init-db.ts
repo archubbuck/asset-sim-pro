@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { checkDockerService, checkDockerServices } from './utils/docker-check';
 import { MASTER_CONNECTION_STRING, DB_CONNECTION_STRING } from './utils/db-config';
+import { connectWithRetry } from './utils/db-connection';
 
 async function initDatabase() {
   console.log('🗄️  Initializing database...\n');
@@ -58,7 +59,7 @@ async function initDatabase() {
   try {
     // Connect to master database
     console.log('📊 Connecting to SQL Server master database...');
-    pool = await sql.connect(masterConnectionString);
+    pool = await connectWithRetry(masterConnectionString);
     console.log('✅ Connected\n');
     
     // Check if database exists
@@ -81,7 +82,7 @@ async function initDatabase() {
     console.log('📊 Connecting to AssetSimPro database...');
     const assetSimProConnectionString = DB_CONNECTION_STRING;
     
-    pool = await sql.connect(assetSimProConnectionString);
+    pool = await connectWithRetry(assetSimProConnectionString);
     console.log('✅ Connected\n');
     
     // Read schema.sql

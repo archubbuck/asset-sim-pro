@@ -9,7 +9,7 @@ services:
     volumes:
       - sql-data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'LocalDevPassword123!' -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'LocalDevPassword123!' -C -Q 'SELECT 1' || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 10  # SQL Server takes longer to initialize on first start
