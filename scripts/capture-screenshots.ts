@@ -1,44 +1,26 @@
 import { chromium, Browser, Page } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
-import { execSync } from 'child_process';
-
-/**
- * Check if Docker services are running
- */
-async function checkDockerServices(): Promise<{ running: boolean; services: string[] }> {
-  try {
-    execSync('docker info', { stdio: 'ignore' });
-    
-    const output = execSync('docker compose ps --services --filter "status=running"', {
-      cwd: path.resolve(__dirname, '..'),
-      encoding: 'utf-8',
-    });
-    
-    const runningServices = output.trim().split('\n').filter(s => s.length > 0);
-    const requiredServices = ['sql', 'redis', 'azurite', 'signalr-emulator'];
-    const allRunning = requiredServices.every(s => runningServices.includes(s));
-    
-    return { running: allRunning, services: runningServices };
-  } catch (error) {
-    return { running: false, services: [] };
-  }
-}
+import * as sql from 'mssql';
+import { checkDockerServices } from './utils/docker-check';
 
 /**
  * Check if database is initialized
  */
 async function checkDatabaseInitialized(): Promise<boolean> {
+  let pool: sql.ConnectionPool | null = null;
   try {
-    const sql = require('mssql');
-    const connectionString = 
+    const connectionString =
       'Server=localhost,1433;Database=AssetSimPro;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
-    
-    const pool = await sql.connect(connectionString);
-    await pool.close();
+
+    pool = await sql.connect(connectionString);
     return true;
   } catch (error) {
     return false;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
   }
 }
 
@@ -230,7 +212,10 @@ async function main(): Promise<void> {
   
   // Check Docker services
   const dockerCheck = await checkDockerServices();
-  if (!dockerCheck.running) {
+  const requiredServices = ['sql', 'redis', 'azurite', 'signalr-emulator'];
+  const allRunning = requiredServices.every(s => dockerCheck.services.includes(s));
+  
+  if (!allRunning) {
     console.error('❌ ERROR: Required Docker services are not running\n');
     if (dockerCheck.services.length === 0) {
       console.error('No Docker services are running. Please start them:');

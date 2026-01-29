@@ -10,37 +10,14 @@
 import * as sql from 'mssql';
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
-
-/**
- * Check if Docker services are running
- */
-async function checkDockerServices(): Promise<boolean> {
-  try {
-    // Check if Docker daemon is running
-    execSync('docker info', { stdio: 'ignore' });
-    
-    // Check if SQL Server container is running
-    const output = execSync('docker compose ps --services --filter "status=running"', {
-      cwd: path.join(__dirname, '..'),
-      encoding: 'utf-8',
-    });
-    
-    const runningServices = output.trim().split('\n').filter(s => s.length > 0);
-    const hasSql = runningServices.includes('sql');
-    
-    return hasSql;
-  } catch (error) {
-    return false;
-  }
-}
+import { checkDockerService } from './utils/docker-check';
 
 async function initDatabase() {
   console.log('🗄️  Initializing database...\n');
   
   // Check prerequisites
   console.log('🔍 Checking prerequisites...');
-  const dockerRunning = await checkDockerServices();
+  const dockerRunning = await checkDockerService('sql');
   
   if (!dockerRunning) {
     console.error('\n❌ ERROR: Docker services are not running\n');
