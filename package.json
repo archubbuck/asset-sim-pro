@@ -22,7 +22,8 @@
     "backend:test": "nx test backend",
     "backend:test:coverage": "nx test backend --coverage",
     "db:init": "ts-node --project scripts/tsconfig.json scripts/init-db.ts",
-    "seed:local": "ts-node --project scripts/tsconfig.json scripts/seed-local.ts"
+    "seed:local": "ts-node --project scripts/tsconfig.json scripts/seed-local.ts",
+    "screenshots": "ts-node --project scripts/tsconfig.json scripts/capture-screenshots.ts"
   },
   "keywords": [
     "trading",
