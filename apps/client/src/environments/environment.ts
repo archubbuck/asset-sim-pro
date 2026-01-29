@@ -16,8 +16,7 @@
  * - Treat this value strictly as a **licensing token**, never as a general-purpose
  *   secret (e.g., do not reuse it for API keys, database credentials, or any
  *   server-side authentication).
- * - The risk tradeoff and rationale for client-visible license tokens is
- *   documented in SECURITY_SUMMARY.md under "Kendo UI License Exposure".
+ * - See docs/development/KENDO_UI_SETUP.md for detailed setup and security guidance.
  * 
  * The environment variable is injected via a generated file that is created
  * before the build starts and cleaned up after.
