@@ -1,6 +1,46 @@
 import { chromium, Browser, Page } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
+
+/**
+ * Check if Docker services are running
+ */
+async function checkDockerServices(): Promise<{ running: boolean; services: string[] }> {
+  try {
+    execSync('docker info', { stdio: 'ignore' });
+    
+    const output = execSync('docker compose ps --services --filter "status=running"', {
+      cwd: path.resolve(__dirname, '..'),
+      encoding: 'utf-8',
+    });
+    
+    const runningServices = output.trim().split('\n').filter(s => s.length > 0);
+    const requiredServices = ['sql', 'redis', 'azurite', 'signalr-emulator'];
+    const allRunning = requiredServices.every(s => runningServices.includes(s));
+    
+    return { running: allRunning, services: runningServices };
+  } catch (error) {
+    return { running: false, services: [] };
+  }
+}
+
+/**
+ * Check if database is initialized
+ */
+async function checkDatabaseInitialized(): Promise<boolean> {
+  try {
+    const sql = require('mssql');
+    const connectionString = 
+      'Server=localhost,1433;Database=AssetSimPro;User Id=sa;Password=LocalDevPassword123!;Encrypt=true;TrustServerCertificate=true';
+    
+    const pool = await sql.connect(connectionString);
+    await pool.close();
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
 
 /**
  * Playwright Screenshot Capture Script
@@ -185,6 +225,39 @@ async function main(): Promise<void> {
   console.log(`Output Directory: ${SCREENSHOTS_DIR}`);
   console.log(`Viewport: ${VIEWPORT.width}x${VIEWPORT.height}`);
 
+  // Check prerequisites
+  console.log('\n🔍 Checking prerequisites...\n');
+  
+  // Check Docker services
+  const dockerCheck = await checkDockerServices();
+  if (!dockerCheck.running) {
+    console.error('❌ ERROR: Required Docker services are not running\n');
+    if (dockerCheck.services.length === 0) {
+      console.error('No Docker services are running. Please start them:');
+    } else {
+      console.error(`Running services: ${dockerCheck.services.join(', ')}`);
+      console.error('Missing required services. Please ensure all services are running:');
+    }
+    console.error('  1. Run: docker compose up -d');
+    console.error('  2. Wait for services to be healthy (~30 seconds)');
+    console.error('  3. Verify: docker compose ps\n');
+    process.exit(1);
+  }
+  console.log('✅ Docker services are running');
+  
+  // Check database initialization
+  const dbInitialized = await checkDatabaseInitialized();
+  if (!dbInitialized) {
+    console.error('\n❌ ERROR: Database is not initialized\n');
+    console.error('Please initialize the database:');
+    console.error('  1. Run: npm run db:init');
+    console.error('  2. (Optional) Seed demo data: npm run seed:local\n');
+    process.exit(1);
+  }
+  console.log('✅ Database is initialized');
+  
+  console.log('✅ All prerequisites met\n');
+
   // Ensure screenshots directory exists
   await ensureDirectoryExists(SCREENSHOTS_DIR);
 
@@ -214,10 +287,17 @@ async function main(): Promise<void> {
     console.log('   ✅ Application is running');
   } catch (error) {
     console.error(`\n❌ ERROR: Cannot connect to application at ${BASE_URL}`);
-    console.error('   Please ensure the application is running:');
+    console.error('   Please ensure the application is running:\n');
+    console.error('   For Frontend:');
     console.error('   1. Run: npm start');
-    console.error('   2. Wait for application to start');
-    console.error('   3. Run: npm run screenshots');
+    console.error('   2. Wait for application to start (shows "Application bundle generation complete")');
+    console.error('   3. Verify at: http://localhost:4200\n');
+    console.error('   For Backend (optional for basic screenshots):');
+    console.error('   1. cd apps/backend');
+    console.error('   2. npm install (if not done)');
+    console.error('   3. cp local.settings.json.example local.settings.json (if not done)');
+    console.error('   4. npm start\n');
+    console.error('   Then run: npm run screenshots\n');
     await browser.close();
     process.exit(1);
   }

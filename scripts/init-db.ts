@@ -10,9 +10,51 @@
 import * as sql from 'mssql';
 import * as fs from 'fs';
 import * as path from 'path';
+import { execSync } from 'child_process';
+
+/**
+ * Check if Docker services are running
+ */
+async function checkDockerServices(): Promise<boolean> {
+  try {
+    // Check if Docker daemon is running
+    execSync('docker info', { stdio: 'ignore' });
+    
+    // Check if SQL Server container is running
+    const output = execSync('docker compose ps --services --filter "status=running"', {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf-8',
+    });
+    
+    const runningServices = output.trim().split('\n').filter(s => s.length > 0);
+    const hasSql = runningServices.includes('sql');
+    
+    return hasSql;
+  } catch (error) {
+    return false;
+  }
+}
 
 async function initDatabase() {
   console.log('🗄️  Initializing database...\n');
+  
+  // Check prerequisites
+  console.log('🔍 Checking prerequisites...');
+  const dockerRunning = await checkDockerServices();
+  
+  if (!dockerRunning) {
+    console.error('\n❌ ERROR: Docker services are not running\n');
+    console.error('Please start Docker services first:');
+    console.error('  1. Run: docker compose up -d');
+    console.error('  2. Wait for services to be healthy (~30 seconds)');
+    console.error('  3. Verify: docker compose ps');
+    console.error('  4. Run: npm run db:init\n');
+    console.error('Tip: Check the Getting Started guide for complete setup instructions:\n');
+    console.error('  GETTING_STARTED.md - Section: Local Development Setup\n');
+    process.exit(1);
+  }
+  
+  console.log('✅ Docker services are running\n');
   
   // Connection string for master database (to create AssetSimPro database)
   // Fallback value matches .env.local.example for local development only
@@ -91,6 +133,11 @@ async function initDatabase() {
     
   } catch (error) {
     console.error('\n❌ Database initialization failed:', error);
+    console.error('\nTroubleshooting tips:');
+    console.error('  1. Ensure Docker services are running: docker compose ps');
+    console.error('  2. Check SQL Server logs: docker compose logs sql');
+    console.error('  3. Restart services if needed: docker compose restart sql');
+    console.error('  4. For complete setup guide, see: GETTING_STARTED.md\n');
     process.exit(1);
   } finally {
     if (pool) {
