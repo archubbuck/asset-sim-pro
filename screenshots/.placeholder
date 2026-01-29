@@ -1,0 +1,11 @@
+This directory is ready for screenshots.
+
+Run `npm run screenshots` locally to generate the actual screenshot images.
+
+Note: The screenshot capture script requires:
+- Running Angular application (npm start)
+- Docker services (SQL Server, Redis, etc.)
+- Initialized and seeded database
+
+These dependencies are not available in the CI/CD environment, so screenshots
+must be generated and committed from a local development environment.

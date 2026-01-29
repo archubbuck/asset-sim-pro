@@ -64,6 +64,3 @@ coverage/
 playwright-report/
 test-results/
 playwright/.cache/
-
-# Marketing screenshots
-screenshots/
