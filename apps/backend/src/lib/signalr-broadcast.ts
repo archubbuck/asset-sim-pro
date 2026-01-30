@@ -14,10 +14,12 @@ import * as mockSignalR from './mock-signalr';
 let signalRClient: WebPubSubServiceClient | null = null;
 
 /**
- * Check if we should use local development mode (mock SignalR)
+ * Check if we should use local development mode (mock SignalR).
+ * Local dev mode must be explicitly enabled via NODE_ENV=development.
+ * Missing connection strings in production will fail fast.
  */
 function isLocalDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development' || !process.env.AZURE_SIGNALR_CONNECTION_STRING;
+  return process.env.NODE_ENV === 'development';
 }
 
 /**

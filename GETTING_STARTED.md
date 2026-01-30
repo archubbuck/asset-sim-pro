@@ -23,8 +23,13 @@ Before starting, ensure you have:
 - **Node.js 20.x** or higher
 - **Git**
 - **npm** package manager
+- **Azure Functions Core Tools** (for running the backend)
 
-**Note:** Docker is NO LONGER required for local development! All services are mocked in-memory.
+**Note:** Docker is NO LONGER required for local development! All business logic services (database, cache, SignalR, Event Hub) are mocked in-memory. 
+
+**Storage Requirement:** The Azure Functions runtime requires storage for internal state management. You can use either:
+- **Azurite** (lightweight local emulator): Set `AzureWebJobsStorage: UseDevelopmentStorage=true` in `local.settings.json` - [Install Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite)
+- **Real Azure Storage**: Provide an Azure Storage connection string
 
 ### For Azure Deployment
 

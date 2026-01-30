@@ -1,7 +1,7 @@
 import * as sql from 'mssql';
 import {
   getSqliteDatabase,
-  createRequest as createSqliteRequest,
+  createRequest,
   setSessionContext as setSqliteSessionContext,
   type SqliteRequest
 } from './sqlite-database';
@@ -9,19 +9,52 @@ import {
 let pool: sql.ConnectionPool | null = null;
 
 /**
- * Check if we should use local development mode (SQLite)
+ * Check if we should use local development mode (SQLite).
+ * Local dev mode must be explicitly enabled via NODE_ENV=development.
+ * Missing connection strings in production will fail fast rather than
+ * silently falling back to mocks.
  */
 function isLocalDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development' || !process.env.SQL_CONNECTION_STRING;
+  return process.env.NODE_ENV === 'development';
 }
 
 export async function getConnectionPool(): Promise<sql.ConnectionPool> {
-  // In local development, we don't use SQL Server connection pool
+  // In local development, return SQLite-backed adapter
   if (isLocalDevelopment()) {
-    // Initialize SQLite database
+    // Initialize SQLite database (includes auto-seeding)
     getSqliteDatabase();
-    // Return a dummy pool object (not actually used)
-    return {} as sql.ConnectionPool;
+    
+    // Return adapter that implements the subset of ConnectionPool
+    // used by the backend (request/transaction/close)
+    const localDevPool = {
+      connected: true,
+      request(): SqliteRequest {
+        return createRequest();
+      },
+      async transaction(): Promise<sql.Transaction> {
+        // SQLite auto-commit mode for local dev (no explicit transactions)
+        const tx = {
+          async begin(): Promise<void> {
+            // No-op: SQLite uses auto-commit in local dev
+          },
+          async commit(): Promise<void> {
+            // No-op: SQLite uses auto-commit in local dev
+          },
+          async rollback(): Promise<void> {
+            // No-op: SQLite uses auto-commit in local dev
+          },
+          request(): SqliteRequest {
+            return createRequest();
+          },
+        } as unknown as sql.Transaction;
+        return tx;
+      },
+      async close(): Promise<void> {
+        // No-op for SQLite-backed local development
+      },
+    } as unknown as sql.ConnectionPool;
+    
+    return localDevPool;
   }
 
   if (pool && pool.connected) {

@@ -86,15 +86,17 @@ class MockSignalRService {
       group.messageLog.shift();
     }
 
-    // Decode MessagePack for logging (if data is Buffer)
+    // Summarize binary payloads for logging
     let displayData = data;
-    if (Buffer.isBuffer(data)) {
-      try {
-        // For logging purposes, we'll just show that MessagePack data was sent
-        displayData = `<MessagePack: ${data.length} bytes>`;
-      } catch (e) {
-        displayData = `<Binary: ${data.length} bytes>`;
-      }
+    const isBuffer = typeof Buffer !== 'undefined' && Buffer.isBuffer(data);
+    const isBinaryView = data instanceof Uint8Array || ArrayBuffer.isView(data);
+
+    if (isBuffer || isBinaryView) {
+      const length =
+        typeof (data as any).byteLength === 'number'
+          ? (data as any).byteLength
+          : (data as any).length;
+      displayData = `<Binary: ${length} bytes>`;
     }
     
     console.log(

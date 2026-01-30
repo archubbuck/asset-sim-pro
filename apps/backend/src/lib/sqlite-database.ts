@@ -33,7 +33,10 @@ export function getSqliteDatabase(): Database.Database {
     // Initialize schema
     initializeSchema(db);
     
-    console.log('SqliteDatabase initialized successfully (in-memory mode)');
+    // Auto-seed with sample data for local development
+    seedDatabase();
+    
+    console.log('SqliteDatabase initialized successfully (in-memory mode with sample data)');
     
     return db;
   } catch (error) {
@@ -207,9 +210,15 @@ export function createRequest(): SqliteRequest {
     async query(sql: string): Promise<SqliteResult> {
       const database = getSqliteDatabase();
       
-      // Replace SQL Server parameter syntax (@param) with SQLite syntax (?param)
+      // Translate SQL Server syntax to SQLite
       let sqliteSql = sql;
       const params: any[] = [];
+      
+      // Remove [Trade] schema prefix (SQLite doesn't use schemas)
+      sqliteSql = sqliteSql.replace(/\[Trade\]\./g, '');
+      
+      // Remove bracket identifiers [TableName] -> TableName
+      sqliteSql = sqliteSql.replace(/\[(\w+)\]/g, '$1');
       
       // Extract parameters in order they appear
       const paramRegex = /@(\w+)/g;
@@ -223,11 +232,20 @@ export function createRequest(): SqliteRequest {
         }
         
         // Replace @param with ?
-        sqliteSql = sql.replace(paramRegex, '?');
+        sqliteSql = sqliteSql.replace(paramRegex, '?');
       }
       
       // Handle session context calls (these are no-ops in local dev)
       if (sqliteSql.includes('sp_set_session_context')) {
+        return {
+          recordset: [],
+          rowsAffected: [0]
+        };
+      }
+      
+      // Handle stored procedure calls (not supported in SQLite)
+      if (sqliteSql.includes('EXEC ') || sqliteSql.includes('EXECUTE ')) {
+        console.warn('Stored procedure calls not supported in SQLite local dev:', sqliteSql);
         return {
           recordset: [],
           rowsAffected: [0]

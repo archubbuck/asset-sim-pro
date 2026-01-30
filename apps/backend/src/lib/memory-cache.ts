@@ -31,6 +31,9 @@ class MemoryCache {
     this.cleanupInterval = setInterval(() => {
       this.cleanupExpired();
     }, 60000); // 60 seconds
+    
+    // Unref the interval so it doesn't keep Node processes alive
+    this.cleanupInterval.unref();
   }
 
   /**

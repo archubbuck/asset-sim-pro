@@ -5,10 +5,12 @@ let redisClient: Redis | null = null;
 let connecting: Promise<Redis> | null = null;
 
 /**
- * Check if we should use local development mode (in-memory cache)
+ * Check if we should use local development mode (in-memory cache).
+ * Local dev mode must be explicitly enabled via NODE_ENV=development.
+ * Missing connection strings in production will fail fast.
  */
 function isLocalDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development' || !process.env.REDIS_CONNECTION_STRING;
+  return process.env.NODE_ENV === 'development';
 }
 
 /**
