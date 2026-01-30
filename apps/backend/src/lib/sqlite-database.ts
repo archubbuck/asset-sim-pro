@@ -46,6 +46,10 @@ export function getSqliteDatabase(): Database.Database {
 /**
  * Initialize database schema for local development
  * Creates tables that match the Azure SQL schema structure
+ * 
+ * Note: SQLite datetime('now') returns UTC timestamps, which differs from
+ * SQL Server's GETDATE() that returns local server time. All timestamps in
+ * the mock database are stored in UTC for consistency.
  */
 function initializeSchema(database: Database.Database): void {
   // Create Exchanges table
