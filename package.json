@@ -4,6 +4,7 @@
   "description": "Professional Asset Management Simulator - Enterprise-grade simulation platform for Asset Management Firms, Hedge Funds, and Proprietary Trading Desks",
   "scripts": {
     "start": "node scripts/load-env.js nx serve client",
+    "start:dev": "concurrently \"npm run backend:start\" \"npm run start\" --names \"backend,client\" --prefix-colors \"blue,green\"",
     "build": "node scripts/load-env.js nx build client",
     "build:prod": "node scripts/load-env.js nx build client --configuration=production",
     "test": "nx test",
@@ -22,20 +23,7 @@
     "backend:test": "nx test backend",
     "backend:test:coverage": "nx test backend --coverage",
     "db:init": "ts-node --project scripts/tsconfig.json scripts/init-db.ts",
-    "seed:local": "ts-node --project scripts/tsconfig.json scripts/seed-local.ts",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up",
-    "docker:dev:build": "docker compose -f docker-compose.dev.yml up --build",
-    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
-    "docker:dev:clean": "docker compose -f docker-compose.dev.yml down -v",
-    "docker:prod": "docker compose up",
-    "docker:prod:build": "docker compose up --build",
-    "docker:prod:down": "docker compose down",
-    "docker:prod:clean": "docker compose down -v",
-    "docker:infra": "docker compose -f docker-compose.dev.yml up -d sql redis azurite signalr-emulator",
-    "docker:infra:down": "docker compose -f docker-compose.dev.yml down sql redis azurite signalr-emulator",
-    "docker:logs": "docker compose -f docker-compose.dev.yml logs -f",
-    "docker:logs:backend": "docker compose -f docker-compose.dev.yml logs -f backend",
-    "docker:logs:client": "docker compose -f docker-compose.dev.yml logs -f client"
+    "seed:local": "ts-node --project scripts/tsconfig.json scripts/seed-local.ts"
   },
   "keywords": [
     "trading",
@@ -76,6 +64,7 @@
     "@vitest/coverage-v8": "^4.0.0",
     "angular-eslint": "^21.0.1",
     "autoprefixer": "^10.4.0",
+    "concurrently": "^9.1.2",
     "dotenv": "^17.2.3",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
