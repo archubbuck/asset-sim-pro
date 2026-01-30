@@ -2,7 +2,6 @@
   "name": "assetsim-backend",
   "version": "1.0.0",
   "description": "AssetSim Pro Backend - Azure Functions API",
-  "main": "dist/index.js",
   "scripts": {
     "build": "node build.mjs",
     "build:tsc": "tsc",

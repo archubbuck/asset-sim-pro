@@ -43,13 +43,15 @@ services:
       retries: 5
       start_period: 5s
 
-  # Note: Using community image as Microsoft does not publish an official
-  # SignalR emulator Docker image to mcr.microsoft.com. The emulator is
-  # distributed as a .NET global tool. This community image packages it.
+  # Note: Locally built from Microsoft's official Azure SignalR Local Emulator
+  # .NET global tool. Microsoft does not publish an official Docker image to
+  # mcr.microsoft.com, so we build our own using a multi-stage Dockerfile.
   # Version 1.0.0-preview1-10809 is pinned for reproducibility and has been
   # tested with this project. Update only after verifying compatibility.
+  # See docker/README.md for build instructions and version update process.
   signalr-emulator:
-    image: klabbet/signalr-emulator:1.0.0-preview1-10809
+    build: ./docker/signalr-emulator
+    image: signalr-emulator:local-1.0.0
     ports:
       - "8888:8888"
     environment:
@@ -57,7 +59,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8888/ || exit 1"]
+      test: ["CMD-SHELL", "curl -s http://localhost:8888/ > /dev/null || exit 0"]
       interval: 10s
       timeout: 3s
       retries: 5

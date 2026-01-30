@@ -57,11 +57,21 @@ This automatically sets up Husky git hooks for commit message validation.
 
 ```bash
 # Start Docker services (SQL Server, Redis, Azurite, SignalR emulator)
+# Note: First run will build the SignalR emulator image (~2-3 minutes)
 docker compose up -d
 
 # Verify services are running
 docker compose ps
 ```
+
+**First-Time Build Note:** The SignalR emulator is built locally from Microsoft's official .NET global tool. The first `docker compose up` will take 2-3 minutes to build this image. Subsequent starts will be instant using the cached image.
+
+**Rebuild Scenarios:** You'll need to rebuild the SignalR emulator if:
+- You pull changes that update `docker/signalr-emulator/Dockerfile`
+- You want to update to a newer emulator version
+- Run: `docker compose build signalr-emulator`
+
+**See:** [docker/README.md](./docker/README.md) for detailed build documentation.
 
 ### Step 3: Initialize and Seed Database
 
@@ -98,15 +108,27 @@ If you don't have a license yet, the application will run in trial mode with wat
 
 ### Step 5: Start Development Servers
 
+**Option 1: Single Command (Recommended)**
+
+```bash
+# Start both frontend and backend with a single command
+npm run dev
+# or
+npm run start:all
+```
+
+This uses `concurrently` to run both servers with color-coded output:
+- **Frontend (cyan)**: http://localhost:4200
+- **Backend (magenta)**: http://localhost:7071/api
+
+**Option 2: Separate Terminals**
+
 ```bash
 # Terminal 1: Start Angular dev server
 npm start
 
 # Terminal 2: Start Azure Functions backend (in a new terminal)
-cd apps/backend
-npm install
-cp local.settings.json.example local.settings.json
-npm start
+npm run backend:start
 ```
 
 ### ✅ Verify Local Setup

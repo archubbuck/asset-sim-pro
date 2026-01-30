@@ -1,0 +1,28 @@
+# Git metadata
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README*
+
+# Node.js (if present in context)
+node_modules/
+npm-debug.log*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.log

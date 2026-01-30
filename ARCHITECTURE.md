@@ -106,11 +106,12 @@ Use **Docker Compose** for local emulation.
    \- "10001:10001"  
    \- "10002:10002"  
    signalr-emulator:  
-   image: \[mcr.microsoft.com/azure-signalr/emulator\](https://mcr.microsoft.com/azure-signalr/emulator)  
+   build: ./docker/signalr-emulator  
+   image: signalr-emulator:local-1.0.0  
    ports:  
    \- "8888:8888"
 
-**Note on SignalR Emulator:** Microsoft distributes the Azure SignalR Local Emulator as a .NET global tool (`Microsoft.Azure.SignalR.Emulator`) and does not publish an official Docker image to mcr.microsoft.com. The implementation uses the community-maintained Docker image `klabbet/signalr-emulator` which packages the official emulator.
+**Note on SignalR Emulator:** Microsoft distributes the Azure SignalR Local Emulator as a .NET global tool (`Microsoft.Azure.SignalR.Emulator`) and does not publish an official Docker image to mcr.microsoft.com. The implementation uses a locally built Docker image defined in `docker/signalr-emulator/` which packages the official emulator using a multi-stage build for optimal image size and reproducibility.
 
 - **Environment Config:** The repo contains a .env.local that points connection strings to localhost:1433, localhost:6379, etc.
 

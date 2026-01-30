@@ -230,6 +230,34 @@ This ensures users can only access data for Exchanges where they have assigned r
 
 ## Development
 
+### Local SignalR Emulator
+
+The backend uses Azure SignalR Service for real-time communication. For local development, a SignalR emulator runs via Docker.
+
+**Setup:**
+
+```bash
+# The SignalR emulator is built locally from Microsoft's official tool
+# Start it with other Docker services:
+docker compose up -d signalr-emulator
+
+# Verify it's running
+docker compose ps signalr-emulator
+
+# Check emulator logs if needed
+docker compose logs signalr-emulator
+```
+
+**Connection:** The backend connects to the emulator at `localhost:8888` using the connection string in `local.settings.json`:
+
+```
+Endpoint=http://localhost;Port=8999;AccessKey=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGH;Version=1.0;
+```
+
+**Note:** The connection string specifies `Port=8999` (emulator's internal format), but actual connections use port `8888`. This is standard emulator behavior.
+
+**See:** [docker/README.md](../../docker/README.md) for emulator build details, troubleshooting, and version updates.
+
 ### Building the Backend
 
 The backend uses **esbuild** to bundle Azure Functions with proper path mapping resolution and correct output structure. This is integrated with Nx for monorepo-aware builds.
