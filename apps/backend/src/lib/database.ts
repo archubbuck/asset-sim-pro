@@ -1,8 +1,63 @@
 import * as sql from 'mssql';
+import {
+  getSqliteDatabase,
+  createRequest,
+  setSessionContext as setSqliteSessionContext,
+  type SqliteRequest
+} from './sqlite-database';
 
 let pool: sql.ConnectionPool | null = null;
 
+/**
+ * Check if we should use local development mode (SQLite).
+ * Local dev mode must be explicitly enabled via NODE_ENV=development.
+ * Missing connection strings in production will fail fast rather than
+ * silently falling back to mocks.
+ */
+function isLocalDevelopment(): boolean {
+  return process.env.NODE_ENV === 'development';
+}
+
 export async function getConnectionPool(): Promise<sql.ConnectionPool> {
+  // In local development, return SQLite-backed adapter
+  if (isLocalDevelopment()) {
+    // Initialize SQLite database (includes auto-seeding)
+    getSqliteDatabase();
+    
+    // Return adapter that implements the subset of ConnectionPool
+    // used by the backend (request/transaction/close)
+    const localDevPool = {
+      connected: true,
+      request(): SqliteRequest {
+        return createRequest();
+      },
+      transaction(): sql.Transaction {
+        // SQLite auto-commit mode for local dev (no explicit transactions)
+        // Returns Transaction synchronously to match mssql API
+        const tx = {
+          async begin(): Promise<void> {
+            // No-op: SQLite uses auto-commit in local dev
+          },
+          async commit(): Promise<void> {
+            // No-op: SQLite uses auto-commit in local dev
+          },
+          async rollback(): Promise<void> {
+            // No-op: SQLite uses auto-commit in local dev
+          },
+          request(): SqliteRequest {
+            return createRequest();
+          },
+        } as unknown as sql.Transaction;
+        return tx;
+      },
+      async close(): Promise<void> {
+        // No-op for SQLite-backed local development
+      },
+    } as unknown as sql.ConnectionPool;
+    
+    return localDevPool;
+  }
+
   if (pool && pool.connected) {
     return pool;
   }
@@ -29,14 +84,20 @@ export async function getConnectionPool(): Promise<sql.ConnectionPool> {
 }
 
 export async function setSessionContext(
-  request: sql.Request,
+  request: sql.Request | SqliteRequest,
   userId: string,
   exchangeId: string,
   isSuperAdmin: boolean = false
 ): Promise<void> {
+  // In local development, use SQLite session context (no-op)
+  if (isLocalDevelopment()) {
+    await setSqliteSessionContext(request as SqliteRequest, userId, exchangeId, isSuperAdmin);
+    return;
+  }
+
   // Set SESSION_CONTEXT for Row-Level Security
   // Using parameterized approach to prevent SQL injection
-  await request
+  await (request as sql.Request)
     .input('userId', sql.UniqueIdentifier, userId)
     .input('exchangeId', sql.UniqueIdentifier, exchangeId)
     .input('isSuperAdmin', sql.Bit, isSuperAdmin ? 1 : 0)

@@ -27,7 +27,10 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "func start",
-        "cwd": "apps/backend"
+        "cwd": "apps/backend",
+        "env": {
+          "NODE_ENV": "development"
+        }
       },
       "dependsOn": ["build"]
     },
