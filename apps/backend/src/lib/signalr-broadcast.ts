@@ -9,8 +9,16 @@ import {
   trackDeadbandFiltered,
   trackBroadcastLatency,
 } from './telemetry';
+import * as mockSignalR from './mock-signalr';
 
 let signalRClient: WebPubSubServiceClient | null = null;
+
+/**
+ * Check if we should use local development mode (mock SignalR)
+ */
+function isLocalDevelopment(): boolean {
+  return process.env.NODE_ENV === 'development' || !process.env.AZURE_SIGNALR_CONNECTION_STRING;
+}
 
 /**
  * Reset SignalR client (for testing purposes)
@@ -18,17 +26,25 @@ let signalRClient: WebPubSubServiceClient | null = null;
  */
 export function resetSignalRClient(): void {
   signalRClient = null;
+  mockSignalR.resetMockSignalRService();
 }
 
 /**
  * Get or create SignalR client singleton
+ * In local development, returns null as we use mock SignalR instead
  * 
- * ADR-009: Event-Driven Architecture
- * - Uses Azure Web PubSub (SignalR) for real-time broadcasts
+ * ADR-009: Event-Driven Architecture (Updated for Local Development)
+ * - Uses Azure Web PubSub (SignalR) for real-time broadcasts in production
+ * - Uses mock SignalR for local development
  * - MessagePack protocol for efficiency
  * - Group-based broadcasting to ticker:{ExchangeId}
  */
-export function getSignalRClient(): WebPubSubServiceClient {
+export function getSignalRClient(): WebPubSubServiceClient | null {
+  if (isLocalDevelopment()) {
+    // Return null - mock SignalR doesn't need a client
+    return null;
+  }
+
   if (signalRClient) {
     return signalRClient;
   }
@@ -66,10 +82,11 @@ export function shouldBroadcastPriceUpdate(lastPrice: number, newPrice: number):
 /**
  * Broadcast price update to SignalR group using MessagePack
  * 
- * ADR-009: Fan-Out Pattern with MessagePack
+ * ADR-009: Fan-Out Pattern with MessagePack (Updated for Local Development)
  * - Broadcasts to group ticker:{ExchangeId}
  * - Uses MessagePack for protocol efficiency
  * - Applies deadband filtering
+ * - Uses mock SignalR in local development
  * 
  * ADR-025: Observability & Health Checks
  * - Tracks UpdatesBroadcasted metric for monitoring
@@ -85,6 +102,12 @@ export async function broadcastPriceUpdate(
   lastPrice: number,
   context: InvocationContext
 ): Promise<void> {
+  // In local development, use mock SignalR
+  if (isLocalDevelopment()) {
+    await mockSignalR.broadcastPriceUpdate(priceUpdate, lastPrice, context);
+    return;
+  }
+
   const startTime = performance.now();
   
   try {
@@ -100,6 +123,10 @@ export async function broadcastPriceUpdate(
     }
 
     const client = getSignalRClient();
+    if (!client) {
+      throw new Error('SignalR client not available');
+    }
+
     const groupName = `ticker:${priceUpdate.exchangeId}`;
 
     // Encode message using MessagePack for efficiency
@@ -140,8 +167,18 @@ export async function addToTickerGroup(
   connectionId: string,
   exchangeId: string
 ): Promise<void> {
+  // In local development, use mock SignalR
+  if (isLocalDevelopment()) {
+    await mockSignalR.addToTickerGroup(connectionId, exchangeId);
+    return;
+  }
+
   try {
     const client = getSignalRClient();
+    if (!client) {
+      throw new Error('SignalR client not available');
+    }
+
     const groupName = `ticker:${exchangeId}`;
     
     await client.group(groupName).addConnection(connectionId);
@@ -161,8 +198,18 @@ export async function removeFromTickerGroup(
   connectionId: string,
   exchangeId: string
 ): Promise<void> {
+  // In local development, use mock SignalR
+  if (isLocalDevelopment()) {
+    await mockSignalR.removeFromTickerGroup(connectionId, exchangeId);
+    return;
+  }
+
   try {
     const client = getSignalRClient();
+    if (!client) {
+      throw new Error('SignalR client not available');
+    }
+
     const groupName = `ticker:${exchangeId}`;
     
     await client.group(groupName).removeConnection(connectionId);

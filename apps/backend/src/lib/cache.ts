@@ -1,19 +1,34 @@
 import Redis from 'ioredis';
+import { getMemoryCache } from './memory-cache';
 
 let redisClient: Redis | null = null;
 let connecting: Promise<Redis> | null = null;
 
 /**
+ * Check if we should use local development mode (in-memory cache)
+ */
+function isLocalDevelopment(): boolean {
+  return process.env.NODE_ENV === 'development' || !process.env.REDIS_CONNECTION_STRING;
+}
+
+/**
  * Get or create Redis client singleton
  * Uses Azure Cache for Redis connection string from environment
+ * In local development, returns a mock client that wraps MemoryCache
  * 
- * ADR-008: Caching Strategy
+ * ADR-008: Caching Strategy (Updated for Local Development)
  * - Real-Time Quotes: QUOTE:{EXCHANGE_ID}:{SYMBOL}
  * - Exchange Config: CONFIG:{EXCHANGE_ID}
+ * - Local development uses in-memory cache instead of Redis
  * 
  * @returns Promise that resolves to Redis client when ready
  */
-export async function getRedisClient(): Promise<Redis> {
+export async function getRedisClient(): Promise<Redis | ReturnType<typeof getMemoryCache>> {
+  // In local development, use in-memory cache
+  if (isLocalDevelopment()) {
+    return getMemoryCache() as any;
+  }
+
   // Return existing ready client immediately
   if (redisClient && redisClient.status === 'ready') {
     return redisClient;

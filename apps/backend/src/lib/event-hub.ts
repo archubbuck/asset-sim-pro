@@ -1,8 +1,16 @@
 import { EventHubProducerClient } from '@azure/event-hubs';
 import { InvocationContext } from '@azure/functions';
 import { PriceUpdateEvent } from '../types/market-engine';
+import * as mockEventHub from './mock-event-hub';
 
 let eventHubClient: EventHubProducerClient | null = null;
+
+/**
+ * Check if we should use local development mode (mock Event Hub)
+ */
+function isLocalDevelopment(): boolean {
+  return process.env.NODE_ENV === 'development' || !process.env.EVENT_HUB_CONNECTION_STRING;
+}
 
 /**
  * Reset Event Hub client (for testing purposes)
@@ -10,15 +18,23 @@ let eventHubClient: EventHubProducerClient | null = null;
  */
 export function resetEventHubClient(): void {
   eventHubClient = null;
+  mockEventHub.resetMockEventHubService();
 }
 
 /**
  * Get or create Event Hub client singleton
+ * In local development, returns null as we use mock Event Hub instead
  * 
- * ADR-009: Event-Driven Architecture
- * - Sends price updates to Event Hubs for downstream audit
+ * ADR-009: Event-Driven Architecture (Updated for Local Development)
+ * - Sends price updates to Event Hubs for downstream audit in production
+ * - Uses mock Event Hub for local development
  */
-export function getEventHubClient(): EventHubProducerClient {
+export function getEventHubClient(): EventHubProducerClient | null {
+  if (isLocalDevelopment()) {
+    // Return null - mock Event Hub doesn't need a client
+    return null;
+  }
+
   if (eventHubClient) {
     return eventHubClient;
   }
@@ -38,8 +54,9 @@ export function getEventHubClient(): EventHubProducerClient {
 /**
  * Send price update to Event Hubs for audit trail
  * 
- * ADR-009: Simultaneous Output
- * - Price updates sent to Event Hubs for downstream audit and compliance
+ * ADR-009: Simultaneous Output (Updated for Local Development)
+ * - Price updates sent to Event Hubs for downstream audit and compliance in production
+ * - Uses mock Event Hub for local development
  * 
  * @param priceUpdate - Price update event data
  * @param context - Azure Functions context for logging
@@ -48,8 +65,17 @@ export async function sendPriceUpdateToEventHub(
   priceUpdate: PriceUpdateEvent,
   context: InvocationContext
 ): Promise<void> {
+  // In local development, use mock Event Hub
+  if (isLocalDevelopment()) {
+    await mockEventHub.sendPriceUpdateToEventHub(priceUpdate, context);
+    return;
+  }
+
   try {
     const client = getEventHubClient();
+    if (!client) {
+      throw new Error('Event Hub client not available');
+    }
 
     // Create batch of events (single event in this case)
     const batch = await client.createBatch();
@@ -91,5 +117,10 @@ export async function closeEventHubClient(): Promise<void> {
   if (eventHubClient) {
     await eventHubClient.close();
     eventHubClient = null;
+  }
+  
+  // Also close mock if in local development
+  if (isLocalDevelopment()) {
+    await mockEventHub.closeMockEventHubClient();
   }
 }
