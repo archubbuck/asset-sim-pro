@@ -59,18 +59,23 @@ npm install
 
 ### Step 2: Configure Environment (Optional)
 
-For local development with mocked services, no configuration is needed! The application automatically uses:
-- **SqliteDatabase** (in-memory) instead of SQL Server
-- **MemoryCache** (in-memory) instead of Redis
-- **MockSignalR** (in-memory) instead of Azure SignalR
-- **MockEventHub** (in-memory) instead of Azure Event Hubs
+For local development with mocked services, minimal configuration is needed:
 
-If you need to connect to real Azure services (advanced), create `.env.local`:
+1. **Copy backend configuration template:**
+   ```bash
+   cp apps/backend/local.settings.json.example apps/backend/local.settings.json
+   ```
 
-```bash
-cp .env.local.example .env.local
-# Edit .env.local and add your Azure connection strings
-```
+2. **The default configuration enables mocks** - The application automatically uses:
+   - **SqliteDatabase** (in-memory) instead of SQL Server
+   - **MemoryCache** (in-memory) instead of Redis
+   - **MockSignalR** (in-memory) instead of Azure SignalR
+   - **MockEventHub** (in-memory) instead of Azure Event Hubs
+
+3. **To connect to real Azure services** (advanced):
+   - Edit `apps/backend/local.settings.json` and add Azure connection strings
+   - Change `NODE_ENV` to something other than "development"
+   - Note: Mocks only activate when `NODE_ENV=development`
 
 ### Step 3: Start the Application
 

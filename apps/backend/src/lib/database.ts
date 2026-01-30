@@ -31,8 +31,9 @@ export async function getConnectionPool(): Promise<sql.ConnectionPool> {
       request(): SqliteRequest {
         return createRequest();
       },
-      async transaction(): Promise<sql.Transaction> {
+      transaction(): sql.Transaction {
         // SQLite auto-commit mode for local dev (no explicit transactions)
+        // Returns Transaction synchronously to match mssql API
         const tx = {
           async begin(): Promise<void> {
             // No-op: SQLite uses auto-commit in local dev

@@ -55,28 +55,49 @@ export function getSqliteDatabase(): Database.Database {
  * the mock database are stored in UTC for consistency.
  */
 function initializeSchema(database: Database.Database): void {
-  // Create Exchanges table
+  // Create Exchanges table (matches [Trade].[Exchanges])
   database.exec(`
     CREATE TABLE IF NOT EXISTS Exchanges (
       ExchangeId TEXT PRIMARY KEY,
       Name TEXT NOT NULL,
-      OwnerId TEXT NOT NULL,
       CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-      VolatilityMultiplier REAL DEFAULT 1.0,
-      Status TEXT DEFAULT 'ACTIVE',
-      StartingCash REAL DEFAULT 100000.0
+      CreatedBy TEXT NOT NULL
     );
   `);
 
-  // Create ExchangeRoles table
+  // Create ExchangeRoles table (matches [Trade].[ExchangeRoles])
   database.exec(`
     CREATE TABLE IF NOT EXISTS ExchangeRoles (
-      RoleId TEXT PRIMARY KEY,
       ExchangeId TEXT NOT NULL,
       UserId TEXT NOT NULL,
-      Role TEXT NOT NULL CHECK(Role IN ('ADMIN', 'TRADER', 'VIEWER')),
+      Role TEXT NOT NULL CHECK(Role IN ('RiskManager', 'PortfolioManager', 'Analyst')),
       AssignedAt TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (ExchangeId, UserId, Role),
       FOREIGN KEY (ExchangeId) REFERENCES Exchanges(ExchangeId)
+    );
+  `);
+
+  // Create ExchangeConfigurations table
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS ExchangeConfigurations (
+      ExchangeId TEXT PRIMARY KEY,
+      VolatilityIndex REAL DEFAULT 1.0,
+      StartingCash REAL DEFAULT 10000000.00,
+      Commission REAL DEFAULT 5.00,
+      AllowMargin INTEGER DEFAULT 1,
+      MaxPortfolioSize INTEGER DEFAULT 50,
+      DashboardLayout TEXT DEFAULT '[]',
+      FOREIGN KEY (ExchangeId) REFERENCES Exchanges(ExchangeId)
+    );
+  `);
+
+  // Create Instruments table
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS Instruments (
+      Symbol TEXT PRIMARY KEY,
+      CompanyName TEXT NOT NULL,
+      Sector TEXT,
+      BasePrice REAL NOT NULL
     );
   `);
 
@@ -86,9 +107,8 @@ function initializeSchema(database: Database.Database): void {
       PortfolioId TEXT PRIMARY KEY,
       ExchangeId TEXT NOT NULL,
       UserId TEXT NOT NULL,
-      CashBalance REAL NOT NULL DEFAULT 100000.0,
+      CashBalance REAL NOT NULL,
       CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-      UpdatedAt TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (ExchangeId) REFERENCES Exchanges(ExchangeId)
     );
   `);
@@ -96,34 +116,32 @@ function initializeSchema(database: Database.Database): void {
   // Create Positions table
   database.exec(`
     CREATE TABLE IF NOT EXISTS Positions (
-      PositionId TEXT PRIMARY KEY,
+      PositionId INTEGER PRIMARY KEY AUTOINCREMENT,
       PortfolioId TEXT NOT NULL,
       Symbol TEXT NOT NULL,
       Quantity REAL NOT NULL,
       AverageCost REAL NOT NULL,
-      CurrentPrice REAL,
-      UpdatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (PortfolioId) REFERENCES Portfolios(PortfolioId)
+      FOREIGN KEY (PortfolioId) REFERENCES Portfolios(PortfolioId),
+      FOREIGN KEY (Symbol) REFERENCES Instruments(Symbol)
     );
   `);
 
-  // Create Orders table
+  // Create Orders table (matches [Trade].[Orders] schema)
   database.exec(`
     CREATE TABLE IF NOT EXISTS Orders (
       OrderId TEXT PRIMARY KEY,
       PortfolioId TEXT NOT NULL,
+      ExchangeId TEXT NOT NULL,
       Symbol TEXT NOT NULL,
       Side TEXT NOT NULL CHECK(Side IN ('BUY', 'SELL', 'SHORT', 'COVER')),
-      OrderType TEXT NOT NULL CHECK(OrderType IN ('MARKET', 'LIMIT', 'STOP')),
+      Type TEXT NOT NULL CHECK(Type IN ('MARKET', 'LIMIT', 'STOP')),
+      Status TEXT NOT NULL DEFAULT 'PENDING',
       Quantity REAL NOT NULL,
       LimitPrice REAL,
-      StopPrice REAL,
-      Status TEXT NOT NULL CHECK(Status IN ('PENDING', 'FILLED', 'CANCELLED', 'REJECTED')),
-      FilledQuantity REAL DEFAULT 0,
-      FilledPrice REAL,
-      CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-      UpdatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (PortfolioId) REFERENCES Portfolios(PortfolioId)
+      ExecutedPrice REAL,
+      Timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (PortfolioId) REFERENCES Portfolios(PortfolioId),
+      FOREIGN KEY (ExchangeId) REFERENCES Exchanges(ExchangeId)
     );
   `);
 
@@ -171,8 +189,8 @@ function initializeSchema(database: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_orders_portfolio 
     ON Orders(PortfolioId);
     
-    CREATE INDEX IF NOT EXISTS idx_orders_status 
-    ON Orders(Status);
+    CREATE INDEX IF NOT EXISTS idx_orders_exchange_status 
+    ON Orders(ExchangeId, Status);
     
     CREATE INDEX IF NOT EXISTS idx_marketdata_exchange_symbol 
     ON MarketData(ExchangeId, Symbol);
@@ -188,6 +206,7 @@ function initializeSchema(database: Database.Database): void {
 export interface SqliteRequest {
   input(name: string, type: any, value: any): SqliteRequest;
   query(sql: string): Promise<SqliteResult>;
+  execute(procedureName: string): Promise<SqliteResult>;
 }
 
 export interface SqliteResult {
@@ -219,6 +238,26 @@ export function createRequest(): SqliteRequest {
       
       // Remove bracket identifiers [TableName] -> TableName
       sqliteSql = sqliteSql.replace(/\[(\w+)\]/g, '$1');
+      
+      // Handle OUTPUT INSERTED.* clause (SQL Server specific)
+      // Convert: INSERT INTO table OUTPUT INSERTED.* VALUES -> INSERT INTO table VALUES ... RETURNING *
+      const outputInsertedMatch = sqliteSql.match(/INSERT INTO (\w+)\s+.*?OUTPUT INSERTED\.\*\s+(VALUES.*)/is);
+      if (outputInsertedMatch) {
+        const tableName = outputInsertedMatch[1];
+        const valuesClause = outputInsertedMatch[2];
+        sqliteSql = `INSERT INTO ${tableName} ${valuesClause} RETURNING *`;
+      } else {
+        // Handle specific column OUTPUT INSERTED
+        const outputMatch = sqliteSql.match(/OUTPUT INSERTED\.(\[?\w+\]?(?:,\s*INSERTED\.\[?\w+\]?)*)/i);
+        if (outputMatch) {
+          const columns = outputMatch[1].replace(/INSERTED\./gi, '').replace(/\[|\]/g, '');
+          sqliteSql = sqliteSql.replace(/OUTPUT INSERTED\.\[?\w+\]?(?:,\s*INSERTED\.\[?\w+\]?)*/i, '');
+          sqliteSql = sqliteSql.trim();
+          if (!sqliteSql.toUpperCase().includes('RETURNING')) {
+            sqliteSql += ` RETURNING ${columns}`;
+          }
+        }
+      }
       
       // Extract parameters in order they appear
       const paramRegex = /@(\w+)/g;
@@ -252,11 +291,20 @@ export function createRequest(): SqliteRequest {
         };
       }
       
+      // Handle MERGE statements (convert to INSERT OR REPLACE for simple cases)
+      if (sqliteSql.toUpperCase().includes('MERGE ')) {
+        console.warn('MERGE statements translated to INSERT OR REPLACE in SQLite local dev');
+        // This is a simplified translation - may need enhancement for complex MERGE logic
+        sqliteSql = sqliteSql.replace(/MERGE\s+(\w+)\s+AS\s+target/i, 'INSERT OR REPLACE INTO $1');
+        sqliteSql = sqliteSql.replace(/USING\s+\(.*?\)\s+AS\s+source.*?ON.*?WHEN MATCHED THEN UPDATE SET.*?WHEN NOT MATCHED THEN INSERT/is, '');
+      }
+      
       try {
-        // Check if this is a SELECT query
-        const isSelect = sqliteSql.trim().toUpperCase().startsWith('SELECT');
+        // Check if this is a SELECT query or RETURNING clause
+        const isSelect = sqliteSql.trim().toUpperCase().startsWith('SELECT') || 
+                        sqliteSql.toUpperCase().includes('RETURNING');
         
-        if (isSelect) {
+        if (isSelect || sqliteSql.toUpperCase().includes('RETURNING')) {
           const stmt = database.prepare(sqliteSql);
           const rows = stmt.all(...params);
           return {
@@ -276,6 +324,16 @@ export function createRequest(): SqliteRequest {
         console.error('SQLite query error:', err.message, 'SQL:', sqliteSql);
         throw err;
       }
+    },
+    
+    async execute(procedureName: string): Promise<SqliteResult> {
+      // Stored procedures are not supported in SQLite
+      // Log and return empty result for local development
+      console.warn(`Stored procedure execution not supported in SQLite local dev: ${procedureName}`);
+      return {
+        recordset: [],
+        rowsAffected: [0]
+      };
     }
   };
 }
@@ -314,39 +372,44 @@ export function seedDatabase(context?: InvocationContext): void {
     const userId = '550e8400-e29b-41d4-a716-446655440001';
     
     database.prepare(`
-      INSERT INTO Exchanges (ExchangeId, Name, OwnerId, VolatilityMultiplier, Status, StartingCash)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(exchangeId, 'Demo Exchange', userId, 1.0, 'ACTIVE', 100000.0);
+      INSERT INTO Exchanges (ExchangeId, Name, CreatedBy)
+      VALUES (?, ?, ?)
+    `).run(exchangeId, 'Demo Exchange', userId);
     
-    // Insert sample role
+    // Insert sample configuration
     database.prepare(`
-      INSERT INTO ExchangeRoles (RoleId, ExchangeId, UserId, Role)
+      INSERT INTO ExchangeConfigurations (ExchangeId, VolatilityIndex, StartingCash, Commission)
       VALUES (?, ?, ?, ?)
-    `).run('550e8400-e29b-41d4-a716-446655440002', exchangeId, userId, 'ADMIN');
+    `).run(exchangeId, 1.0, 10000000.00, 5.00);
+    
+    // Insert sample role (RiskManager)
+    database.prepare(`
+      INSERT INTO ExchangeRoles (ExchangeId, UserId, Role)
+      VALUES (?, ?, ?)
+    `).run(exchangeId, userId, 'RiskManager');
+    
+    // Insert sample instruments
+    const instruments = [
+      ['SPY', 'SPDR S&P 500 ETF Trust', 'ETF', 450.00],
+      ['QQQ', 'Invesco QQQ Trust', 'ETF', 380.00],
+      ['AAPL', 'Apple Inc.', 'Technology', 175.00],
+      ['MSFT', 'Microsoft Corporation', 'Technology', 380.00],
+      ['GOOGL', 'Alphabet Inc.', 'Technology', 140.00]
+    ];
+    
+    for (const [symbol, name, sector, price] of instruments) {
+      database.prepare(`
+        INSERT INTO Instruments (Symbol, CompanyName, Sector, BasePrice)
+        VALUES (?, ?, ?, ?)
+      `).run(symbol, name, sector, price);
+    }
     
     // Insert sample portfolio
     const portfolioId = '550e8400-e29b-41d4-a716-446655440003';
     database.prepare(`
       INSERT INTO Portfolios (PortfolioId, ExchangeId, UserId, CashBalance)
       VALUES (?, ?, ?, ?)
-    `).run(portfolioId, exchangeId, userId, 100000.0);
-    
-    // Insert sample market data
-    const symbols = ['SPY', 'QQQ', 'AAPL', 'MSFT', 'GOOGL'];
-    const basePrices = [450.00, 380.00, 175.00, 380.00, 140.00];
-    
-    for (let i = 0; i < symbols.length; i++) {
-      database.prepare(`
-        INSERT INTO MarketData (MarketDataId, ExchangeId, Symbol, Price, Volume)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(
-        `md-${i}`,
-        exchangeId,
-        symbols[i],
-        basePrices[i],
-        1000000
-      );
-    }
+    `).run(portfolioId, exchangeId, userId, 10000000.00);
     
     console.log('Database seeded with sample data');
     if (context) {

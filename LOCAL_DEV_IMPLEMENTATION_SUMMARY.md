@@ -87,10 +87,10 @@ Removed all Docker-related files:
   - Updated to match simplified configuration
 
 - **GETTING_STARTED.md:**
-  - Completely rewritten for mocked local development
-  - Removed all Docker references
-  - Simplified setup instructions (3 steps instead of 6)
-  - Documented that no external services are required
+  - Updated to focus on mocked local development workflow
+  - Simplified setup instructions (fewer steps than Docker approach)
+  - Documented that all business logic services are mocked by default
+  - Clarified Azurite/Storage requirement for Functions runtime
 
 ## How It Works
 
@@ -99,7 +99,7 @@ All mock services use a common pattern to detect development mode:
 
 ```typescript
 function isLocalDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development' || !process.env.SQL_CONNECTION_STRING;
+  return process.env.NODE_ENV === 'development';
 }
 ```
 
@@ -182,14 +182,7 @@ npm run start:dev  # Instant start
 
 ## Production Deployment
 
-Production deployments remain unchanged:
-- Still deploys to Azure Functions
-- Still uses Azure SQL Database
-- Still uses Azure Cache for Redis
-- Still uses Azure SignalR Service
-- Still uses Azure Event Hubs
-
-The mock services are only used when `NODE_ENV=development`.
+**Note:** This PR removes Docker-based local development but does not change production deployment strategy. The production Dockerfiles were removed as part of simplifying local development. Production deployment configuration (CI/CD pipelines, container builds) will need to be updated separately to match the production deployment approach being used.
 
 ## Next Steps
 
