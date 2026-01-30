@@ -21,9 +21,10 @@ Before starting, ensure you have:
 ### For Local Development
 
 - **Node.js 20.x** or higher
-- **Docker Desktop** (latest version with Docker Compose V2)
 - **Git**
 - **npm** package manager
+
+**Note:** Docker is NO LONGER required for local development! All services are mocked in-memory.
 
 ### For Azure Deployment
 
@@ -38,7 +39,7 @@ All of the above, plus:
 
 ## Local Development Setup
 
-For local development without Azure, follow these steps:
+For local development, all services are mocked in-memory. No Docker, no external dependencies!
 
 ### Step 1: Clone and Install Dependencies
 
@@ -51,72 +52,53 @@ cd asset-sim-pro
 npm install
 ```
 
-This automatically sets up Husky git hooks for commit message validation.
+### Step 2: Configure Environment (Optional)
 
-### Step 2: Start Containerized Development Environment
+For local development with mocked services, no configuration is needed! The application automatically uses:
+- **SqliteDatabase** (in-memory) instead of SQL Server
+- **MemoryCache** (in-memory) instead of Redis
+- **MockSignalR** (in-memory) instead of Azure SignalR
+- **MockEventHub** (in-memory) instead of Azure Event Hubs
 
-```bash
-# Start all services with hot reload (client, backend, SQL, Redis, Azurite, SignalR)
-npm run docker:dev:build
-
-# Verify all containers are healthy
-docker ps
-
-# View logs (optional)
-npm run docker:logs        # All services
-npm run docker:logs:client # Client only
-npm run docker:logs:backend # Backend only
-```
-
-**What This Does:**
-- Starts SQL Server, Redis, Azurite, and SignalR emulator
-- Builds and runs Angular client with hot reload (localhost:4200)
-- Builds and runs Azure Functions backend with watch mode (localhost:7071)
-- Automatically initializes database schema and seeds demo data
-- Uses bind mounts so code changes are reflected immediately
-
-### Step 3: Configure Local Environment
+If you need to connect to real Azure services (advanced), create `.env.local`:
 
 ```bash
-# Copy environment template
 cp .env.local.example .env.local
-
-# Edit .env.local and set your Kendo UI license key
-# KENDO_UI_LICENSE=your-kendo-license-key-here
-
-# Review and adjust connection strings if needed
-# (Default values work with Docker Compose setup)
+# Edit .env.local and add your Azure connection strings
 ```
 
-### Step 3: Configure Local Environment
+### Step 3: Start the Application
 
 ```bash
-# Copy environment template for Docker Compose
-cp .env.local .env
-
-# Edit .env and set your Kendo UI license key
-# KENDO_UI_LICENSE=your-kendo-license-key-here
+# Start both backend and client together
+npm run start:dev
 ```
 
-**Important: Kendo UI License Configuration**
+This will start:
+- **Backend API** at `http://localhost:7071`
+- **Angular Client** at `http://localhost:4200`
 
-AssetSim Pro uses Kendo UI for financial charts and components. To run without trial watermarks:
-
-1. Obtain your Kendo UI license key from [https://www.telerik.com/account/](https://www.telerik.com/account/)
-2. Open `.env` and set `KENDO_UI_LICENSE=your-license-key`
-3. Never commit `.env` to version control (it's already in `.gitignore`)
-4. For production deployments, use Azure Key Vault or CI/CD secrets
-
-If you don't have a license yet, the application will run in trial mode with watermarks.
-
-**Note:** Docker Compose reads from `.env` (not `.env.local`). Connection strings are pre-configured for the containerized services.
-
-### Step 4: Access the Application
+Alternatively, run them separately:
 
 ```bash
-# Everything is already running in containers!
-# No need to start separate terminals
+# Terminal 1: Start backend
+npm run backend:start
+
+# Terminal 2: Start client
+npm start
 ```
+
+### Step 4: Verify Everything Works
+
+1. Open browser to `http://localhost:4200`
+2. Backend API docs available at `http://localhost:7071/api/docs`
+3. Health check at `http://localhost:7071/api/health`
+
+**What's Running:**
+- ✅ Backend with mocked database, cache, SignalR, and Event Hub
+- ✅ Real-time price updates logged to console
+- ✅ Sample data auto-seeded on startup
+- ✅ No external services required!
 
 ### ✅ Verify Local Setup
 
